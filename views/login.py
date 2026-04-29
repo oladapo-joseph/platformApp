@@ -21,7 +21,7 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
     border: 1px solid {BORDER};
     border-radius: 10px;
     padding: 40px 48px 36px 48px;
-    width: 380px;
+    width: 700px;
 }}
 .login-brand {{
     text-align: center;
@@ -30,20 +30,20 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
 .login-brand .brand-ngx {{
     color: {ACCENT};
     font-weight: 800;
-    font-size: 32px;
+    font-size: 40px;
     letter-spacing: 6px;
-    line-height: 1;
+    line-height: 2;
 }}
 .login-brand .brand-sub {{
     color: {MUTED};
-    font-size: 9px;
+    font-size: 15px;
     letter-spacing: 6px;
     margin-top: 4px;
 }}
 .login-divider {{
     height: 1px;
     background: {BORDER};
-    margin: 0 0 28px 0;
+    margin: 0 20px 28px 0;
 }}
 .login-error {{
     background: {RED}18;
@@ -69,11 +69,11 @@ def render():
         st.markdown(f"""
             <div class='login-card'>
                 <div class='login-brand'>
-                    <div class='brand-ngx'>NGX</div>
-                    <div class='brand-sub'>ANALYSER</div>
+                    <div class='brand-ngx'>EquityLens NG</div>
+                    <div class='brand-sub'>Clarity | Insight | Advantage</div>
                 </div>
                 <div class='login-divider'></div>
-            </div>
+            </div><br>
         """, unsafe_allow_html=True)
 
         # Error message slot
@@ -102,7 +102,7 @@ def render():
                     )
 
         st.markdown(
-            f"<div style='color:{MUTED};font-size:9px;text-align:center;"
-            f"margin-top:24px;letter-spacing:1.5px'>NGX ANALYSER v1.0</div>",
+            f"<div style='color:{MUTED};font-size:12px;text-align:center;"
+            f"margin-top:24px;letter-spacing:1.5px'>EquityLens NG v1.0</div>",
             unsafe_allow_html=True,
         )

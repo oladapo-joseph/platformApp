@@ -23,7 +23,7 @@ def _get_client() -> MongoClient:
 
 
 def _collection():
-    return _get_client()[os.getenv("MONGODB_DB", "")]["tradesData"]
+    return _get_client()[os.getenv("MONGODB_DB", "")][os.getenv("COLLECTION_NAME")]
 
 
 def _latest_snapshot(date=None) -> list:

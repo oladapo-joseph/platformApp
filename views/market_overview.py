@@ -227,7 +227,7 @@ def render():
 
     # ── Date range picker ─────────────────────────────────────────────────────
     min_date, max_date = load_date_bounds()
-    default_start = max_date - timedelta(days=90)
+    default_start = max(max_date - timedelta(days=90), min_date)
 
     ctrl_l, ctrl_r, _ = st.columns([1.6, 1.6, 5])
     with ctrl_l:

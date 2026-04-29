@@ -3,7 +3,7 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="NGX Analyser",
+    page_title="EquityLens NG",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -149,11 +149,11 @@ if is_admin:
 with st.sidebar:
     # Branding
     st.markdown(f"""
-        <div style='padding:28px 20px 16px 20px'>
-            <div style='color:{ACCENT};font-weight:800;font-size:24px;
-                        letter-spacing:4px;line-height:1'>NGX</div>
+        <div style='padding:0px 20px 16px 0px'>
+            <div style='color:{ACCENT};font-weight:800;font-size:22px;
+                        letter-spacing:3px;line-height:1'>EquityLens</div>
             <div style='color:{MUTED};font-size:8px;letter-spacing:5px;
-                        margin-top:3px;font-weight:400'>ANALYSER</div>
+                        margin-top:3px;font-weight:500;font-size:12px'>NG</div>
         </div>
         <div style='height:1px;background:{BORDER};margin:0 0 8px 0'></div>
         <div style='color:{MUTED};font-size:8px;letter-spacing:2.5px;
