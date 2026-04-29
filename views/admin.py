@@ -147,12 +147,12 @@ def render():
             is_admin = user["role"] == "admin"
             if not is_self and not is_admin:
                 if user["is_active"]:
-                    if st.button("Revoke", key=f"rev_{user['id']}",
+                    if st.button("Revoke", key=f"rev_{user['username']}",
                                  use_container_width=True):
                         set_user_active(user["username"], False)
                         st.rerun()
                 else:
-                    if st.button("Restore", key=f"rst_{user['id']}",
+                    if st.button("Restore", key=f"rst_{user['username']}",
                                  use_container_width=True):
                         set_user_active(user["username"], True)
                         st.rerun()
