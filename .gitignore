@@ -1,0 +1,12 @@
+*.env
+__pycache__/*
+*.pyc
+*.pyo
+logs/error.log
+.streamlit/
+*.vscode/
+*pytest_cache/
+*.DS_Store
+tests/
+.devcontainer/
+
