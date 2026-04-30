@@ -261,7 +261,7 @@ def render():
     
     with d_col1:
         start_date = st.date_input(
-            "From", value=max_date - timedelta(days=90),
+            "From", value=max(max_date - timedelta(days=90), min_date),
             min_value=min_date, max_value=max_date,
             key="dd_start", disabled=locked,
         )

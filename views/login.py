@@ -21,7 +21,8 @@ section[data-testid="stSidebar"] {{ display: none !important; }}
     border: 1px solid {BORDER};
     border-radius: 10px;
     padding: 40px 48px 36px 48px;
-    width: 700px;
+    width: 100%;
+    box-sizing: border-box;
 }}
 .login-brand {{
     text-align: center;
