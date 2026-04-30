@@ -258,6 +258,7 @@ def render():
     # ── Row 3: date range (disabled until stock selected) ─────────────────────
     d_col1, d_col2, d_col3 = st.columns([1.6, 1.6, 4])
 
+    
     with d_col1:
         start_date = st.date_input(
             "From", value=max_date - timedelta(days=90),
