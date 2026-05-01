@@ -164,7 +164,7 @@ with st.sidebar:
         "nav",
         list(PAGES.keys()),
         format_func=lambda x: f"{PAGES[x][0]}  {x}",
-        label_visibility="collapsed",
+        label_visibility="hidden",
     )
 
     st.markdown("<div style='height:200px'></div>", unsafe_allow_html=True)

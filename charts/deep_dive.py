@@ -106,6 +106,9 @@ def build_main_chart(
     panels: list[str],
     chart_type: str,
     symbol: str,
+    h_line_price: float = None,
+    trendline: tuple = None,
+    v_line_date: str = None,
 ) -> go.Figure:
     """
     Composite chart: price (candle/line) + optional overlays + sub-panels.
@@ -236,6 +239,34 @@ def build_main_chart(
                     line_color=color, line_width=0.8,
                     row=idx, col=1,
                 )
+
+    # ── Drawing tools ───────────────────────────────────────────────────────────
+    if h_line_price is not None:
+        fig.add_hline(
+            y=h_line_price,
+            line_dash="dash",
+            line_color="#ffffff",
+            line_width=1.5,
+            row=1, col=1,
+        )
+
+    if trendline and len(trendline) == 4:
+        x1, y1, x2, y2 = trendline
+        fig.add_shape(
+            type="line",
+            x0=x1, y0=y1, x1=x2, y1=y2,
+            line=dict(color="#00ff88", width=1.5, dash="solid"),
+            xref="x", yref="y",
+        )
+
+    if v_line_date:
+        fig.add_vline(
+            x=v_line_date,
+            line_dash="dot",
+            line_color="#ffcc00",
+            line_width=1.5,
+            row=1, col=1,
+        )
 
     return _apply_base_subplots(fig, n_rows)
 

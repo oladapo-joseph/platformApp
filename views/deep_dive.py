@@ -287,6 +287,8 @@ def render():
                     )
                     st.rerun()
 
+    
+
     # ── Guards ────────────────────────────────────────────────────────────────
     if locked:
         st.plotly_chart(empty_fig("↑ Select a stock to begin"), use_container_width=True)
@@ -310,6 +312,44 @@ def render():
     # ── Meta bar ──────────────────────────────────────────────────────────────
     st.markdown(_meta_bar(full_df.iloc[-1]), unsafe_allow_html=True)
 
+    # ── Drawing tools ────────────────────────────────────────────────────────
+    draw_col1, draw_col2, draw_col3, draw_col4 = st.columns([1, 1.5, 1.5, 1])
+
+    with draw_col1:
+        enable_draw = st.checkbox("DRAW", value=False)
+
+    h_line_price = None
+    trendline = None
+    v_line_date = None
+
+    if enable_draw:
+        current_price = float(price_df["ClosePrice"].iloc[-1]) if not price_df.empty else 0
+        price_min = float(price_df["ClosePrice"].min()) if not price_df.empty else 0
+        price_max = float(price_df["ClosePrice"].max()) if not price_df.empty else 100
+
+        with draw_col2:
+            h_line_price = st.number_input(
+                "Horizontal Line (₦)",
+                min_value=price_min,
+                max_value=price_max,
+                value=current_price,
+                step=0.5,
+            )
+
+        with draw_col3:
+            col_trend1, col_trend2 = st.columns(2)
+            with col_trend1:
+                tr_date1 = st.date_input("Start Date", value=start_date, key="tr_date1")
+                tr_price1 = st.number_input("Start Price (₦)", value=current_price, step=0.5, key="tr_price1")
+            with col_trend2:
+                tr_date2 = st.date_input("End Date", value=end_date, key="tr_date2")
+                tr_price2 = st.number_input("End Price (₦)", value=current_price, step=0.5, key="tr_price2")
+            if tr_date1 and tr_date2:
+                trendline = (str(tr_date1), tr_price1, str(tr_date2), tr_price2)
+
+        with draw_col4:
+            v_line_date = st.date_input("Vertical Line", value=None, key="v_line")
+
     # ── Main chart ────────────────────────────────────────────────────────────
     fig = build_main_chart(
         price_df=price_df,
@@ -318,6 +358,9 @@ def render():
         panels=panels,
         chart_type=chart_type,
         symbol=symbol,
+        h_line_price=h_line_price,
+        trendline=trendline,
+        v_line_date=v_line_date,
     )
     st.plotly_chart(fig, use_container_width=True)
 
