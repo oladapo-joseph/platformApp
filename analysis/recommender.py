@@ -65,9 +65,9 @@ def generate_recommendation(
     # Fall back to env variable if no key supplied (admin path)
     if not api_key:
         key_map = {
-            "Claude (Anthropic)": _env,
-            "OpenAI (GPT-4o)":    _env.get("OPENAI_API_KEY"),
-            "Gemini (Google)":    _env.get("GEMINI_API_KEY"),
+            "Claude (Anthropic)": os.getenv('ANTHROPIC_API_KEY'),
+            "OpenAI (GPT-4o)":    os.getenv("OPENAI_API_KEY"),
+            "Gemini (Google)":    os.getenv("GEMINI_API_KEY"),
         }
         api_key = key_map.get(provider)
 
