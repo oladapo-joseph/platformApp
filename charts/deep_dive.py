@@ -77,6 +77,21 @@ def _apply_base_subplots(fig: go.Figure, n_rows: int) -> go.Figure:
     return fig
 
 
+# ── Gap removal helper ───────────────────────────────────────────────────────
+
+def _rangebreaks(df: pd.DataFrame) -> list:
+    """Skip weekends and any weekday gaps (public holidays) in the data."""
+    breaks = [dict(bounds=["sat", "mon"])]
+    if df.empty or not isinstance(df.index, pd.DatetimeIndex) or len(df) < 2:
+        return breaks
+    all_weekdays = pd.bdate_range(df.index.min(), df.index.max())
+    trading_set  = set(df.index.normalize())
+    holidays     = [d.strftime("%Y-%m-%d") for d in all_weekdays if d not in trading_set]
+    if holidays:
+        breaks.append(dict(values=holidays))
+    return breaks
+
+
 # ── Empty placeholder ─────────────────────────────────────────────────────────
 
 def empty_fig(msg: str = "Select a stock to begin") -> go.Figure:
@@ -268,7 +283,9 @@ def build_main_chart(
             row=1, col=1,
         )
 
-    return _apply_base_subplots(fig, n_rows)
+    fig = _apply_base_subplots(fig, n_rows)
+    fig.update_xaxes(rangebreaks=_rangebreaks(full_df))
+    return fig
 
 
 # ── Buy / Sell signal chart ───────────────────────────────────────────────────
@@ -302,4 +319,6 @@ def build_signal_chart(
                         line=dict(color=RED, width=1)),
         ))
 
-    return _apply_base(fig, title=f"{symbol} — Buy / Sell Signals")
+    fig = _apply_base(fig, title=f"{symbol} — Buy / Sell Signals")
+    fig.update_xaxes(rangebreaks=_rangebreaks(price_df))
+    return fig

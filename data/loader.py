@@ -163,6 +163,83 @@ def load_latest_market(sector_map: pd.DataFrame = None, end_date=None) -> pd.Dat
 
 
 @st.cache_data(ttl=300, show_spinner=False)
+def load_range_market(start_date, end_date) -> pd.DataFrame:
+    """
+    Per-symbol OHLCV aggregation across [start_date, end_date] inclusive.
+    Returns: Symbol, Sector, OpenPrice, ClosePrice, HighPrice, LowPrice,
+             TotalVolume, TotalValue, TradeDays, PeriodChange, PeriodPctChange
+    """
+    col = _collection()
+
+    def _day_start(d):
+        if isinstance(d, str):
+            d = datetime.strptime(d[:10], "%Y-%m-%d").date()
+        return datetime(d.year, d.month, d.day, 0, 0, 0, tzinfo=WAT)
+
+    start_dt = _day_start(start_date)
+    end_dt   = _day_start(end_date) + timedelta(days=1)   # exclusive upper bound
+
+    pipeline = [
+        {"$match": {"fetched_at": {"$gte": start_dt, "$lt": end_dt}}},
+        # Deduplicate: one record per symbol per calendar day (latest fetch)
+        {"$sort": {"fetched_at": DESCENDING}},
+        {"$group": {
+            "_id": {
+                "symbol": "$Symbol",
+                "date":   {"$dateToString": {"format": "%Y-%m-%d",
+                                             "date": "$fetched_at",
+                                             "timezone": "Africa/Lagos"}},
+            },
+            "doc": {"$first": "$$ROOT"},
+        }},
+        {"$replaceRoot": {"newRoot": "$doc"}},
+        # Chronological aggregation per symbol
+        {"$sort": {"fetched_at": ASCENDING}},
+        {"$group": {
+            "_id":         "$Symbol",
+            "Symbol":      {"$first": "$Symbol"},
+            "Sector":      {"$first": "$Sector"},
+            "OpenPrice":   {"$first": "$OpeningPrice"},   # first day open
+            "ClosePrice":  {"$last":  "$ClosePrice"},     # last day close
+            "HighPrice":   {"$max":   "$HighPrice"},
+            "LowPrice":    {"$min":   "$LowPrice"},
+            "TotalVolume": {"$sum":   "$Volume"},
+            "TotalValue":  {"$sum":   "$Value"},
+            "TradeDays":   {"$sum":   1},
+        }},
+        {"$addFields": {
+            "PeriodChange": {"$subtract": ["$ClosePrice", "$OpenPrice"]},
+            "PeriodPctChange": {
+                "$cond": [
+                    {"$or": [{"$eq": ["$OpenPrice", 0]}, {"$eq": ["$OpenPrice", None]}]},
+                    None,
+                    {"$multiply": [
+                        {"$divide": [
+                            {"$subtract": ["$ClosePrice", "$OpenPrice"]},
+                            "$OpenPrice",
+                        ]},
+                        100,
+                    ]},
+                ]
+            },
+        }},
+    ]
+
+    docs = list(col.aggregate(pipeline))
+    if not docs:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(docs)
+    for c in ["OpenPrice", "ClosePrice", "HighPrice", "LowPrice",
+              "TotalVolume", "TotalValue", "PeriodChange", "PeriodPctChange"]:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    df.drop(columns=["_id"], errors="ignore", inplace=True)
+    return df.reset_index(drop=True)
+
+
+@st.cache_data(ttl=300, show_spinner=False)
 def load_sector_performance(end_date=None) -> pd.DataFrame:
     """
     Avg % change, total value, total volume, and stock count per sector
