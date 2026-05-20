@@ -145,16 +145,33 @@ def _format_naira(n: float) -> str:
     return f"₦{n:,.2f}"
 
 
-def _meta_bar(last: pd.Series) -> str:
-    chg = float(last.get("Change", 0) or 0)
-    pct = (chg / float(last.get("PrevClosingPrice", 1) or 1)) * 100
+def _meta_bar(full_df: pd.DataFrame) -> str:
+    if full_df.empty:
+        return ""
 
-    sign       = "+" if chg > 0 else ""
+    first = full_df.iloc[0]
+    last  = full_df.iloc[-1]
+
+    period_open  = float(first.get("OpeningPrice", 0) or 0)
+    period_close = float(last.get("ClosePrice",    0) or 0)
+    period_high  = float(full_df["HighPrice"].max()) if "HighPrice" in full_df.columns else 0
+    period_low   = float(full_df["LowPrice"].min())  if "LowPrice"  in full_df.columns else 0
+    total_volume = full_df["Volume"].sum() if "Volume" in full_df.columns else 0
+    total_value  = full_df["Value"].sum()  if "Value"  in full_df.columns else 0
+    has_trades   = "Trades" in full_df.columns
+    total_trades = int(full_df["Trades"].sum()) if has_trades else None
+
+    chg     = period_close - period_open
+    chg_pct = (chg / period_open * 100) if period_open else 0
+    sign    = "+" if chg > 0 else ""
     delta_cls  = "mc-up" if chg > 0 else ("mc-down" if chg < 0 else "mc-flat")
     delta_html = (
         f"<div class='mc-delta {delta_cls}'>"
-        f"{sign}{chg:.2f} ({sign}{pct:.2f}%)</div>"
+        f"{sign}{chg:.2f} ({sign}{chg_pct:.2f}%)</div>"
     )
+
+    multi = len(full_df) > 1
+    pfx   = "PERIOD " if multi else ""
 
     def card(label, value, extra=""):
         return (
@@ -166,14 +183,14 @@ def _meta_bar(last: pd.Series) -> str:
         )
 
     cards = "".join([
-        card("CLOSE",  f"₦{float(last['ClosePrice']):.2f}", delta_html),
-        card("OPEN",   f"₦{float(last.get('OpeningPrice', 0)):.2f}"),
-        card("HIGH",   f"<span class='mc-up'>₦{float(last.get('HighPrice', 0)):.2f}</span>"),
-        card("LOW",    f"<span class='mc-down'>₦{float(last.get('LowPrice', 0)):.2f}</span>"),
-        card("VOLUME", f"{int(last.get('Volume', 0)):,}"),
-        card("VALUE",  _format_naira(float(last.get("Value", 0)))),
-        card("TRADES", f"{int(last.get('Trades', 0)):,}" if "Trades" in last.index else "—"),
-    ])
+        card("CLOSE",          f"₦{period_close:.2f}", delta_html),
+        card(f"{pfx}OPEN",     f"₦{period_open:.2f}"),
+        card(f"{pfx}HIGH",     f"<span class='mc-up'>₦{period_high:.2f}</span>"),
+        card(f"{pfx}LOW",      f"<span class='mc-down'>₦{period_low:.2f}</span>"),
+        card(f"{pfx}VOLUME",   f"{int(total_volume):,}"),
+        card(f"{pfx}VALUE",    _format_naira(total_value)),
+    ] + ([card("TRADES", f"{total_trades:,}")] if total_trades is not None else []))
+
     return f"<div class='meta-bar'>{cards}</div>"
 
 
@@ -310,7 +327,7 @@ def render():
         return
 
     # ── Meta bar ──────────────────────────────────────────────────────────────
-    st.markdown(_meta_bar(full_df.iloc[-1]), unsafe_allow_html=True)
+    st.markdown(_meta_bar(full_df), unsafe_allow_html=True)
 
     # ── Drawing tools ────────────────────────────────────────────────────────
     draw_col1, draw_col2, draw_col3, draw_col4 = st.columns([1, 1.5, 1.5, 1])
