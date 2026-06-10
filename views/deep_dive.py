@@ -4,8 +4,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
+import numpy as np
+
 from config import ACCENT, RED, YELLOW, MUTED, TEXT, CARD_BG, BORDER, BG
-from data.loader import load_stock_list, load_stock_data, filter_by_dates, load_date_bounds
+from data.loader import load_stock_list, load_stock_data, filter_by_dates, load_date_bounds, load_range_market
 from analysis.signals import get_signals, STRATEGIES
 from analysis.recommender import generate_recommendation, LLM_OPTIONS
 from charts.deep_dive import build_main_chart, build_signal_chart, empty_fig
@@ -98,6 +100,46 @@ html, body, [class*="css"] {{
     letter-spacing: 2px;
     margin-bottom: 8px;
     margin-top: 4px;
+}}
+
+/* ── Similar stocks table ── */
+.sim-wrap {{
+    background: {CARD_BG};
+    border: 1px solid {BORDER};
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}}
+.sim-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}}
+.sim-table th {{
+    color: {MUTED};
+    font-size: 9px;
+    letter-spacing: 1.8px;
+    padding: 8px 14px;
+    text-align: left;
+    border-bottom: 1px solid {BORDER};
+    background: {CARD_BG};
+}}
+.sim-table td {{
+    padding: 9px 14px;
+    border-bottom: 1px solid {BORDER}55;
+    color: {TEXT};
+    vertical-align: middle;
+}}
+.sim-table tr:last-child td {{ border-bottom: none; }}
+.sim-sym {{ font-weight: 700; color: {ACCENT}; letter-spacing: 0.5px; }}
+.sim-score-bar {{
+    display: inline-block;
+    height: 5px;
+    border-radius: 3px;
+    background: {ACCENT};
+    opacity: 0.75;
+    vertical-align: middle;
+    margin-right: 6px;
 }}
 
 /* Hide default metric styling bleed */
@@ -213,6 +255,85 @@ def _reco_html(text: str) -> str:
     return f"<div class='reco-box'>{verdict_html}{body}</div>"
 
 
+def _find_similar(symbol: str, start_date, end_date, n: int = 6) -> pd.DataFrame:
+    mkt = load_range_market(start_date, end_date)
+    if mkt.empty:
+        return pd.DataFrame()
+
+    ref_row = mkt[mkt["Symbol"] == symbol]
+    if ref_row.empty:
+        return pd.DataFrame()
+
+    ref = ref_row.iloc[0]
+    ref_price  = float(ref.get("ClosePrice",   0) or 1)
+    ref_vol    = float(ref.get("TotalVolume",  0) or 1)
+    ref_val    = float(ref.get("TotalValue",   0) or 1)
+    ref_sector = ref.get("Sector", "") or ""
+
+    def _log_sim(a: float, b: float) -> float:
+        if a <= 0 or b <= 0:
+            return 0.0
+        return max(0.0, 1.0 - abs(np.log(a / b)) / np.log(100))
+
+    rows = []
+    for _, row in mkt[mkt["Symbol"] != symbol].iterrows():
+        price  = float(row.get("ClosePrice",  0) or 0)
+        vol    = float(row.get("TotalVolume", 0) or 0)
+        val    = float(row.get("TotalValue",  0) or 0)
+        sector = row.get("Sector", "") or ""
+
+        s_sector = 1.0 if sector == ref_sector else 0.0
+        score = (
+            0.35 * s_sector
+            + 0.30 * _log_sim(price, ref_price)
+            + 0.20 * _log_sim(val,   ref_val)
+            + 0.15 * _log_sim(vol,   ref_vol)
+        )
+        rows.append({
+            "Symbol":  row["Symbol"],
+            "Sector":  sector or "—",
+            "Price":   price,
+            "Volume":  int(vol),
+            "Value":   val,
+            "Score":   round(score * 100),
+        })
+
+    df = pd.DataFrame(rows)
+    return df.nlargest(n, "Score").reset_index(drop=True)
+
+
+def _sim_table_html(sim_df: pd.DataFrame) -> str:
+    rows_html = ""
+    for _, r in sim_df.iterrows():
+        bar_w = max(4, int(r["Score"] * 0.9))
+        price = f"₦{r['Price']:.2f}" if r["Price"] else "—"
+        vol   = f"{r['Volume']:,}"   if r["Volume"] else "—"
+        val   = _format_naira(r["Value"]) if r["Value"] else "—"
+        rows_html += (
+            f"<tr>"
+            f"<td><span class='sim-sym'>{r['Symbol']}</span></td>"
+            f"<td>{r['Sector']}</td>"
+            f"<td>{price}</td>"
+            f"<td>{vol}</td>"
+            f"<td>{val}</td>"
+            f"<td>"
+            f"  <span class='sim-score-bar' style='width:{bar_w}px'></span>"
+            f"  {r['Score']}%"
+            f"</td>"
+            f"</tr>"
+        )
+    return (
+        "<div class='sim-wrap'>"
+        "<table class='sim-table'>"
+        "<thead><tr>"
+        "<th>SYMBOL</th><th>SECTOR</th><th>PRICE</th>"
+        "<th>VOLUME</th><th>VALUE</th><th>MATCH</th>"
+        "</tr></thead>"
+        f"<tbody>{rows_html}</tbody>"
+        "</table></div>"
+    )
+
+
 # ── Render ────────────────────────────────────────────────────────────────────
 
 def render():
@@ -317,10 +438,11 @@ def render():
 
     # ── Load & filter data ────────────────────────────────────────────────────
     with st.spinner(""):
-        price_df, full_df = load_stock_data(symbol)
+        price_df_all, full_df_all = load_stock_data(symbol)
 
-    price_df = filter_by_dates(price_df, start_date, end_date)
-    full_df  = filter_by_dates(full_df,  start_date, end_date)
+    # Keep full history for indicator computation (avoids NaN on short windows)
+    price_df = filter_by_dates(price_df_all, start_date, end_date)
+    full_df  = filter_by_dates(full_df_all,  start_date, end_date)
 
     if price_df.empty:
         st.warning("No data for selected range.")
@@ -382,7 +504,11 @@ def render():
     st.plotly_chart(fig, use_container_width=True)
 
     # ── Signals + Recommendation ──────────────────────────────────────────────
-    buy_df, sell_df = get_signals(strategy, price_df)
+    # Compute on full history so EMAs/SMAs are warm, then slice to display range
+    _buy_all, _sell_all = get_signals(strategy, price_df_all)
+    _s, _e = pd.to_datetime(start_date), pd.to_datetime(end_date)
+    buy_df  = _buy_all[(_buy_all.index  >= _s) & (_buy_all.index  <= _e)]
+    sell_df = _sell_all[(_sell_all.index >= _s) & (_sell_all.index <= _e)]
 
     sig_col, reco_col = st.columns([1, 1], gap="large")
 
@@ -474,6 +600,25 @@ def render():
                 f"</div>",
                 unsafe_allow_html=True,
             )
+
+    # ── Similar Stocks ────────────────────────────────────────────────────────
+    st.markdown(
+        "<div class='section-label' style='margin-top:20px'>SIMILAR STOCKS</div>",
+        unsafe_allow_html=True,
+    )
+    with st.spinner("Finding similar stocks…"):
+        sim_df = _find_similar(symbol, start_date, end_date)
+
+    if not sim_df.empty:
+        st.markdown(_sim_table_html(sim_df), unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='color:{MUTED};font-size:9px;letter-spacing:1px;margin-bottom:16px'>"
+            f"Ranked by sector match, price level, traded value and volume over the selected period."
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    else:
+        st.info("No comparable stocks found for this period.")
 
     # ── Raw data ──────────────────────────────────────────────────────────────
     with st.expander("📋 Raw Data"):

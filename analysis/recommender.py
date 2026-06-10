@@ -26,7 +26,7 @@ Recommendation: [BUY / SELL]
 Reason: <brief explanation>
 """
 
-LLM_OPTIONS = ["Claude (Anthropic)", "OpenAI (GPT-4o)", "Gemini (Google)"]
+LLM_OPTIONS = ["Gemini (Google)", "Claude (Anthropic)", "OpenAI (GPT-4o)"]
 
 
 def _build_llm(provider: str, api_key: str):
@@ -48,7 +48,7 @@ def _build_llm(provider: str, api_key: str):
         from langchain_google_genai import ChatGoogleGenerativeAI
         return ChatGoogleGenerativeAI(
             temperature=0,
-            model="gemini-1.5-flash",
+            model="gemini-2.5-flash",
             google_api_key=api_key,
         )
     else:
@@ -59,7 +59,7 @@ def generate_recommendation(
     buy_signal: dict,
     sell_signal: dict,
     stock_details: dict,
-    provider: str = "Claude (Anthropic)",
+    provider: str = "Gemini (Google)",
     api_key: str = None,
 ) -> str:
     # Fall back to env variable if no key supplied (admin path)

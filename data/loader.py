@@ -26,6 +26,24 @@ def _collection():
     return _get_client()[os.getenv("MONGODB_DB", "")][os.getenv("COLLECTION_NAME")]
 
 
+_SNAP_FIELDS = {
+    "Symbol":           {"$first": "$Symbol"},
+    "Sector":           {"$first": "$Sector"},
+    "TradeDate":        {"$first": "$TradeDate"},
+    "fetched_at":       {"$max":   "$fetched_at"},
+    "OpeningPrice":     {"$max":   "$OpeningPrice"},
+    "HighPrice":        {"$max":   "$HighPrice"},
+    "LowPrice":         {"$min":   "$LowPrice"},
+    "ClosePrice":       {"$max":   "$ClosePrice"},
+    "Volume":           {"$max":   "$Volume"},
+    "Value":            {"$max":   "$Value"},
+    "PrevClosingPrice": {"$first": "$PrevClosingPrice"},
+    "Change":           {"$max":   "$Change"},
+    "PercChange":       {"$max":   "$PercChange"},
+    "Trades":           {"$max":   "$Trades"},
+}
+
+
 def _latest_snapshot(date=None) -> list:
     """One doc per symbol from the most recent fetched_at on a given date."""
     col = _collection()
@@ -46,11 +64,11 @@ def _latest_snapshot(date=None) -> list:
 
     day_end = day_start + timedelta(days=1)
 
+    # Group directly by symbol — no pre-group sort needed.
+    # $max/$min accumulators give end-of-day values (NGX reports cumulative daily totals).
     pipeline = [
         {"$match": {"fetched_at": {"$gte": day_start, "$lt": day_end}}},
-        {"$sort": {"fetched_at": DESCENDING}},
-        {"$group": {"_id": "$Symbol", "doc": {"$first": "$$ROOT"}}},
-        {"$replaceRoot": {"newRoot": "$doc"}},
+        {"$group": {"_id": "$Symbol", **_SNAP_FIELDS}},
     ]
     return list(col.aggregate(pipeline))
 
@@ -72,15 +90,28 @@ def load_stock_data(symbol: str, days: int = 1095) -> tuple[pd.DataFrame, pd.Dat
     col   = _collection()
     since = datetime.now(WAT) - timedelta(days=days)
 
+    # Group by WAT calendar date without a pre-sort — sorts ~1095 docs after grouping
+    # instead of ~15 k raw docs before.
+    _date_key = {"$dateToString": {"format": "%Y-%m-%d", "date": "$fetched_at", "timezone": "Africa/Lagos"}}
     pipeline = [
         {"$match": {"Symbol": symbol.upper(), "fetched_at": {"$gte": since}}},
-        {"$sort": {"fetched_at": DESCENDING}},
         {"$group": {
-            "_id":  {"$substr": ["$TradeDate", 0, 10]},
-            "doc":  {"$first": "$$ROOT"},
+            "_id":              _date_key,
+            "Symbol":           {"$first": "$Symbol"},
+            "Sector":           {"$first": "$Sector"},
+            "TradeDate":        {"$first": "$TradeDate"},
+            "OpeningPrice":     {"$max":   "$OpeningPrice"},
+            "HighPrice":        {"$max":   "$HighPrice"},
+            "LowPrice":         {"$min":   "$LowPrice"},
+            "ClosePrice":       {"$max":   "$ClosePrice"},
+            "Volume":           {"$max":   "$Volume"},
+            "Value":            {"$max":   "$Value"},
+            "PrevClosingPrice": {"$first": "$PrevClosingPrice"},
+            "Change":           {"$max":   "$Change"},
+            "PercChange":       {"$max":   "$PercChange"},
+            "Trades":           {"$max":   "$Trades"},
         }},
-        {"$replaceRoot": {"newRoot": "$doc"}},
-        {"$sort": {"TradeDate": ASCENDING}},
+        {"$sort": {"_id": ASCENDING}},   # sort ~1095 docs, not 15 k
     ]
     docs = list(col.aggregate(pipeline))
     if not docs:
@@ -179,28 +210,32 @@ def load_range_market(start_date, end_date) -> pd.DataFrame:
     start_dt = _day_start(start_date)
     end_dt   = _day_start(end_date) + timedelta(days=1)   # exclusive upper bound
 
+    _date_key = {"$dateToString": {"format": "%Y-%m-%d", "date": "$fetched_at", "timezone": "Africa/Lagos"}}
+
     pipeline = [
         {"$match": {"fetched_at": {"$gte": start_dt, "$lt": end_dt}}},
-        # Deduplicate: one record per symbol per calendar day (latest fetch)
-        {"$sort": {"fetched_at": DESCENDING}},
+        # Stage 1 — dedup to one row per {symbol, calendar-day} with no pre-sort.
+        # $max/$min give end-of-day values (NGX reports cumulative daily totals).
         {"$group": {
-            "_id": {
-                "symbol": "$Symbol",
-                "date":   {"$dateToString": {"format": "%Y-%m-%d",
-                                             "date": "$fetched_at",
-                                             "timezone": "Africa/Lagos"}},
-            },
-            "doc": {"$first": "$$ROOT"},
+            "_id": {"symbol": "$Symbol", "date": _date_key},
+            "Symbol":       {"$first": "$Symbol"},
+            "Sector":       {"$first": "$Sector"},
+            "OpeningPrice": {"$max":   "$OpeningPrice"},
+            "ClosePrice":   {"$max":   "$ClosePrice"},
+            "HighPrice":    {"$max":   "$HighPrice"},
+            "LowPrice":     {"$min":   "$LowPrice"},
+            "Volume":       {"$max":   "$Volume"},
+            "Value":        {"$max":   "$Value"},
         }},
-        {"$replaceRoot": {"newRoot": "$doc"}},
-        # Chronological aggregation per symbol
-        {"$sort": {"fetched_at": ASCENDING}},
+        # Stage 2 — sort the small deduplicated result chronologically (~250×days docs).
+        {"$sort": {"_id.date": ASCENDING}},
+        # Stage 3 — reduce to one row per symbol across the full period.
         {"$group": {
             "_id":         "$Symbol",
             "Symbol":      {"$first": "$Symbol"},
             "Sector":      {"$first": "$Sector"},
-            "OpenPrice":   {"$first": "$OpeningPrice"},   # first day open
-            "ClosePrice":  {"$last":  "$ClosePrice"},     # last day close
+            "OpenPrice":   {"$first": "$OpeningPrice"},
+            "ClosePrice":  {"$last":  "$ClosePrice"},
             "HighPrice":   {"$max":   "$HighPrice"},
             "LowPrice":    {"$min":   "$LowPrice"},
             "TotalVolume": {"$sum":   "$Volume"},

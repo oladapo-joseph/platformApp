@@ -10,3 +10,4 @@ logs/error.log
 tests/
 .devcontainer/
 
+test**

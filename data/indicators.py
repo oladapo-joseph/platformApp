@@ -8,13 +8,13 @@ def calculate_sma(series: pd.Series, window: int) -> pd.Series:
 
 
 def calculate_ema(series: pd.Series, window: int) -> pd.Series:
-    return series.ewm(span=window, adjust=True).mean()
+    return series.ewm(span=window, adjust=False).mean()
 
 
 def calculate_rsi(series: pd.Series, window: int) -> pd.Series:
     delta = series.diff()
-    gain  = delta.where(delta > 0, 0).rolling(window=window).mean()
-    loss  = (-delta.where(delta < 0, 0)).rolling(window=window).mean()
+    gain  = delta.where(delta > 0, 0).ewm(com=window - 1, adjust=False).mean()
+    loss  = (-delta.where(delta < 0, 0)).ewm(com=window - 1, adjust=False).mean()
     rs    = gain / loss
     return 100 - (100 / (1 + rs))
 
