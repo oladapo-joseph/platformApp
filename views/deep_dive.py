@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 from config import ACCENT, RED, YELLOW, MUTED, TEXT, CARD_BG, BORDER, BG
-from data.loader import load_stock_list, load_stock_data, filter_by_dates, load_date_bounds, load_range_market
+from data.loader import load_stock_list, load_stock_data, filter_by_dates, load_date_bounds, load_range_market, load_industry_data
 from analysis.signals import get_signals, STRATEGIES
 from analysis.recommender import generate_recommendation, LLM_OPTIONS
 from charts.deep_dive import build_main_chart, build_signal_chart, empty_fig
@@ -255,70 +255,127 @@ def _reco_html(text: str) -> str:
     return f"<div class='reco-box'>{verdict_html}{body}</div>"
 
 
-def _find_similar(symbol: str, start_date, end_date, n: int = 6) -> pd.DataFrame:
+def _log_sim(a: float, b: float) -> float:
+    if a <= 0 or b <= 0:
+        return 0.0
+    return max(0.0, 1.0 - abs(np.log(a / b)) / np.log(100))
+
+
+def _find_similar(
+    symbol: str, start_date, end_date,
+    sort_by: str = "overall", n: int = 8,
+) -> pd.DataFrame:
     mkt = load_range_market(start_date, end_date)
+    ind = load_industry_data()
+
     if mkt.empty:
         return pd.DataFrame()
+
+    # Merge market data with industry metadata
+    if not ind.empty:
+        mkt = mkt.merge(
+            ind[["symbol", "companyname", "sector", "subsector",
+                 "sharesoutstanding", "similarsector"]],
+            left_on="Symbol", right_on="symbol", how="left",
+        )
+        mkt["MarketCap"] = mkt["sharesoutstanding"] * mkt["ClosePrice"]
+    else:
+        mkt["companyname"]   = ""
+        mkt["sector"]        = mkt.get("Sector", "")
+        mkt["subsector"]     = "—"
+        mkt["similarsector"] = None
+        mkt["MarketCap"]     = 0.0
 
     ref_row = mkt[mkt["Symbol"] == symbol]
     if ref_row.empty:
         return pd.DataFrame()
 
     ref = ref_row.iloc[0]
-    ref_price  = float(ref.get("ClosePrice",   0) or 1)
-    ref_vol    = float(ref.get("TotalVolume",  0) or 1)
-    ref_val    = float(ref.get("TotalValue",   0) or 1)
-    ref_sector = ref.get("Sector", "") or ""
+    ref_mcap          = float(ref.get("MarketCap",    0) or 0)
+    ref_val           = float(ref.get("TotalValue",   0) or 0)
+    ref_vol           = float(ref.get("TotalVolume",  0) or 0)
+    _ss = ref.get("similarsector")
+    ref_similarsector = _ss if isinstance(_ss, dict) else {}  # sector → 0-1 score
 
-    def _log_sim(a: float, b: float) -> float:
-        if a <= 0 or b <= 0:
-            return 0.0
-        return max(0.0, 1.0 - abs(np.log(a / b)) / np.log(100))
+    def _s(v) -> str:
+        return "" if (v is None or (isinstance(v, float) and pd.isna(v))) else str(v).strip()
 
     rows = []
     for _, row in mkt[mkt["Symbol"] != symbol].iterrows():
-        price  = float(row.get("ClosePrice",  0) or 0)
-        vol    = float(row.get("TotalVolume", 0) or 0)
+        sector = (_s(row.get("sector")) or _s(row.get("Sector"))).upper()
+        mcap   = float(row.get("MarketCap",   0) or 0)
         val    = float(row.get("TotalValue",  0) or 0)
-        sector = row.get("Sector", "") or ""
+        vol    = float(row.get("TotalVolume", 0) or 0)
 
-        s_sector = 1.0 if sector == ref_sector else 0.0
-        score = (
-            0.35 * s_sector
-            + 0.30 * _log_sim(price, ref_price)
-            + 0.20 * _log_sim(val,   ref_val)
-            + 0.15 * _log_sim(vol,   ref_vol)
-        )
+        # Sector similarity: use the 0-1 score from reference stock's similarsector dict
+        s_sector = float(ref_similarsector.get(sector, 0.0))
+        s_mcap   = _log_sim(mcap, ref_mcap)
+        s_val    = _log_sim(val,  ref_val)
+        s_vol    = _log_sim(vol,  ref_vol)
+        score    = 0.35 * s_sector + 0.35 * s_mcap + 0.20 * s_val + 0.10 * s_vol
+
         rows.append({
-            "Symbol":  row["Symbol"],
-            "Sector":  sector or "—",
-            "Price":   price,
-            "Volume":  int(vol),
-            "Value":   val,
-            "Score":   round(score * 100),
+            "Symbol":    row["Symbol"],
+            "Company":   (_s(row.get("companyname")) or row["Symbol"])[:28],
+            "Subsector": (_s(row.get("subsector")) or "—")[:24],
+            "MarketCap": mcap,
+            "Value":     val,
+            "s_industry": round(s_sector * 100),
+            "s_mcap":     round(s_mcap   * 100),
+            "s_value":    round(s_val    * 100),
+            "Score":      round(score    * 100),
         })
 
     df = pd.DataFrame(rows)
-    return df.nlargest(n, "Score").reset_index(drop=True)
+    if df.empty:
+        return df
+
+    sort_col = {
+        "overall":      "Score",
+        "industry":     "s_industry",
+        "market cap":   "s_mcap",
+        "traded value": "s_value",
+    }.get(sort_by.lower(), "Score")
+
+    score_col = sort_col  # expose which column is active
+    df["_active_score"] = df[score_col]
+    return df.nlargest(n, "_active_score").drop(columns="_active_score").reset_index(drop=True)
 
 
-def _sim_table_html(sim_df: pd.DataFrame) -> str:
+_SORT_LABEL = {
+    "overall":      "MATCH",
+    "industry":     "INDUSTRY SIM",
+    "market cap":   "MCAP SIM",
+    "traded value": "VALUE SIM",
+}
+_SORT_COL = {
+    "overall":      "Score",
+    "industry":     "s_industry",
+    "market cap":   "s_mcap",
+    "traded value": "s_value",
+}
+
+
+def _sim_table_html(sim_df: pd.DataFrame, sort_by: str = "overall") -> str:
+    score_col   = _SORT_COL.get(sort_by.lower(), "Score")
+    score_label = _SORT_LABEL.get(sort_by.lower(), "MATCH")
+
     rows_html = ""
     for _, r in sim_df.iterrows():
-        bar_w = max(4, int(r["Score"] * 0.9))
-        price = f"₦{r['Price']:.2f}" if r["Price"] else "—"
-        vol   = f"{r['Volume']:,}"   if r["Volume"] else "—"
-        val   = _format_naira(r["Value"]) if r["Value"] else "—"
+        score   = int(r.get(score_col, 0))
+        bar_w   = max(4, int(score * 0.9))
+        mcap    = _format_naira(r["MarketCap"]) if r["MarketCap"] else "—"
+        val     = _format_naira(r["Value"])     if r["Value"]     else "—"
         rows_html += (
             f"<tr>"
             f"<td><span class='sim-sym'>{r['Symbol']}</span></td>"
-            f"<td>{r['Sector']}</td>"
-            f"<td>{price}</td>"
-            f"<td>{vol}</td>"
+            f"<td style='font-size:11px'>{r['Company']}</td>"
+            f"<td style='font-size:10px;color:#64748B'>{r['Subsector']}</td>"
+            f"<td>{mcap}</td>"
             f"<td>{val}</td>"
             f"<td>"
             f"  <span class='sim-score-bar' style='width:{bar_w}px'></span>"
-            f"  {r['Score']}%"
+            f"  {score}%"
             f"</td>"
             f"</tr>"
         )
@@ -326,8 +383,8 @@ def _sim_table_html(sim_df: pd.DataFrame) -> str:
         "<div class='sim-wrap'>"
         "<table class='sim-table'>"
         "<thead><tr>"
-        "<th>SYMBOL</th><th>SECTOR</th><th>PRICE</th>"
-        "<th>VOLUME</th><th>VALUE</th><th>MATCH</th>"
+        f"<th>SYMBOL</th><th>COMPANY</th><th>SUBSECTOR</th>"
+        f"<th>MARKET CAP</th><th>PERIOD VALUE</th><th>{score_label}</th>"
         "</tr></thead>"
         f"<tbody>{rows_html}</tbody>"
         "</table></div>"
@@ -602,18 +659,29 @@ def render():
             )
 
     # ── Similar Stocks ────────────────────────────────────────────────────────
-    st.markdown(
-        "<div class='section-label' style='margin-top:20px'>SIMILAR STOCKS</div>",
-        unsafe_allow_html=True,
-    )
+    sim_head_col, sim_sort_col = st.columns([1.5, 3])
+    with sim_head_col:
+        st.markdown(
+            "<div class='section-label' style='margin-top:24px'>SIMILAR STOCKS</div>",
+            unsafe_allow_html=True,
+        )
+    with sim_sort_col:
+        sim_sort = st.radio(
+            "", ["Overall", "Industry", "Market Cap", "Traded Value"],
+            horizontal=True,
+            key="sim_sort_by",
+            label_visibility="collapsed",
+        )
+
     with st.spinner("Finding similar stocks…"):
-        sim_df = _find_similar(symbol, start_date, end_date)
+        sim_df = _find_similar(symbol, start_date, end_date, sort_by=sim_sort.lower())
 
     if not sim_df.empty:
-        st.markdown(_sim_table_html(sim_df), unsafe_allow_html=True)
+        st.markdown(_sim_table_html(sim_df, sort_by=sim_sort.lower()), unsafe_allow_html=True)
         st.markdown(
             f"<div style='color:{MUTED};font-size:9px;letter-spacing:1px;margin-bottom:16px'>"
-            f"Ranked by sector match, price level, traded value and volume over the selected period."
+            f"Market cap = shares outstanding × latest close price. "
+            f"Industry similarity uses NGX sector proximity scores."
             f"</div>",
             unsafe_allow_html=True,
         )

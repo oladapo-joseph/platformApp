@@ -303,3 +303,24 @@ def load_sector_performance(end_date=None) -> pd.DataFrame:
         .reset_index()
     )
     return grouped
+
+
+@st.cache_data(ttl=3600, show_spinner=False)
+def load_industry_data() -> pd.DataFrame:
+    """
+    Static-ish company metadata from the industry_data collection.
+    Returns: Symbol (upper), companyname, sector, subsector, sharesoutstanding, similarsector (dict)
+    """
+    col = _get_client()[os.getenv("MONGODB_DB", "")]["industry_data"]
+    docs = list(col.find({}, {
+        "symbol": 1, "companyname": 1, "sector": 1, "subsector": 1,
+        "sharesoutstanding": 1, "similarsector": 1, "_id": 0,
+    }))
+    if not docs:
+        return pd.DataFrame()
+    df = pd.DataFrame(docs)
+    df["symbol"] = df["symbol"].str.upper().str.strip()
+    df["sharesoutstanding"] = pd.to_numeric(df["sharesoutstanding"], errors="coerce")
+    df["sector"]  = df["sector"].str.upper().str.strip().fillna("")
+    df["subsector"] = df["subsector"].str.strip().str.strip('"').fillna("—")
+    return df.drop_duplicates("symbol").reset_index(drop=True)
