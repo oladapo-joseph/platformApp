@@ -270,8 +270,8 @@ def _range_price_table(df: pd.DataFrame, search: str) -> str:
 def _render_snapshot(end_date):
     with st.spinner(""):
         sector_map = load_sector_map()
-        market_df  = load_latest_market(sector_map, end_date=str(end_date))
-        sector_df  = load_sector_performance(end_date=str(end_date))
+        market_df  = load_latest_market(sector_map, end_date=end_date)
+        sector_df  = load_sector_performance(end_date=end_date)
 
     if market_df.empty:
         st.warning("No market data available.")
@@ -508,7 +508,7 @@ def render():
         )
 
     if mode == "Last Trading Day":
-        _render_snapshot(max_date)
+        _render_snapshot(None)
     else:
         with c_start:
             start_date = st.date_input(

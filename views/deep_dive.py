@@ -9,7 +9,7 @@ import numpy as np
 from config import ACCENT, RED, YELLOW, MUTED, TEXT, CARD_BG, BORDER, BG
 from data.loader import load_stock_list, load_stock_data, filter_by_dates, load_date_bounds, load_range_market, load_industry_data
 from analysis.signals import get_signals, STRATEGIES
-from analysis.recommender import generate_recommendation, LLM_OPTIONS
+from analysis.recommender import generate_recommendation
 from charts.deep_dive import build_main_chart, build_signal_chart, empty_fig
 
 
@@ -312,7 +312,7 @@ def _find_similar(
         s_mcap   = _log_sim(mcap, ref_mcap)
         s_val    = _log_sim(val,  ref_val)
         s_vol    = _log_sim(vol,  ref_vol)
-        score    = 0.35 * s_sector + 0.35 * s_mcap + 0.20 * s_val + 0.10 * s_vol
+        score    = 0.35 * s_sector + 0.30 * s_mcap + 0.20 * s_val + 0.15 * s_vol
 
         rows.append({
             "Symbol":    row["Symbol"],
@@ -320,9 +320,11 @@ def _find_similar(
             "Subsector": (_s(row.get("subsector")) or "—")[:24],
             "MarketCap": mcap,
             "Value":     val,
+            "Volume":    vol,
             "s_industry": round(s_sector * 100),
             "s_mcap":     round(s_mcap   * 100),
             "s_value":    round(s_val    * 100),
+            "s_volume":   round(s_vol    * 100),
             "Score":      round(score    * 100),
         })
 
@@ -347,13 +349,25 @@ _SORT_LABEL = {
     "industry":     "INDUSTRY SIM",
     "market cap":   "MCAP SIM",
     "traded value": "VALUE SIM",
+    "volume":       "VOLUME SIM",
 }
 _SORT_COL = {
     "overall":      "Score",
     "industry":     "s_industry",
     "market cap":   "s_mcap",
     "traded value": "s_value",
+    "volume":       "s_volume",
 }
+
+
+def _fmt_vol(v: float) -> str:
+    if v >= 1e9:
+        return f"{v/1e9:.1f}B"
+    if v >= 1e6:
+        return f"{v/1e6:.1f}M"
+    if v >= 1e3:
+        return f"{v/1e3:.0f}K"
+    return f"{int(v):,}" if v else "—"
 
 
 def _sim_table_html(sim_df: pd.DataFrame, sort_by: str = "overall") -> str:
@@ -366,6 +380,7 @@ def _sim_table_html(sim_df: pd.DataFrame, sort_by: str = "overall") -> str:
         bar_w   = max(4, int(score * 0.9))
         mcap    = _format_naira(r["MarketCap"]) if r["MarketCap"] else "—"
         val     = _format_naira(r["Value"])     if r["Value"]     else "—"
+        vol     = _fmt_vol(r["Volume"])         if r.get("Volume") else "—"
         rows_html += (
             f"<tr>"
             f"<td><span class='sim-sym'>{r['Symbol']}</span></td>"
@@ -373,6 +388,7 @@ def _sim_table_html(sim_df: pd.DataFrame, sort_by: str = "overall") -> str:
             f"<td style='font-size:10px;color:#64748B'>{r['Subsector']}</td>"
             f"<td>{mcap}</td>"
             f"<td>{val}</td>"
+            f"<td>{vol}</td>"
             f"<td>"
             f"  <span class='sim-score-bar' style='width:{bar_w}px'></span>"
             f"  {score}%"
@@ -384,7 +400,7 @@ def _sim_table_html(sim_df: pd.DataFrame, sort_by: str = "overall") -> str:
         "<table class='sim-table'>"
         "<thead><tr>"
         f"<th>SYMBOL</th><th>COMPANY</th><th>SUBSECTOR</th>"
-        f"<th>MARKET CAP</th><th>PERIOD VALUE</th><th>{score_label}</th>"
+        f"<th>MARKET CAP</th><th>PERIOD VALUE</th><th>VOLUME</th><th>{score_label}</th>"
         "</tr></thead>"
         f"<tbody>{rows_html}</tbody>"
         "</table></div>"
@@ -606,42 +622,16 @@ def render():
         st.markdown("<div class='section-label'>💡 RECOMMENDATION</div>",
                     unsafe_allow_html=True)
 
-        is_admin = st.session_state.get("auth_user", {}).get("role") == "admin"
-
-        # ── LLM selector (non-admin only) ─────────────────────────────────────
-        if is_admin:
-            selected_llm = st.session_state.get("llm_provider", LLM_OPTIONS[0])
-            user_api_key = None  # uses env variable
-        else:
-            selected_llm = st.selectbox(
-                "LLM", LLM_OPTIONS,
-                index=LLM_OPTIONS.index(st.session_state.get("llm_provider", LLM_OPTIONS[0])),
-                key="llm_provider",
-                label_visibility="visible",
-            )
-            user_api_key = st.text_input(
-                "API Key",
-                type="password",
-                placeholder=f"Paste your {selected_llm.split()[0]} API key…",
-                key="user_api_key",
-                label_visibility="visible",
-            ) or None
-
         if st.button("Generate / Refresh"):
             if buy_df.empty and sell_df.empty:
                 st.warning("No signals to analyse.")
-            elif not is_admin and not user_api_key:
-                st.warning("Please enter your API key above.")
             else:
-                with st.spinner(f"Consulting {selected_llm.split()[0]}…"):
+                with st.spinner("Consulting Claude…"):
                     try:
                         reco = generate_recommendation(
                             buy_signal=buy_df.to_dict(),
                             sell_signal=sell_df.to_dict(),
-                            stock_details={"Stock Name": symbol,
-                                           "Strategy": strategy},
-                            provider=selected_llm,
-                            api_key=user_api_key,
+                            stock_details={"Stock Name": symbol, "Strategy": strategy},
                         )
                         st.session_state[f"reco_{symbol}"] = reco
                     except Exception as e:
@@ -653,8 +643,8 @@ def render():
         else:
             st.markdown(
                 f"<div class='reco-box' style='color:{MUTED}'>"
-                f"{'Select an LLM and enter your API key, then click Generate.' if not is_admin else 'Click Generate to get an AI recommendation.'}"
-                f"</div>",
+                "Click Generate to get an AI recommendation."
+                "</div>",
                 unsafe_allow_html=True,
             )
 
@@ -667,7 +657,7 @@ def render():
         )
     with sim_sort_col:
         sim_sort = st.radio(
-            "", ["Overall", "Industry", "Market Cap", "Traded Value"],
+            "", ["Overall", "Industry", "Market Cap", "Traded Value", "Volume"],
             horizontal=True,
             key="sim_sort_by",
             label_visibility="collapsed",
