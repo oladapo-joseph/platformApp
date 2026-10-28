@@ -129,15 +129,15 @@ Also recorded: every access and account event in `audit_log`, strictly append-on
 
 ## P3 — Frontend core
 
-**Status 2026-10-28: P3a built.** P3 ships in slices, each checked in a browser against the API before the next:
+**Status 2026-10-28: P3a–P3d built.** P3 ships in slices, each checked in a browser against the API before the next:
 
 | Slice | Contents | Status |
 | --- | --- | --- |
 | P3a | Scaffold, tokens, API client + generated types, routing, session, app shell, core components, all auth and invite screens, placeholder routes | ✅ Built. 18 local unit tests; Playwright run of sign-in, invite acceptance, legacy banner and sign-out at 390, 900 and 1440 px in both themes with **zero axe violations**; first-load JS 157 KB gzipped |
 | P3b | Market Today (snapshot and range), SymbolSearch | ✅ Built. Headline, tiles with deltas vs the previous session, movers computed to US-2.2 (traded stocks only; most traded by value), sector heatmap + ranked bars + table, top stories, the full price list, period presets and custom dates, all view state in the URL; search palette (`/`, Ctrl/⌘ K). 27 local unit tests; Playwright at 390 and 1440 px in both themes with zero axe violations. Market chunk 15 KB gzipped |
 | P3c | Stock page | ✅ Built. Header + key stats, Lightweight Charts (candle/line, 1M–ALL, SMA/EMA/Bollinger overlays with colour + dash, volume/RSI/MACD panes, signal markers, OHLC readout, ←/→ keyboard reading announced to screen readers, "View as table"), signals list linked both ways with the markers, news grouped About / Mentions / Sector, peers with match breakdown, OHLCV data + CSV, Share, unknown-ticker state; whole view in the URL with back/forward. 36 local unit tests; Playwright at 390 and 1440 px in both themes with zero axe violations. Chart library is a lazy 60 KB-gzipped chunk |
-| P3d | News page, Account page, full landing page | Next |
-| P3e | Playwright journeys J1–J3, J6, J7; axe on every route; Lighthouse; parity checklist | |
+| P3d | News page, Account page, full landing page | ✅ Built. **News** (US-9.8): newest / most important, headline search, filters for topic, stocks (+ headline-only), date (presets and custom, 90-day archive), sector, subsector, scope, regulator, type (opinion hidden by default) and source, each with counts and disabled-at-zero options; removable chips, "Clear all", a no-results state that names the filter to drop, "Show more news"; a left rail on desktop, topic chips and a bottom sheet with "Apply (N articles)" on phones; all in the URL. **Account** (E6): name, email (add or change, confirmation pending, `#email` for migrated accounts), password (signs out other devices), theme saved to the account, sign out of all devices, delete with typed confirmation. **Landing** (US-1.1): hero, three features with screenshots in both themes (static images, no chart code), how access works, disclaimer / privacy / terms links, Open Graph tags; signed-in visitors go to the market. Additive v1 API changes: news facets ignore their own filter, `total` on the first page, untagged articles count as news, `theme` on `/auth/me`. 44 local unit tests, 100 backend tests; Playwright at 390 and 1440 px in both themes with zero axe violations |
+| P3e | Playwright journeys J1–J3, J6, J7; axe on every route; Lighthouse; parity checklist | Next |
 
 **Scope.** `frontend/` scaffold (Vite, TS strict, Tailwind v4 + tokens, Radix), app shell (desktop sidebar, mobile bottom nav, top bar with search), design-system components ([06 §6](06-design-system.md#6-components)), auth screens, Market Today (snapshot and range modes), the stock page (chart, overlays, panels, strategy signals, **news panel** (US-9.1), peers, data table with CSV export), and the landing page. Theme switch. Generated API types.
 
@@ -151,6 +151,33 @@ Also recorded: every access and account event in `audit_log`, strictly append-on
 5. Every data view shows a freshness stamp ("Data as of 14:35 WAT, 26 Oct") and handles loading (skeleton), empty, and error states.
 6. Both themes pass the contrast checks in `design/preview.html`. `prefers-reduced-motion` is respected.
 7. Feature parity checklist vs [01 §1](01-current-state-assessment.md#1-what-the-app-does-today) is complete (drawing tools explicitly deferred).
+
+### P3 parity checklist (2026-10-28)
+
+Every feature of the Streamlit app ([01 §1](01-current-state-assessment.md#1-what-the-app-does-today)), and where it now lives. ✅ = in the new app now · P4 = due in Phase 4, before cutover · Later = deliberately deferred (the Streamlit app stays live until cutover, so nothing is lost meanwhile).
+
+| Area | Streamlit feature | New app | Status |
+| --- | --- | --- | --- |
+| Auth | Username/password login gate | Sign in with email **or** the legacy username (US-1.5, US-1.7); legacy PBKDF2 hashes kept in step (D-17) | ✅ |
+| Auth | No self sign-up, no password reset | Invite-only access with requests (US-1.2, 1.3), forgot/reset, change password, sign out everywhere, delete account (J7) | ✅ (beyond parity) |
+| Admin | Create users, revoke/restore, roles | API built in P2 (invites, access requests, user search, role, deactivate); admin screens | API ✅ · UI P4 (US-7.1 – 7.4) |
+| Market | Two modes: last trading day and date range | "Last session · Period" with presets and custom dates, in the URL (US-2.5) | ✅ |
+| Market | Stat cards | Breadth, value, volume, deals with change vs the previous session; trading days in a period (US-2.1) | ✅ |
+| Market | Top gainers / losers / most traded | Same three lists, to US-2.2's stricter rules (traded stocks only; most traded by value) (US-2.2) | ✅ |
+| Market | Sector treemap and bar | Heatmap (treemap), ranked diverging bars and a table; click to filter (US-2.4) | ✅ |
+| Market | Price-change scatter | US-2.7, scheduled for v1.1 in the story map | Later |
+| Market | Searchable, sortable price table | Price list with search, sort and sector filter, in the URL (US-2.6) | ✅ |
+| Stock | Symbol picker | Search palette (`/`, Ctrl/⌘ K) with ranked matches and recents (US-3.1) | ✅ |
+| Stock | Candle/line chart, quick ranges 1M–ALL | Lightweight Charts, candle/line, 1M · 3M · 6M · YTD · 1Y · ALL (US-3.3) | ✅ |
+| Stock | SMA/EMA overlays | SMA 50/200, EMA 12/26, plus Bollinger 20 (US-3.4) | ✅ |
+| Stock | Volume, MACD, RSI panels | Volume, RSI 14, MACD panes (US-3.4) | ✅ |
+| Stock | Drawing tools (horizontal, trend, vertical lines) | Deferred by decision (02 §5, story map "Later") | Later |
+| Signals | MACD crossover, RSI reversal, SMA 50/200 cross; buy/sell counts and chart | Same three strategies on full history (parity-tested in P1), summary sentence, markers linked to a described list (US-3.5) | ✅ |
+| AI | On-demand BUY/SELL/HOLD recommendation | Replaced by a cached "signal interpretation", never a buy/sell call (ADR-006, US-4.x) | P4 |
+| Similar stocks | Weighted similarity (industry 35 %, market cap 30 %, traded value 20 %, volume 15 %) | Same weights (`domain/similarity.py`), with the breakdown shown and sortable (US-3.7) | ✅ |
+| Raw data | Expandable OHLCV table | Data tab with OHLCV, "View as table" for the chart, CSV download (US-3.8) | ✅ (beyond parity) |
+
+Cutover therefore waits on P4 (admin screens, AI); the price-change scatter and drawing tools follow in v1.1.
 
 ---
 

@@ -8,7 +8,13 @@ import { change, direction, percent, spokenChange } from "@/lib/format";
 
 const arrow = { up: "▲", down: "▼", flat: "■" } as const;
 const tone = { up: "text-gain", down: "text-loss", flat: "text-unchanged" } as const;
-const pillTone = { up: "bg-gain-subtle", down: "bg-loss-subtle", flat: "bg-sunken" } as const;
+// The tints are translucent: over the page canvas they'd darken enough to fail 4.5:1 in the
+// light theme, so pills sit on an opaque surface base (globals.css .pill-tint).
+const pillTone = {
+  up: "pill-tint [--pill-tint:var(--color-gain-subtle)]",
+  down: "pill-tint [--pill-tint:var(--color-loss-subtle)]",
+  flat: "bg-sunken",
+} as const;
 
 /**
  * Direction is never colour alone: arrow + sign + value, with the direction spelled out

@@ -8,7 +8,7 @@ The collection is small (90-day TTL), so $facet over a $match is M0-safe.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Any, Literal
 
@@ -19,8 +19,20 @@ Sort = Literal["recent", "importance"]
 
 _PROJECTION = {"embedding": 0}
 _SORT_FIELD: dict[str, str] = {"recent": "published_at", "importance": "importance_score"}
-FACET_FIELDS = ("symbols", "sectors", "topics", "scope", "regulators", "content_type", "source")
+FACET_FIELDS = ("symbols", "sectors", "subsectors", "topics", "scope", "regulators", "content_type", "source")
 _SYMBOL_FACET_LIMIT = 25
+# The NewsFilter field each facet narrows: a facet's counts ignore its own selection, so picking
+# a second topic shows what it would add (values within one filter are OR-ed).
+_FACET_FILTER = {
+    "symbols": "symbols",
+    "sectors": "sectors",
+    "subsectors": "subsectors",
+    "topics": "topics",
+    "scope": "scope",
+    "regulators": "regulators",
+    "content_type": "content_types",
+    "source": "sources",
+}
 
 
 @dataclass(frozen=True)  # hashable: services cache on it
@@ -60,11 +72,15 @@ def build_match(f: NewsFilter) -> dict[str, Any]:
         ("topics", f.topics),
         ("scope", f.scope),
         ("regulators", f.regulators),
-        ("content_type", f.content_types),
         ("source", f.sources),
     ):
         if values:
             clauses.append({name: {"$in": list(values)}})
+    if f.content_types:
+        clause: dict[str, Any] = {"content_type": {"$in": list(f.content_types)}}
+        if "news" in f.content_types:  # untagged (pre-v2) articles are plain news
+            clause = {"$or": [clause, {"content_type": {"$exists": False}}]}
+        clauses.append(clause)
     if f.date_from or f.date_to:
         rng: dict[str, datetime] = {}
         if f.date_from:
@@ -95,23 +111,29 @@ class NewsRepo:
             match = {"$and": [match, page]} if match else page
         return list(self.col.find(match, _PROJECTION).sort([(key, -1), ("_id", -1)]).limit(limit))
 
-    def facets(self, f: NewsFilter) -> dict[str, list[dict[str, Any]]]:
-        """Counts per value of each filterable field across the filtered result set."""
+    def facets(self, f: NewsFilter) -> tuple[dict[str, list[dict[str, Any]]], int]:
+        """Counts per value of each filterable field (the result set with every other filter
+        applied), and the size of the result set itself."""
 
-        def counts(path: str, is_array: bool, limit: int | None = None) -> list[dict[str, Any]]:
-            stages: list[dict[str, Any]] = [{"$unwind": f"${path}"}] if is_array else []
-            stages += [{"$match": {path: {"$nin": [None, ""]}}}, {"$sortByCount": f"${path}"}]
-            if limit:
-                stages.append({"$limit": limit})
+        def counts(name: str) -> list[dict[str, Any]]:
+            cleared: dict[str, Any] = {_FACET_FILTER[name]: ()}
+            own = replace(f, **cleared)
+            stages: list[dict[str, Any]] = [{"$match": build_match(own)}]
+            if name in arrays:
+                stages.append({"$unwind": f"${name}"})
+            stages += [{"$match": {name: {"$nin": [None, ""]}}}, {"$sortByCount": f"${name}"}]
+            if name == "symbols":
+                stages.append({"$limit": _SYMBOL_FACET_LIMIT})
             return stages
 
-        arrays = {"symbols", "sectors", "topics", "regulators"}
-        facet = {
-            name: counts(name, name in arrays, _SYMBOL_FACET_LIMIT if name == "symbols" else None)
-            for name in FACET_FIELDS
-        }
-        [doc] = self.col.aggregate([{"$match": build_match(f)}, {"$facet": facet}])
-        return {name: [{"value": r["_id"], "count": r["count"]} for r in doc[name]] for name in FACET_FIELDS}
+        arrays = {"symbols", "sectors", "subsectors", "topics", "regulators"}
+        # Narrow first on what every facet shares (dates, search), then per facet.
+        every: dict[str, Any] = {field: () for field in _FACET_FILTER.values()}
+        shared = replace(f, **every)
+        facet = {n: counts(n) for n in FACET_FIELDS} | {"_total": [{"$match": build_match(f)}, {"$count": "n"}]}
+        [doc] = self.col.aggregate([{"$match": build_match(shared)}, {"$facet": facet}])
+        total = doc["_total"][0]["n"] if doc["_total"] else 0
+        return {name: [{"value": r["_id"], "count": r["count"]} for r in doc[name]] for name in FACET_FIELDS}, total
 
     def for_symbol(self, symbol: str, since: datetime, sort: Sort, limit: int) -> list[dict[str, Any]]:
         q = {"symbols": symbol, "published_at": {"$gte": since}}

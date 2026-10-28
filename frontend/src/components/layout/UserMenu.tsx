@@ -1,11 +1,10 @@
 import { Check, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
-import { useState } from "react";
 import { useNavigate } from "react-router";
 
-import { useLogout, useMe } from "@/api/auth";
+import { useLogout, useMe, useThemeChoice } from "@/api/auth";
 import { cn } from "@/lib/cn";
-import { applyTheme, savedTheme, type ThemeChoice } from "@/lib/theme";
+import type { ThemeChoice } from "@/lib/theme";
 
 const THEMES: { value: ThemeChoice; label: string; icon: typeof Sun }[] = [
   { value: "system", label: "Automatic", icon: Monitor },
@@ -31,7 +30,7 @@ export function UserMenu() {
   const { data: me } = useMe();
   const logout = useLogout();
   const navigate = useNavigate();
-  const [theme, setTheme] = useState<ThemeChoice>(savedTheme);
+  const [theme, setTheme] = useThemeChoice();
 
   const signOut = () =>
     logout.mutate("this", { onSettled: () => void navigate("/login?reason=signed-out", { replace: true }) });
@@ -61,14 +60,7 @@ export function UserMenu() {
           </DropdownMenu.Item>
           <DropdownMenu.Separator className="my-1 h-px bg-line-subtle" />
           <DropdownMenu.Label className="eyebrow px-3 py-1.5 text-fg-muted">Theme</DropdownMenu.Label>
-          <DropdownMenu.RadioGroup
-            value={theme}
-            onValueChange={(v) => {
-              const choice = v as ThemeChoice;
-              setTheme(choice);
-              applyTheme(choice);
-            }}
-          >
+          <DropdownMenu.RadioGroup value={theme} onValueChange={(v) => setTheme(v as ThemeChoice)}>
             {THEMES.map(({ value, label, icon: Icon }) => (
               <DropdownMenu.RadioItem key={value} value={value} className={item}>
                 <Icon aria-hidden className="size-4 text-fg-muted" />

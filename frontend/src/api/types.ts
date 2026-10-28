@@ -1,4 +1,4 @@
-import type { components } from "./schema";
+import type { components, operations } from "./schema";
 
 /** Response and request bodies, by their OpenAPI schema names (regenerate: npm run gen:api). */
 export type Schemas = components["schemas"];
@@ -23,3 +23,8 @@ export type StrategyInfo = Schemas["StrategyInfo"];
 export type StockNews = Schemas["StockNews"];
 export type SimilarResponse = Schemas["SimilarResponse"];
 export type PeerEntry = Schemas["PeerEntry"];
+export type NewsPage = Schemas["NewsPage"];
+type NewsQuery = NonNullable<operations["search_api_v1_news_get"]["parameters"]["query"]>;
+export type Topic = NonNullable<NewsQuery["topics"]>[number];
+export type Scope = NonNullable<NewsQuery["scope"]>[number];
+export type ContentType = NonNullable<NewsQuery["content_types"]>[number];

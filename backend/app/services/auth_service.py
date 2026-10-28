@@ -98,6 +98,7 @@ def public_user(user: dict[str, Any]) -> dict[str, Any]:
         "display_name": user.get("display_name") or user.get("username") or user.get("email"),
         "role": user.get("role", "user"),
         "needs_email": not user.get("email_verified_at"),
+        "theme": user.get("theme") if user.get("theme") in ("light", "dark") else "system",
         "created_at": user.get("created_at"),
         "last_login_at": user.get("last_login_at"),
     }
@@ -311,6 +312,7 @@ def update_me(
     email: str | None = None,
     current_password: str | None = None,
     new_password: str | None = None,
+    theme: str | None = None,
 ) -> dict[str, Any]:
     repos = get_repos()
     changes: dict[str, Any] = {}
@@ -334,6 +336,9 @@ def update_me(
             raise BadRequest("Use 1–60 characters for your name.", "invalid-name", field="display_name")
         user = repos.users.update(user["_id"], {"display_name": name}) or user
         changes["display_name"] = name
+
+    if theme is not None:  # a display preference: not audited
+        user = repos.users.update(user["_id"], {"theme": theme}) or user
 
     if new_password is not None:
         check_password(new_password, user.get("email"), user.get("display_name"), user.get("username"))

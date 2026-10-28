@@ -145,8 +145,10 @@ def search(f: NewsFilter, sort: Sort, limit: int, cursor: str | None) -> dict[st
     after = decode_cursor(cursor, sort) if cursor else None
     docs = repo.search(f, sort, limit + 1, after)
     page, more = docs[:limit], len(docs) > limit
+    facets, total = repo.facets(f) if cursor is None else (None, None)
     return {
         "items": [article(d, f.symbols[0] if len(f.symbols) == 1 else None) for d in page],
         "next_cursor": encode_cursor(sort, page[-1]) if more and page else None,
-        "facets": repo.facets(f) if cursor is None else None,
+        "facets": facets,
+        "total": total,
     }

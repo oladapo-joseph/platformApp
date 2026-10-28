@@ -1,4 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
+
+import { applyTheme, savedTheme, subscribeTheme, type ThemeChoice } from "@/lib/theme";
 
 import { ApiError, api, resetCsrf } from "./client";
 import type { InviteView, Me, Schemas } from "./types";
@@ -103,5 +106,35 @@ export function useUpdateMe() {
   return useMutation({
     mutationFn: (body: Schemas["UpdateMe"]) => api<Me>("/auth/me", { method: "PATCH", body }),
     onSuccess: (me) => qc.setQueryData(meKey, me),
+  });
+}
+
+/** The theme everywhere it's shown (user menu, account page): applied at once, saved to the account. */
+export function useThemeChoice(): [ThemeChoice, (choice: ThemeChoice) => void] {
+  const qc = useQueryClient();
+  const choice = useSyncExternalStore(subscribeTheme, savedTheme, () => "system" as const);
+  const save = useMutation({
+    mutationFn: (theme: ThemeChoice) => api<Me>("/auth/me", { method: "PATCH", body: { theme } }),
+    onSuccess: (me) => qc.setQueryData(meKey, me),
+  });
+  return [
+    choice,
+    (next) => {
+      applyTheme(next);
+      if (qc.getQueryData(meKey)) save.mutate(next); // a failed save still leaves it applied here
+    },
+  ];
+}
+
+/** US-6.4: type your email (or legacy username) to confirm; the session ends with the account. */
+export function useDeleteMe() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (confirm: string) => api<undefined>("/auth/me", { method: "DELETE", body: { confirm } }),
+    onSuccess: () => {
+      qc.clear();
+      qc.setQueryData(meKey, null);
+      resetCsrf();
+    },
   });
 }

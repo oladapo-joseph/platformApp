@@ -128,7 +128,7 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /auth/csrf` | CSRF token (also set as the `el_csrf` cookie, `__Host-el_csrf` outside local; the session cookie is likewise `__Host-el_session`); send it back as `X-CSRF-Token` on every POST/PUT/PATCH/DELETE | public | — |
 | `POST /auth/logout` · `POST /auth/logout-all` | Revoke this session · every session | user | — |
 | `POST /auth/password/forgot` · `/reset` | Reset flow (always 202 to avoid account enumeration) | public, rate-limited | — |
-| `GET /auth/me` · `PATCH /auth/me` · `DELETE /auth/me` | Profile, change password, delete account | user | — |
+| `GET /auth/me` · `PATCH /auth/me` · `DELETE /auth/me` | Profile, theme (US-6.2), change email or password, delete account | user | — |
 | `GET /market/status` | Latest `fetched_at`, last trading date, is-market-open, data age | public | 60 s |
 | `GET /market/snapshot?date=` | Stats, breadth, gainers/losers/most-traded, full price table | user | 5 min |
 | `GET /market/range?start=&end=` | Cumulative per-symbol period performance | user | 5 min |
@@ -144,7 +144,7 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /stocks/{symbol}/news?days=30&limit=5&sort=recent\|importance` | `{mentions: [...], sector: [...]}`: headline, source, published_at, `published_at_estimated`, snippet (≤ 200 chars, plain text), url | user | 10 min |
 | `GET /stocks/{symbol}/news/markers?start=&end=` | Per-day article counts and headlines for chart markers (US-9.2) | user | 10 min |
 | `GET /news/top?hours=48&limit=5&sector=` | Top stories by importance, with tagged symbols (US-9.3) | user | 10 min |
-| `GET /news?symbols=&watchlist=&sectors=&subsectors=&topics=&scope=&regulators=&content_types=&sources=&from=&to=&title_only=&q=&sort=&cursor=` | **News page** (US-9.8): filtered, cursor-paginated list plus `facets` (counts per filter value for the current result set) | user | 10 min |
+| `GET /news?symbols=&watchlist=&sectors=&subsectors=&topics=&scope=&regulators=&content_types=&sources=&from=&to=&title_only=&q=&sort=&cursor=` | **News page** (US-9.8): filtered, cursor-paginated list; the first page adds `facets` (counts per filter value, each applying every *other* filter so a second value in the same filter shows what it adds) and `total`. Untagged (pre-v2) articles count as `news` for `content_types` | user | 10 min |
 | `GET /me/watchlist/news?days=7` | News mentioning any watchlist stock (US-9.4) | user | 10 min |
 | `POST /news/{id}/feedback` `{symbol, reason}` | Report a mis-tagged article (US-9.7, v1.1) | user | — |
 | `GET/PUT/DELETE /me/watchlist[/{symbol}]` | Watchlist CRUD | user | — |

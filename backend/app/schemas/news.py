@@ -84,5 +84,7 @@ class NewsPage(BaseModel):
     items: list[Article]
     next_cursor: str | None
     facets: dict[str, list[FacetCount]] | None = Field(
-        description="Counts per filter value over the whole filtered set (first page only)"
+        description="Counts per filter value (first page only). Each filter's counts apply every other filter "
+        "but not its own, so they show what picking another value would add"
     )
+    total: int | None = Field(None, description="Articles matching every filter (first page only)")

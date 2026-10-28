@@ -12,6 +12,9 @@ class CsrfToken(BaseModel):
     csrf_token: str = Field(description="Send back as the X-CSRF-Token header on every POST/PUT/PATCH/DELETE")
 
 
+Theme = Literal["system", "light", "dark"]
+
+
 class Me(BaseModel):
     id: str
     email: str | None
@@ -21,6 +24,7 @@ class Me(BaseModel):
     display_name: str | None
     role: Literal["user", "admin"]
     needs_email: bool = Field(description="Show the 'Add your email' banner (US-1.7)")
+    theme: Theme = Field("system", description="Light, dark, or follow the device (US-6.2)")
     created_at: datetime | None
     last_login_at: datetime | None
 
@@ -55,6 +59,7 @@ class UpdateMe(BaseModel):
         None, max_length=256, description="Required to change the password or a confirmed email"
     )
     new_password: str | None = Field(None, max_length=256)
+    theme: Theme | None = None
 
 
 class DeleteMe(BaseModel):

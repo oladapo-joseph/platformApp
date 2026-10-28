@@ -125,6 +125,8 @@ npm run build            # dist/, which FastAPI serves at / (FRONTEND_DIST)
 npm run test             # vitest (tests are local only, D-11)
 ```
 
+**Landing images.** `public/landing/*.jpg` (screenshots in each theme) and `public/og-image.png` (the link preview) are captured from a running app: `EL_EMAIL=… EL_PASSWORD=… node scripts/landing-shots.mjs [base-url]` (default `http://localhost:4173`, i.e. `npm run preview` with the backend on :8000). Recapture them from production data before launch.
+
 `src/styles/tokens.css` and `public/brand/` are copied from `design/` and `brand/` by `npm run sync:tokens` (run automatically before `dev` and `build`). They're git-ignored: edit the originals.
 
 **Colours come only from tokens.** Use the Tailwind names mapped in `src/styles/globals.css` (`bg-surface`, `text-fg-2`, `text-gain`, `border-line`, …). Tailwind's default palette is switched off and ESLint rejects hex literals.

@@ -95,6 +95,20 @@
 :root[data-theme="light"] .logo-on-light {
   display: inline-block;
 }
+/* A translucent tint over an opaque surface, so text contrast doesn't depend on what's behind */
+.pill-tint {
+  background: linear-gradient(var(--pill-tint), var(--pill-tint)), var(--color-bg-surface);
+}
+/* Screenshots taken in each theme (landing page): show the one matching the current theme */
+.only-light {
+  display: none;
+}
+:root[data-theme="light"] .only-dark {
+  display: none;
+}
+:root[data-theme="light"] .only-light {
+  display: block;
+}
 /* Cards: borders separate them in dark mode, a small shadow in light mode (docs/06 §5) */
 :root[data-theme="light"] .card-shadow {
   box-shadow: var(--shadow-sm);
@@ -105,6 +119,12 @@
   }
   :root:not([data-theme]) .logo-on-light {
     display: inline-block;
+  }
+  :root:not([data-theme]) .only-dark {
+    display: none;
+  }
+  :root:not([data-theme]) .only-light {
+    display: block;
   }
   :root:not([data-theme]) .card-shadow {
     box-shadow: var(--shadow-sm);

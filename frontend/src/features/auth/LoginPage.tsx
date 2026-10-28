@@ -22,6 +22,8 @@ type Values = z.infer<typeof schema>;
 
 const REASONS: Record<string, string> = {
   "signed-out": "You've signed out.",
+  "signed-out-all": "You've signed out of every device.",
+  deleted: "Your account has been deleted.",
   expired: "Your session has ended. Please sign in again.",
 };
 

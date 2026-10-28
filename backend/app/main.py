@@ -34,6 +34,14 @@ _NO_HTTP_CACHE = (f"{API_PREFIX}/healthz", f"{API_PREFIX}/readyz")
 _PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "access-requests"))
 _UNSAFE = {"POST", "PUT", "PATCH", "DELETE"}
 _DOCS = f"{API_PREFIX}/docs"  # Swagger UI loads its scripts from a CDN
+# The React app (docs/12 §6, ASVS 3.4.3): scripts, fonts, images and API calls from this origin
+# only, no inline scripts (theme-init.js is a file). Inline *styles* stay allowed: Radix's scroll
+# lock injects a <style> element, and style attributes carry chart and layout sizes.
+SPA_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+    "font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; "
+    "frame-ancestors 'none'"
+)
 
 
 @asynccontextmanager
@@ -129,12 +137,16 @@ def _install_middleware(app: FastAPI, settings: Settings) -> None:
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        # never framed (clickjacking); API JSON may load nothing at all. The SPA's full CSP comes with P3.
+        # never framed (clickjacking); API JSON may load nothing at all; the SPA only its own origin
         response.headers["X-Frame-Options"] = "DENY"
-        is_api_data = request.url.path.startswith(API_PREFIX) and not request.url.path.startswith(_DOCS)
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'none'; frame-ancestors 'none'" if is_api_data else "frame-ancestors 'none'"
-        )
+        path = request.url.path
+        if path.startswith(_DOCS):
+            csp = "frame-ancestors 'none'"
+        elif path.startswith(API_PREFIX):
+            csp = "default-src 'none'; frame-ancestors 'none'"
+        else:
+            csp = SPA_CSP
+        response.headers["Content-Security-Policy"] = csp
         if settings.env != "local":
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
         log.info(

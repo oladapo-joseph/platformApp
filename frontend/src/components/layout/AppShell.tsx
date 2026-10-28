@@ -15,6 +15,7 @@ import { Banner } from "@/components/ui/feedback";
 import { Logo } from "@/components/ui/Logo";
 import { FreshnessStamp } from "@/components/ui/market";
 import { cn } from "@/lib/cn";
+import { applyTheme, savedTheme, type ThemeChoice } from "@/lib/theme";
 
 import { UserMenu } from "./UserMenu";
 
@@ -71,7 +72,7 @@ function SideNav({ items }: { items: NavItem[] }) {
           className={({ isActive }) =>
             cn(
               "flex h-10 items-center justify-center gap-3 rounded-md text-sm font-medium lg:justify-start lg:px-3",
-              isActive ? "bg-selected text-brand" : "text-fg-2 hover:bg-hover hover:text-fg",
+              isActive ? "bg-selected text-fg [&_svg]:text-brand" : "text-fg-2 hover:bg-hover hover:text-fg",
             )
           }
         >
@@ -160,7 +161,7 @@ function AddEmailBanner() {
       ) : (
         <>
           So you can reset your password if you forget it.{" "}
-          <Link to="/app/account#email" className="font-medium text-brand underline-offset-2 hover:underline">
+          <Link to="/app/account#email" className="font-medium text-fg underline underline-offset-2">
             Add email
           </Link>
         </>
@@ -169,9 +170,17 @@ function AddEmailBanner() {
   );
 }
 
+/** The account's theme wins over this browser's, so a choice made on another device follows (US-6.2). */
+function useAccountTheme(theme: ThemeChoice | undefined) {
+  useEffect(() => {
+    if (theme && theme !== savedTheme()) applyTheme(theme);
+  }, [theme]);
+}
+
 export function AppShell() {
   const { data: me } = useMe();
   useSessionEndedRedirect();
+  useAccountTheme(me?.theme);
   const items = NAV.filter((i) => !i.adminOnly || me?.role === "admin");
   return (
     <div className="flex min-h-dvh">

@@ -4,6 +4,9 @@ import { Link } from "react-router";
 
 import type { Article } from "@/api/types";
 import { day, stamp } from "@/lib/dates";
+import { valueLabel } from "@/lib/news";
+
+import { Badge } from "./feedback";
 
 /**
  * One headline (docs/06 §6): an external link marked ↗ and announced as opening a new tab,
@@ -14,12 +17,20 @@ export function NewsItem({
   article,
   showDate = false,
   topicsFor,
+  topicHref,
 }: {
   article: Article;
   showDate?: boolean;
   /** On a stock page: show up to 2 topic chips linking to that stock's news on the topic (US-9.1) */
   topicsFor?: string;
+  /** On the News page: topic chips that add the topic to the current filters (US-9.8) */
+  topicHref?: (topic: string) => string;
 }) {
+  const href =
+    topicHref ??
+    (topicsFor
+      ? (t: string) => `/app/news?symbol=${encodeURIComponent(topicsFor)}&topic=${encodeURIComponent(t)}`
+      : null);
   const published = parseISO(article.published_at);
   const when = article.published_at_estimated
     ? `Found ${day(article.published_at)}`
@@ -40,19 +51,20 @@ export function NewsItem({
       </a>
       {body(article) && <p className="line-clamp-2 text-sm text-fg-2">{body(article)}</p>}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-fg-muted">
+        {article.content_type === "opinion" && <Badge>Opinion</Badge>}
         <span>{article.source}</span>
         <span aria-hidden>·</span>
         <time dateTime={article.published_at} title={stamp(article.published_at)}>
           {when}
         </time>
-        {topicsFor &&
+        {href &&
           article.topics.slice(0, 2).map((t) => (
             <Link
               key={t}
-              to={`/app/news?symbol=${encodeURIComponent(topicsFor)}&topic=${encodeURIComponent(t)}`}
+              to={href(t)}
               className="rounded-full border border-line px-2 py-0.5 text-xs text-fg-2 hover:border-line-input hover:text-fg"
             >
-              {topicLabel(t)}
+              {valueLabel("topic", t)}
             </Link>
           ))}
         {(topicsFor ? article.symbols.filter((x) => x !== topicsFor) : article.symbols).slice(0, 4).map((s) => (
@@ -74,10 +86,4 @@ function body(a: Article): string {
   const title = a.title.trim().replace(/[.\s]+$/, "");
   const text = a.snippet.trim();
   return title && text.startsWith(title) ? text.slice(title.length).replace(/^[.:\s–-]+/, "") : text;
-}
-
-/** "monetary_policy" → "Monetary policy" (topic slugs from docs/10 §5). */
-function topicLabel(slug: string): string {
-  const words = slug.replace(/_/g, " ").replace(/\bm and a\b/i, "M&A");
-  return words.charAt(0).toUpperCase() + words.slice(1);
 }

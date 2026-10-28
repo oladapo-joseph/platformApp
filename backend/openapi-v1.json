@@ -1579,6 +1579,17 @@
             "title": "Role",
             "type": "string"
           },
+          "theme": {
+            "default": "system",
+            "description": "Light, dark, or follow the device (US-6.2)",
+            "enum": [
+              "system",
+              "light",
+              "dark"
+            ],
+            "title": "Theme",
+            "type": "string"
+          },
           "username": {
             "anyOf": [
               {
@@ -1709,7 +1720,7 @@
                 "type": "null"
               }
             ],
-            "description": "Counts per filter value over the whole filtered set (first page only)",
+            "description": "Counts per filter value (first page only). Each filter's counts apply every other filter but not its own, so they show what picking another value would add",
             "title": "Facets"
           },
           "items": {
@@ -1729,6 +1740,18 @@
               }
             ],
             "title": "Next Cursor"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Articles matching every filter (first page only)",
+            "title": "Total"
           }
         },
         "required": [
@@ -2823,6 +2846,22 @@
               }
             ],
             "title": "New Password"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "enum": [
+                  "system",
+                  "light",
+                  "dark"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
           }
         },
         "title": "UpdateMe",
@@ -3672,7 +3711,7 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Update name, add or change email, change password",
+        "summary": "Update name, theme, add or change email, change password",
         "tags": [
           "auth"
         ]

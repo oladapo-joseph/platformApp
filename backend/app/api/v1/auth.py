@@ -75,7 +75,7 @@ def me(user: dict = Depends(require_user)) -> dict[str, Any]:
     return auth_service.public_user(user)
 
 
-@router.patch("/me", response_model=Me, summary="Update name, add or change email, change password")
+@router.patch("/me", response_model=Me, summary="Update name, theme, add or change email, change password")
 def update_me(
     body: UpdateMe, request: Request, user: dict = Depends(require_user), session: dict = Depends(require_session)
 ) -> dict[str, Any]:

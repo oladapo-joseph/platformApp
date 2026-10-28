@@ -241,7 +241,7 @@ export interface paths {
         delete: operations["delete_me_api_v1_auth_me_delete"];
         options?: never;
         head?: never;
-        /** Update name, add or change email, change password */
+        /** Update name, theme, add or change email, change password */
         patch: operations["update_me_api_v1_auth_me_patch"];
         trace?: never;
     };
@@ -1186,6 +1186,13 @@ export interface components {
              */
             role: "user" | "admin";
             /**
+             * Theme
+             * @description Light, dark, or follow the device (US-6.2)
+             * @default system
+             * @enum {string}
+             */
+            theme: "system" | "light" | "dark";
+            /**
              * Username
              * @description Legacy Streamlit username, kept until cutover
              */
@@ -1227,7 +1234,7 @@ export interface components {
         NewsPage: {
             /**
              * Facets
-             * @description Counts per filter value over the whole filtered set (first page only)
+             * @description Counts per filter value (first page only). Each filter's counts apply every other filter but not its own, so they show what picking another value would add
              */
             facets: {
                 [key: string]: components["schemas"]["FacetCount"][];
@@ -1236,6 +1243,11 @@ export interface components {
             items: components["schemas"]["Article"][];
             /** Next Cursor */
             next_cursor: string | null;
+            /**
+             * Total
+             * @description Articles matching every filter (first page only)
+             */
+            total?: number | null;
         };
         /** PeerEntry */
         PeerEntry: {
@@ -1572,6 +1584,8 @@ export interface components {
             email?: string | null;
             /** New Password */
             new_password?: string | null;
+            /** Theme */
+            theme?: ("system" | "light" | "dark") | null;
         };
         /** UpdateUser */
         UpdateUser: {
