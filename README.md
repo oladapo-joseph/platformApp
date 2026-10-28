@@ -1,270 +1,52 @@
-# EquityLens NG — Market Intelligence Dashboard
+# EquityLensNG
 
-A Streamlit-based technical analysis dashboard for equities listed on the **Nigerian Exchange (NGX)**. Real-time data from MongoDB Atlas (shared with the ngxPro crawler). Indicators computed in pure pandas; trading signals from rule-based strategies; AI recommendations via Claude.
+![EquityLens NG](brand/png/equitylens-logo-horizontal-light@2x.png#gh-light-mode-only)
+![EquityLens NG](brand/png/equitylens-logo-horizontal-dark@2x.png#gh-dark-mode-only)
 
-**Features:**
+**See the Nigerian market clearly.** EquityLensNG is a market-insight platform for equities listed on the Nigerian Exchange (NGX): daily market overviews, sector performance, technical charts and indicators, rule-based trading signals, peer comparison, and AI signal interpretation.
 
-- 📊 Real-time market overview & sector analysis
-- 🔍 Deep-dive stock analysis with custom date ranges
-- 📈 5 technical indicators (SMA, EMA, RSI, MACD, Bollinger Bands)
-- 🎯 3 trading signal strategies (MACD, RSI, SMA Crossover)
-- 🤖 AI-powered buy/sell recommendations (Claude)
-- 🔐 Role-based authentication (admin/user)
+> **Status (Oct 2026): Phase 2, accounts.** We're rebuilding the production Streamlit dashboard as a **FastAPI backend + React frontend** with invite-only access at launch. Phase 0 (planning, design system, brand, user stories) is done. The backend's market, stock and news APIs are frozen as v1, and invite-only accounts (invites, access requests, sessions, password reset, audit events) are built and **in review**; the frontend starts in Phase 3.
 
----
+## Where things are
 
-## Architecture
-
-```text
-app.py  (st.set_page_config + sidebar router + auth gate)
-  │
-  ├── views/login.py                  (Login + password verification)
-  │
-  ├── views/market_overview.py        (Daily market snapshot)
-  │   ├── charts/market_overview.py   (Plotly figures)
-  │   └── data/loader.py              (MongoDB queries, cached)
-  │
-  └── views/deep_dive.py              (Stock analysis + signals + AI)
-      ├── charts/deep_dive.py         (Candlestick, signal, summary charts)
-      ├── data/loader.py              (OHLCV data, date bounds)
-      ├── data/indicators.py          (SMA, EMA, RSI, MACD, Bollinger Bands)
-      ├── analysis/signals.py         (Buy/sell signal generation)
-      └── analysis/recommender.py     (Direct Anthropic SDK — claude-sonnet-4-6)
-```
-
-**Database:** MongoDB Atlas collection `tradesData` (shared with ngxPro crawler pipeline)
-
-**Layer rules:**
-
-- `app.py` — Page routing, session state, auth gate only
-- `views/` — Streamlit rendering only; no chart building, no direct queries
-- `charts/` — Accept DataFrames, return Plotly `go.Figure`; no `st.*` calls
-- `data/loader.py` — All MongoDB queries, cached with `@st.cache_data`
-- `data/indicators.py` — Stateless pandas functions; no I/O or side effects
-- `analysis/signals.py` — Strategy functions return `(buy_df, sell_df)`; registered in `STRATEGIES` dict
-- `analysis/recommender.py` — Anthropic SDK for AI recommendations; no LangChain
-- `utility/auth.py` — MongoDB-backed auth with PBKDF2-HMAC password hashing
-- `config.py` — Colors, layout defaults, constants
-
----
-
-## Authentication
-
-Login gate backed by MongoDB (`users` collection). Default admin account created on first run:
-
-| Field | Value |
+| Path | What |
 | --- | --- |
-| Username | `ADMIN_USERNAME` from `.env` (default: `admin`) |
-| Password | `ADMIN_PASSWORD` from `.env` (default: `admin123`) |
-| Role | `admin` |
+| [`docs/`](docs/) | Project documentation (start here) |
+| [`design/`](design/) | Design tokens (`tokens.css`), live visual reference (`preview.html`), palette/type decision record (`options.html`) |
+| [`brand/`](brand/) | Logo v2: SVG + PNG assets and generator |
+| [`streamlitApp/`](streamlitApp/) | Frozen copy of the current Streamlit app ([its README](streamlitApp/README.md)) |
+| `backend/` | New FastAPI service: market, stock and news APIs (P1) and invite-only accounts (P2). Setup in [doc 08, section 3](docs/08-development-setup.md) |
+| `frontend/` | New React app (from Phase 3) |
+| root `app.py`, `views/`, … | The live Streamlit app, kept in place until cutover (Phase 5) |
+| [`CHANGELOG.md`](CHANGELOG.md) | Change history |
 
-**Security:** Passwords hashed with PBKDF2-HMAC-SHA256 (no plaintext storage).
+## Documentation
 
-**Admin features:** Create/deactivate users, manage roles, view audit logs.
+1. [Current-state assessment](docs/01-current-state-assessment.md): what the Streamlit app does and what must change
+2. [Project overview & scope](docs/02-project-scope.md): vision, goals, users, journeys, scope
+3. [Target architecture](docs/03-architecture.md): FastAPI + React, API, data, auth, AI, deployment
+4. [Technical decisions](docs/04-technical-decisions.md): ADR log and decisions log
+5. [Implementation plan](docs/05-implementation-plan.md): phases, acceptance criteria, risks, dependencies
+6. [Design system](docs/06-design-system.md): tokens, typography, components, patterns, accessibility
+7. [Brand guidelines](docs/07-brand-guidelines.md): name, logo review, asset usage
+8. [Development setup](docs/08-development-setup.md): running the legacy app today; backend/frontend workflow
+9. [User stories](docs/09-user-stories.md): 65 stories (incl. news and audit log) with acceptance criteria and UX notes, story map, and release slices
+10. [News tagging](docs/10-news-tagging.md): crawler tag schema v2 (topics, scope, regulators, relevance) and the News page filters
+11. [Email design system](docs/11-email-design-system.md): layout, tokens, blocks and copy rules for every email; Resend templates and their registry
+12. [Security review](docs/12-security-review.md): OWASP ASVS 5.0 Level 1 review of auth and accounts; anti-automation controls, deployment and frontend security requirements, dependency policy
 
----
+## Target stack
 
-## Technical Indicators
+FastAPI · PyMongo · pandas · Gemini via `google-genai` (interim; provider-agnostic, Claude-ready) · MongoDB Atlas (shared with the ngxPro crawler) | React 19 · Vite · TypeScript · TanStack Query · Tailwind CSS v4 · Radix UI · TradingView Lightweight Charts · Apache ECharts | Docker · Azure Container Apps (planned) · Resend (email) · GitHub Actions
 
-All computed in `data/indicators.py` using `ClosePrice`:
-
-| Indicator | Windows | Notes |
-| --- | --- | --- |
-| SMA | 50, 200 | `rolling().mean()` |
-| EMA | 12, 26 | `ewm(span, adjust=False)` — always `adjust=False` |
-| RSI | 14 | Wilder's EWM: `ewm(com=13, adjust=False)` — never simple rolling |
-| MACD | 12, 26, 9 | MACD line + signal line + histogram |
-| Bollinger Bands | 20, ±2σ | Upper + lower bands |
-
-Use `add_all_indicators(df)` to compute all at once.
-
----
-
-## Trading Strategies
-
-Defined in `analysis/signals.py`. Each function returns `(buy_df, sell_df)` and is registered in the `STRATEGIES` dict for UI dispatch.
-
-| Strategy | Buy Condition | Sell Condition |
-| --- | --- | --- |
-| `macd_signals` | MACD crosses above signal line | MACD crosses below signal line |
-| `rsi_signals` | RSI crosses up through 30 (oversold) | RSI crosses down through 70 (overbought) |
-| `sma_crossover_signals` | SMA 50 crosses above SMA 200 (golden cross) | SMA 50 crosses below SMA 200 (death cross) |
-
----
-
-## AI Recommendations
-
-Stock recommendations are generated via the **Anthropic SDK directly** (`claude-sonnet-4-6`, `max_tokens=200`). LangChain has been removed.
-
-```python
-# analysis/recommender.py
-import anthropic
-
-_client = None
-
-def _get_client():
-    global _client
-    if _client is None:
-        _client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    return _client
-
-def generate_recommendation(buy_signal, sell_signal, stock_details, **_kwargs) -> str:
-    prompt = _TEMPLATE.format(
-        buy_signal=buy_signal,
-        sell_signal=sell_signal,
-        stock_details=stock_details,
-    )
-    response = _get_client().messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=200,
-        system=_SYSTEM,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.content[0].text.strip()
-```
-
-**Caching:** Result cached in `st.session_state` until user clicks **Generate / Refresh**.
-
----
-
-## Tech Stack
-
-| Component | Library | Notes |
-| --- | --- | --- |
-| UI | Streamlit ≥ 1.35 | |
-| Charts | Plotly ≥ 5.22 | Client-side rendering |
-| Data | pandas + pymongo | ≥ 2.0, ≥ 4.0 |
-| Indicators | Pure pandas | No external TA libraries |
-| AI | `anthropic` SDK — `claude-sonnet-4-6` | Direct SDK; no LangChain |
-| Auth | pymongo + hashlib (PBKDF2-HMAC) | Built-in |
-| Config | python-dotenv + pytz | |
-
----
-
-## Setup
-
-### 1. Create a virtual environment
+## Run the current app
 
 ```bash
-cd platformApp
-python -m venv venv
-venv\Scripts\activate        # Windows
-# source venv/bin/activate   # Mac/Linux
+cd streamlitApp && pip install -r requirements.txt && streamlit run app.py
 ```
 
-### 2. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Configure environment
-
-Create `platformApp/.env`:
-
-```env
-MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/
-MONGODB_DB=ngx
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=your_password
-ANTHROPIC_API_KEY=your_anthropic_key
-```
-
-### 4. Run
-
-```bash
-streamlit run app.py
-# → http://localhost:8501
-```
-
-First login: `admin` / `admin123` (or values from `.env`).
+Details are in [docs/08-development-setup.md](docs/08-development-setup.md).
 
 ---
 
-## Known Issues & Fixes
-
-| Issue | Status | Fix |
-| --- | --- | --- |
-| Date range crash on single-day database | ✅ Fixed | Clamp default with `max(max_date - timedelta(days=90), min_date)` |
-| Login page card fixed width | ✅ Fixed | CSS uses `width: 100%; box-sizing: border-box;` |
-| Period totals inaccurate | ✅ Fixed | `$dateToString($fetched_at)` grouping instead of `$substr($TradeDate)` |
-| NaN crash in sector cards | ✅ Fixed | `math.isnan()` filter before computing bar widths |
-| `AttributeError: 'float' has no attribute 'strip'` | ✅ Fixed | `_s()` helper strips only when value is a string |
-
----
-
-## Troubleshooting
-
-### MongoDB connection timeout
-
-```bash
-python -c "from pymongo import MongoClient; print(MongoClient('YOUR_URI').admin.command('ping'))"
-```
-
-Check `MONGODB_URI` in `.env` and allow your IP in MongoDB Atlas Network Access.
-
-### No data in date range
-
-- Verify `MONGODB_DB` is correct
-- Confirm ngxPro crawler is running and populating `tradesData`
-- Check `fetched_at` field exists in documents
-
-### Claude recommendation fails
-
-- Verify `ANTHROPIC_API_KEY` is valid and has quota
-- Check `analysis/recommender.py` is using the `anthropic` SDK (not LangChain)
-
-### Stale data in UI
-
-All queries are cached with `@st.cache_data`. Click the **Clear Cache** button in the Streamlit menu or restart the app to force fresh data.
-
----
-
-## Adding a New Trading Strategy
-
-1. Create function in `analysis/signals.py`:
-
-```python
-def my_strategy(df: pd.DataFrame) -> tuple:
-    """Returns (buy_df, sell_df)"""
-    buy_signals  = df[...]
-    sell_signals = df[...]
-    return buy_signals, sell_signals
-```
-
-2. Register in `STRATEGIES`:
-
-```python
-STRATEGIES = {
-    "My Strategy": my_strategy,
-    ...
-}
-```
-
-The strategy automatically appears in the Deep Dive "Strategy" dropdown.
-
----
-
-## Adding a New Page
-
-1. Create `views/my_page.py` with a `render()` function
-2. Add to sidebar router in `app.py`:
-
-```python
-if page == "My Page":
-    from views.my_page import render
-    render()
-```
-
----
-
-## Resources
-
-- [Streamlit docs](https://docs.streamlit.io)
-- [Plotly reference](https://plotly.com/python/)
-- [MongoDB aggregation](https://www.mongodb.com/docs/manual/reference/operator/aggregation/)
-- [Anthropic API](https://docs.anthropic.com)
-
----
-
-**Last updated:** June 2026 | **Status:** Production ✅
+*EquityLensNG provides market data and educational analysis, not investment advice.* · Licence: see [LICENSE](LICENSE).

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">EquityLens NG</title>
+  <g transform="translate(0 0) scale(1.0)">
+  <circle cx="27" cy="27" r="18.25" fill="none" stroke="currentColor" stroke-width="5.5"/>
+  <path d="M40.6 40.6 L54.5 54.5" stroke="currentColor" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M19.5 26.0 V38.0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+  <rect x="17.0" y="28.5" width="5.0" height="7.0" rx="1" fill="currentColor"/>
+  <path d="M27.0 20.5 V34.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+  <rect x="24.5" y="23.0" width="5.0" height="8.5" rx="1" fill="currentColor"/>
+  <path d="M34.5 15.0 V29.0" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+  <rect x="32.0" y="17.5" width="5.0" height="9.0" rx="1" fill="currentColor"/>
+  </g>
+</svg>

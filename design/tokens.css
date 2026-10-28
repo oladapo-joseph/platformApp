@@ -1,0 +1,272 @@
+/* ==========================================================================
+   EquityLensNG — Design Tokens  v0.1.0
+   Single source of truth for colour, type, spacing, radius, elevation, motion.
+   Consumed by: Tailwind v4 (@theme inline mapping), Lightweight Charts and
+   ECharts theme adapters (read via getComputedStyle), design/preview.html.
+
+   Theming
+   - Dark is the default.
+   - Light applies when <html data-theme="light">, or when no data-theme is set
+     and the OS prefers light.
+   - Contrast: every text token is ≥ 4.5:1 on canvas/surface/raised in its theme;
+     --color-border-input is ≥ 3:1 (WCAG 1.4.11). See docs/06-design-system.md.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Neutrals (dark) ─────────────────────────────────────────────────── */
+  --color-bg-canvas:      #0B0E13;  /* page background                       */
+  --color-bg-surface:     #12161D;  /* cards, sidebar, panels                */
+  --color-bg-raised:      #191E27;  /* popovers, menus, dialogs              */
+  --color-bg-sunken:      #080A0E;  /* chart plot area, code, inset wells    */
+  --color-bg-hover:       #1F2531;  /* row/item hover                        */
+  --color-bg-selected:    #0F2A23;  /* selected row/item (brand-tinted)      */
+
+  --color-border-subtle:  #1E2330;  /* dividers inside cards, table rows     */
+  --color-border-default: #2C3240;  /* card outlines                          */
+  --color-border-input:   #626B80;  /* form-field boundaries (≥ 3:1)          */
+
+  --color-text-primary:   #E9ECF2;  /* 16.3:1 on canvas */
+  --color-text-secondary: #AEB4C2;  /*  9.3:1 */
+  --color-text-muted:     #8A91A2;  /*  6.1:1 — smallest permitted text colour */
+  --color-text-on-brand:  #04130E;  /*  8.8:1 on --color-brand */
+  --color-text-inverse:   #0E131C;
+
+  /* ── Brand ───────────────────────────────────────────────────────────── */
+  --color-brand:          #00C896;  /* Lens Green — primary actions, focus, brand marks */
+  --color-brand-hover:    #1AD9A8;
+  --color-brand-pressed:  #00AD82;
+  --color-brand-subtle:   rgb(0 200 150 / 0.12);
+  --color-brand-graphic:  #00C896;  /* logo ring, brand illustrations          */
+  --color-focus:          #00C896;
+
+  /* ── Market semantics (always paired with ▲/▼ and +/− — never colour alone) */
+  --color-gain:           #2FD38F;
+  --color-gain-subtle:    rgb(47 211 143 / 0.12);
+  --color-loss:           #FF6B81;
+  --color-loss-subtle:    rgb(255 107 129 / 0.12);
+  --color-unchanged:      #AEB4C2;
+
+  /* ── Feedback & accents ──────────────────────────────────────────────── */
+  --color-danger:         #FF6B81;  /* destructive actions, errors (same hue as loss) */
+  --color-danger-subtle:  rgb(255 107 129 / 0.12);
+  --color-warning:        #F5B841;
+  --color-warning-subtle: rgb(245 184 65 / 0.12);
+  --color-info:           #6CB2FF;
+  --color-info-subtle:    rgb(108 178 255 / 0.12);
+  --color-ai:             #B49CFF;  /* anything AI-generated is marked in violet */
+  --color-ai-subtle:      rgb(180 156 255 / 0.12);
+
+  /* ── Charts ──────────────────────────────────────────────────────────── */
+  --chart-bg:             #080A0E;
+  --chart-grid:           #1A1F2A;
+  --chart-axis:           #8A91A2;
+  --chart-crosshair:      #626B80;
+  --chart-up:             #2FD38F;
+  --chart-down:           #FF6B81;
+  --chart-line:           #00C896;
+  --chart-volume-up:      rgb(47 211 143 / 0.35);
+  --chart-volume-down:    rgb(255 107 129 / 0.35);
+  --chart-sma-50:         #F5B841;
+  --chart-sma-200:        #FF9F1C;
+  --chart-ema-12:         #B49CFF;
+  --chart-ema-26:         #6CB2FF;
+  --chart-bollinger:      #8A91A2;
+  --chart-signal-buy:     #2FD38F;
+  --chart-signal-sell:    #FF6B81;
+  --chart-heat-neutral:   #2C3240;  /* treemap mid-point between loss and gain */
+
+  /* ── Elevation (dark relies on borders; shadows only separate overlays) ─ */
+  --shadow-sm:  0 1px 2px rgb(0 0 0 / 0.40);
+  --shadow-md:  0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg:  0 12px 32px rgb(0 0 0 / 0.55);
+}
+
+/* ── Light theme ─────────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --color-bg-canvas:      #F6F7F9;
+  --color-bg-surface:     #FFFFFF;
+  --color-bg-raised:      #FFFFFF;
+  --color-bg-sunken:      #EEF0F4;
+  --color-bg-hover:       #EEF1F5;
+  --color-bg-selected:    #E3F5EF;
+
+  --color-border-subtle:  #E6E9EF;
+  --color-border-default: #D6DAE2;
+  --color-border-input:   #848C9C;  /* 3.4:1 on surface */
+
+  --color-text-primary:   #0E131C;  /* 18.6:1 on surface */
+  --color-text-secondary: #465063;  /*  8.1:1 */
+  --color-text-muted:     #5E677A;  /*  5.7:1 */
+  --color-text-on-brand:  #FFFFFF;  /*  4.9:1 on --color-brand */
+  --color-text-inverse:   #E9ECF2;
+
+  --color-brand:          #00805F;  /* darker for text + white-on-brand buttons */
+  --color-brand-hover:    #006B4F;
+  --color-brand-pressed:  #005A43;
+  --color-brand-subtle:   rgb(0 128 95 / 0.10);
+  --color-brand-graphic:  #009E78;
+  --color-focus:          #00805F;
+
+  --color-gain:           #047A4E;
+  --color-gain-subtle:    rgb(4 122 78 / 0.10);
+  --color-loss:           #C42343;
+  --color-loss-subtle:    rgb(196 35 67 / 0.10);
+  --color-unchanged:      #465063;
+
+  --color-danger:         #C42343;
+  --color-danger-subtle:  rgb(196 35 67 / 0.10);
+  --color-warning:        #8F5B00;
+  --color-warning-subtle: rgb(245 184 65 / 0.18);
+  --color-info:           #1D63C9;
+  --color-info-subtle:    rgb(29 99 201 / 0.10);
+  --color-ai:             #6D4ED8;
+  --color-ai-subtle:      rgb(109 78 216 / 0.10);
+
+  --chart-bg:             #FFFFFF;
+  --chart-grid:           #EEF0F4;
+  --chart-axis:           #5E677A;
+  --chart-crosshair:      #848C9C;
+  --chart-up:             #0E9F6A;
+  --chart-down:           #D9334F;
+  --chart-line:           #009E78;
+  --chart-volume-up:      rgb(14 159 106 / 0.30);
+  --chart-volume-down:    rgb(217 51 79 / 0.30);
+  --chart-sma-50:         #B07A00;
+  --chart-sma-200:        #C2410C;
+  --chart-ema-12:         #6D4ED8;
+  --chart-ema-26:         #1D63C9;
+  --chart-bollinger:      #848C9C;
+  --chart-signal-buy:     #047A4E;
+  --chart-signal-sell:    #C42343;
+  --chart-heat-neutral:   #E6E9EF;
+
+  --shadow-sm:  0 1px 2px rgb(14 19 28 / 0.06);
+  --shadow-md:  0 4px 12px rgb(14 19 28 / 0.08);
+  --shadow-lg:  0 12px 32px rgb(14 19 28 / 0.12);
+}
+
+/* Follow the OS when the user hasn't chosen (no data-theme attribute). */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    color-scheme: light;
+    --color-bg-canvas: #F6F7F9; --color-bg-surface: #FFFFFF; --color-bg-raised: #FFFFFF;
+    --color-bg-sunken: #EEF0F4; --color-bg-hover: #EEF1F5; --color-bg-selected: #E3F5EF;
+    --color-border-subtle: #E6E9EF; --color-border-default: #D6DAE2; --color-border-input: #848C9C;
+    --color-text-primary: #0E131C; --color-text-secondary: #465063; --color-text-muted: #5E677A;
+    --color-text-on-brand: #FFFFFF; --color-text-inverse: #E9ECF2;
+    --color-brand: #00805F; --color-brand-hover: #006B4F; --color-brand-pressed: #005A43;
+    --color-brand-subtle: rgb(0 128 95 / 0.10); --color-brand-graphic: #009E78; --color-focus: #00805F;
+    --color-gain: #047A4E; --color-gain-subtle: rgb(4 122 78 / 0.10);
+    --color-loss: #C42343; --color-loss-subtle: rgb(196 35 67 / 0.10); --color-unchanged: #465063;
+    --color-danger: #C42343; --color-danger-subtle: rgb(196 35 67 / 0.10);
+    --color-warning: #8F5B00; --color-warning-subtle: rgb(245 184 65 / 0.18);
+    --color-info: #1D63C9; --color-info-subtle: rgb(29 99 201 / 0.10);
+    --color-ai: #6D4ED8; --color-ai-subtle: rgb(109 78 216 / 0.10);
+    --chart-bg: #FFFFFF; --chart-grid: #EEF0F4; --chart-axis: #5E677A; --chart-crosshair: #848C9C;
+    --chart-up: #0E9F6A; --chart-down: #D9334F; --chart-line: #009E78;
+    --chart-volume-up: rgb(14 159 106 / 0.30); --chart-volume-down: rgb(217 51 79 / 0.30);
+    --chart-sma-50: #B07A00; --chart-sma-200: #C2410C; --chart-ema-12: #6D4ED8; --chart-ema-26: #1D63C9;
+    --chart-bollinger: #848C9C; --chart-signal-buy: #047A4E; --chart-signal-sell: #C42343;
+    --chart-heat-neutral: #E6E9EF;
+    --shadow-sm: 0 1px 2px rgb(14 19 28 / 0.06); --shadow-md: 0 4px 12px rgb(14 19 28 / 0.08);
+    --shadow-lg: 0 12px 32px rgb(14 19 28 / 0.12);
+  }
+}
+
+/* ── Theme-independent tokens ────────────────────────────────────────────── */
+:root {
+  /* Typography — IBM Plex (OFL). Sans for UI copy, Mono for numbers & tickers. */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Type scale: size / line-height. 12px is the floor for any text. */
+  --text-xs:   0.75rem;   --leading-xs:   1rem;      /* 12/16  captions, axis labels, overlines */
+  --text-sm:   0.875rem;  --leading-sm:   1.25rem;   /* 14/20  secondary text, table cells      */
+  --text-base: 1rem;      --leading-base: 1.5rem;    /* 16/24  body, inputs                     */
+  --text-lg:   1.125rem;  --leading-lg:   1.75rem;   /* 18/28  card titles                      */
+  --text-xl:   1.25rem;   --leading-xl:   1.75rem;   /* 20/28  section titles                   */
+  --text-2xl:  1.5rem;    --leading-2xl:  2rem;      /* 24/32  page titles (mobile)             */
+  --text-3xl:  1.875rem;  --leading-3xl:  2.25rem;   /* 30/36  page titles, KPI values          */
+  --text-4xl:  2.25rem;   --leading-4xl:  2.5rem;    /* 36/40  stock price headline             */
+  --text-5xl:  3rem;      --leading-5xl:  1.1;       /* 48     landing hero                     */
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+
+  --tracking-tight:   -0.01em;  /* ≥ 2xl headings   */
+  --tracking-normal:  0;
+  --tracking-overline: 0.06em;  /* uppercase overlines only */
+
+  /* Spacing — 4px base grid */
+  --space-0:  0;
+  --space-1:  0.25rem;  /*  4 */
+  --space-2:  0.5rem;   /*  8 */
+  --space-3:  0.75rem;  /* 12 */
+  --space-4:  1rem;     /* 16 */
+  --space-5:  1.25rem;  /* 20 */
+  --space-6:  1.5rem;   /* 24 */
+  --space-8:  2rem;     /* 32 */
+  --space-10: 2.5rem;   /* 40 */
+  --space-12: 3rem;     /* 48 */
+  --space-16: 4rem;     /* 64 */
+  --space-20: 5rem;     /* 80 */
+
+  /* Radius */
+  --radius-sm:   4px;    /* badges, chips, checkboxes */
+  --radius-md:   8px;    /* buttons, inputs           */
+  --radius-lg:   12px;   /* cards, popovers           */
+  --radius-xl:   16px;   /* dialogs, hero panels      */
+  --radius-full: 9999px; /* pills, avatars            */
+
+  /* Borders & focus */
+  --border-width: 1px;
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* Sizing */
+  --control-h-sm: 2rem;     /* 32 — dense toolbars (pointer: fine only) */
+  --control-h-md: 2.5rem;   /* 40 — default                              */
+  --control-h-lg: 2.75rem;  /* 44 — primary CTAs, all controls on touch  */
+  --touch-target-min: 44px;
+
+  /* Layout */
+  --layout-sidebar-w:  240px;
+  --layout-sidebar-w-collapsed: 72px;
+  --layout-topbar-h:   56px;
+  --layout-bottomnav-h: 64px;
+  --layout-content-max: 1440px;
+  --layout-gutter-mobile: 16px;
+  --layout-gutter-desktop: 32px;
+
+  /* Motion */
+  --duration-instant: 80ms;   /* hover, press                 */
+  --duration-fast:    120ms;  /* toggles, tooltips            */
+  --duration-base:    200ms;  /* popovers, accordions         */
+  --duration-slow:    320ms;  /* dialogs, sheets, page enters */
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter:       cubic-bezier(0, 0, 0, 1);
+  --ease-exit:        cubic-bezier(0.3, 0, 1, 1);
+
+  /* Layering */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-tooltip: 70;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}

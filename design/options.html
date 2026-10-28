@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en-NG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Palette & Type Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Page chrome — neutral so it doesn't bias the comparison */
+  :root { --page-bg: #F2F3F5; --page-fg: #16181D; --page-muted: #5A6070; --page-line: #D9DCE2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page-bg: #1A1C21; --page-fg: #ECEDF0; --page-muted: #A1A6B2; --page-line: #2E323A; } }
+  :root[data-theme="dark"] { --page-bg: #1A1C21; --page-fg: #ECEDF0; --page-muted: #A1A6B2; --page-line: #2E323A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--page-bg); color: var(--page-fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 32px 16px 80px; }
+  h1 { font-size: 28px; margin: 0 0 6px; } h2 { font-size: 20px; margin: 48px 0 6px; }
+  .sub { color: var(--page-muted); margin: 0 0 20px; max-width: 70ch; }
+  .opt-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 28px 0 10px; }
+  .opt-head h3 { margin: 0; font-size: 17px; }
+  .opt-head .tag { font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--page-line); color: var(--page-muted); }
+  .opt-head p { margin: 0; color: var(--page-muted); font-size: 14px; flex-basis: 100%; }
+  .pair { display: grid; grid-template-columns: 1fr; gap: 12px; align-items: start; }
+  @media (min-width: 900px) { .pair { grid-template-columns: 1fr 1fr; } }
+
+  /* ── Sample panel (all colours via --p-* vars set per option/theme) ── */
+  .panel { background: var(--p-canvas); color: var(--p-text); border-radius: 14px; padding: 16px; border: 1px solid var(--p-border); min-width: 0;
+           font-family: var(--f-sans, "IBM Plex Sans"), system-ui, sans-serif; }
+  .panel .mono { font-family: var(--f-mono, "IBM Plex Mono"), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .mode { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--p-muted); margin-bottom: 10px; font-weight: 500; }
+  .sw { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .sw div { border-radius: 8px; overflow: hidden; border: 1px solid var(--p-border); background: var(--p-surface); }
+  .sw i { display: block; height: 34px; }
+  .sw span { display: block; padding: 4px 6px; font-size: 11px; line-height: 1.3; color: var(--p-muted); }
+  .sw b { display: block; color: var(--p-text); font-weight: 500; }
+  .card { background: var(--p-surface); border: 1px solid var(--p-border); border-radius: 12px; padding: 14px; }
+  .head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .tick { font-weight: 500; font-size: 16px; } .co { color: var(--p-text2); font-size: 13px; }
+  .price { font-size: 30px; font-weight: 500; line-height: 1.2; margin: 6px 0 2px; }
+  .up { color: var(--p-gain); } .down { color: var(--p-loss); }
+  .chg { font-weight: 500; font-size: 14px; }
+  .fresh { font-size: 12px; color: var(--p-muted); }
+  svg.spark { width: 100%; height: 90px; display: block; margin: 10px 0; background: var(--p-sunken); border-radius: 8px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .btn { height: 36px; padding: 0 14px; border-radius: 8px; font: 500 13px/1 inherit; font-family: inherit; border: 1px solid transparent; cursor: pointer; }
+  .b1 { background: var(--p-brand); color: var(--p-on-brand); }
+  .b2 { background: transparent; color: var(--p-text); border-color: var(--p-input); }
+  .badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .ai { background: var(--p-ai-sub); color: var(--p-ai); }
+  .acc { background: var(--p-accent-sub); color: var(--p-accent); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+  th { text-align: left; font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--p-muted); padding: 6px 8px; border-bottom: 1px solid var(--p-border); }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--p-border-sub); }
+  td.n, th.n { text-align: right; }
+  tr:last-child td { border-bottom: 0; }
+  .nav { display: flex; gap: 4px; margin-bottom: 12px; flex-wrap: wrap; }
+  .nav a { font-size: 13px; padding: 6px 10px; border-radius: 6px; color: var(--p-text2); text-decoration: none; }
+  .nav a.on { background: var(--p-brand-sub); color: var(--p-brand); font-weight: 500; }
+
+  /* ── Palette A — Lens Green (current proposal) ── */
+  .A.dark  { --p-canvas:#0B0E13; --p-surface:#12161D; --p-sunken:#080A0E; --p-border:#2C3240; --p-border-sub:#1E2330; --p-input:#626B80;
+             --p-text:#E9ECF2; --p-text2:#AEB4C2; --p-muted:#8A91A2; --p-brand:#00C896; --p-on-brand:#04130E; --p-brand-sub:rgb(0 200 150/.12);
+             --p-gain:#2FD38F; --p-loss:#FF6B81; --p-ai:#B49CFF; --p-ai-sub:rgb(180 156 255/.12); --p-accent:#F5B841; --p-accent-sub:rgb(245 184 65/.12);
+             --p-line:#00C896; --p-ma:#F5B841; }
+  .A.light { --p-canvas:#F6F7F9; --p-surface:#FFFFFF; --p-sunken:#F1F3F6; --p-border:#D6DAE2; --p-border-sub:#E6E9EF; --p-input:#848C9C;
+             --p-text:#0E131C; --p-text2:#465063; --p-muted:#5E677A; --p-brand:#00805F; --p-on-brand:#FFFFFF; --p-brand-sub:rgb(0 128 95/.10);
+             --p-gain:#047A4E; --p-loss:#C42343; --p-ai:#6D4ED8; --p-ai-sub:rgb(109 78 216/.10); --p-accent:#8F5B00; --p-accent-sub:rgb(245 184 65/.18);
+             --p-line:#009E78; --p-ma:#B07A00; }
+  /* ── Palette B — Naira Green & Gold ── */
+  .B.dark  { --p-canvas:#0A0F0D; --p-surface:#111915; --p-sunken:#070B09; --p-border:#24332B; --p-border-sub:#1A2620; --p-input:#5F7268;
+             --p-text:#E8EFEA; --p-text2:#A9B8AF; --p-muted:#87978D; --p-brand:#3DDC84; --p-on-brand:#04140B; --p-brand-sub:rgb(61 220 132/.12);
+             --p-gain:#3DDC84; --p-loss:#FF6B6B; --p-ai:#B49CFF; --p-ai-sub:rgb(180 156 255/.12); --p-accent:#E3B341; --p-accent-sub:rgb(227 179 65/.14);
+             --p-line:#3DDC84; --p-ma:#E3B341; }
+  .B.light { --p-canvas:#F5F7F5; --p-surface:#FFFFFF; --p-sunken:#EFF3F0; --p-border:#D3DDD7; --p-border-sub:#E4EBE6; --p-input:#82918A;
+             --p-text:#0C1510; --p-text2:#43524A; --p-muted:#5B6B62; --p-brand:#0B7A47; --p-on-brand:#FFFFFF; --p-brand-sub:rgb(11 122 71/.10);
+             --p-gain:#0B7A47; --p-loss:#C2283B; --p-ai:#6D4ED8; --p-ai-sub:rgb(109 78 216/.10); --p-accent:#8A6100; --p-accent-sub:rgb(227 179 65/.20);
+             --p-line:#0B7A47; --p-ma:#B07A00; }
+  /* ── Palette C — Indigo Lens ── */
+  .C.dark  { --p-canvas:#0B0D14; --p-surface:#121522; --p-sunken:#080A10; --p-border:#262B3D; --p-border-sub:#1C2030; --p-input:#646C88;
+             --p-text:#E8EAF3; --p-text2:#ADB3C7; --p-muted:#8990A8; --p-brand:#7C9CFF; --p-on-brand:#0B0D14; --p-brand-sub:rgb(124 156 255/.14);
+             --p-gain:#2FD38F; --p-loss:#FF6B81; --p-ai:#E59CFF; --p-ai-sub:rgb(229 156 255/.12); --p-accent:#F5B841; --p-accent-sub:rgb(245 184 65/.12);
+             --p-line:#7C9CFF; --p-ma:#F5B841; }
+  .C.light { --p-canvas:#F6F7FB; --p-surface:#FFFFFF; --p-sunken:#F0F2F8; --p-border:#D7DAE6; --p-border-sub:#E7E9F1; --p-input:#858BA3;
+             --p-text:#0F1222; --p-text2:#474D66; --p-muted:#5F6580; --p-brand:#3654D6; --p-on-brand:#FFFFFF; --p-brand-sub:rgb(54 84 214/.10);
+             --p-gain:#047A4E; --p-loss:#C42343; --p-ai:#A21CAF; --p-ai-sub:rgb(162 28 175/.10); --p-accent:#8F5B00; --p-accent-sub:rgb(245 184 65/.18);
+             --p-line:#3654D6; --p-ma:#B07A00; }
+
+  /* ── Typography options ── */
+  .T1 { --f-sans: "IBM Plex Sans"; --f-mono: "IBM Plex Mono"; }
+  .T2 { --f-sans: "Inter";         --f-mono: "JetBrains Mono"; }
+  .T3 { --f-sans: "Geist";         --f-mono: "Geist Mono"; }
+  .T4 { --f-sans: "DM Sans";       --f-mono: "DM Mono"; }
+  .type-sample h4 { font-size: 26px; font-weight: 600; letter-spacing: -.01em; margin: 0 0 6px; line-height: 1.2; }
+  .type-sample p { margin: 8px 0; color: var(--p-text2); font-size: 15px; max-width: 60ch; }
+  .type-sample .label { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--p-muted); }
+  .type-sample .nums { font-size: 15px; margin-top: 6px; }
+  .tp-switch { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tp-switch button { font: inherit; font-size: 13px; padding: 6px 12px; border-radius: 99px; border: 1px solid var(--page-line); background: transparent; color: var(--page-fg); cursor: pointer; }
+  .tp-switch button[aria-pressed="true"] { background: var(--page-fg); color: var(--page-bg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>EquityLensNG: palette & typography options</h1>
+  <p class="sub"><strong>Decided 2026-10-26: A · Lens Green + 1 · IBM Plex Sans / Plex Mono</strong> (ADR-010). This page is kept as the decision record.</p>
+  <p class="sub">Pick one colour direction (A, B or C) and one type pairing (1–4). Every text colour shown passes WCAG AA (≥ 4.5:1) and every input border passes ≥ 3:1, in both modes. Gains and losses always carry ▲/▼ and +/−, so they never rely on colour alone. Sample figures are illustrative.</p>
+
+  <h2>Colour directions</h2>
+  <div id="palettes"></div>
+
+  <h2>Typography pairings</h2>
+  <p class="sub">The samples below use colour direction:</p>
+  <div class="tp-switch" role="group" aria-label="Palette for type samples">
+    <button type="button" data-p="A" aria-pressed="true">A · Lens Green</button>
+    <button type="button" data-p="B" aria-pressed="false">B · Naira Green & Gold</button>
+    <button type="button" data-p="C" aria-pressed="false">C · Indigo Lens</button>
+  </div>
+  <div id="types"></div>
+</div>
+
+<template id="sample">
+  <div class="panel">
+    <div class="mode"></div>
+    <div class="sw"></div>
+    <nav class="nav" aria-label="Sample navigation"><a class="on" href="#">Market</a><a href="#">Watchlist</a><a href="#">Account</a></nav>
+    <div class="card">
+      <div class="head"><div><span class="tick mono">MTNN</span> <span class="co">MTN Nigeria</span></div><span class="fresh">Data as of 14:35 WAT · 24 Oct</span></div>
+      <div class="price mono">₦245.00</div>
+      <span class="chg mono up">▲ +5.50 (+2.31%)</span>
+      <svg class="spark" viewBox="0 0 400 90" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="btns"><button class="btn b1" type="button">Explain these signals</button><button class="btn b2" type="button">☆ Watchlist</button>
+        <span class="badge ai">✦ AI</span><span class="badge acc">Data delayed</span></div>
+      <table>
+        <thead><tr><th>Symbol</th><th class="n">Price</th><th class="n">Change</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">OKOMUOIL</td><td class="n mono">₦598.00</td><td class="n mono up">▲ +9.98%</td></tr>
+          <tr><td class="mono">ZENITHBANK</td><td class="n mono">₦48.90</td><td class="n mono" style="color:var(--p-text2)">■ 0.00%</td></tr>
+          <tr><td class="mono">DANGCEM</td><td class="n mono">₦478.50</td><td class="n mono down">▼ −0.45%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</template>
+
+<script>
+  const PALETTES = [
+    ['A', 'Lens Green', 'Current proposal', 'Keeps today\'s brand green (#00C896) and the new logo as-is. Cool neutral greys. Feels familiar to existing users. Trade-off: brand and "gain" share a hue family.'],
+    ['B', 'Naira Green & Gold', 'Local identity', 'A deeper, flag-inspired green with a gold accent and green-tinted neutrals. The most distinctly Nigerian option. Trade-off: brand = gain colour exactly, and the gold competes with warnings.'],
+    ['C', 'Indigo Lens', 'Clearest semantics', 'Indigo brand, so green and red mean only up and down. The most "institutional" feel. Trade-off: a rebrand. The logo ring would turn indigo, and users lose the familiar green.'],
+  ];
+  const TYPES = [
+    ['T1', '1 · IBM Plex Sans + IBM Plex Mono', 'Current proposal', 'Continuity with today\'s Plex Mono UI. Technical, slightly editorial; excellent tabular figures.'],
+    ['T2', '2 · Inter + JetBrains Mono', 'Most legible', 'The fintech default. Very readable at small sizes on phones; neutral personality.'],
+    ['T3', '3 · Geist + Geist Mono', 'Modern / crisp', 'Contemporary, geometric, tight. A designed family, so Sans and Mono match closely.'],
+    ['T4', '4 · DM Sans + DM Mono', 'Friendly', 'Rounder and warmer, the most approachable for first-time investors; slightly less dense.'],
+  ];
+  const SWATCH_KEYS = [['canvas','Canvas'],['surface','Surface'],['text','Text'],['text2','Text 2'],['muted','Muted'],['brand','Brand'],['gain','Gain'],['loss','Loss'],['accent','Accent'],['ai','AI']];
+
+  function sparkline(svg) {
+    let seed = 11; const rnd = () => (seed = (seed * 9301 + 49297) % 233280) / 233280;
+    const pts = []; let v = 50; for (let i = 0; i < 60; i++) { v += (rnd() - 0.44) * 6; pts.push(v); }
+    const max = Math.max(...pts), min = Math.min(...pts);
+    const xy = pts.map((p, i) => [i * 400 / 59, 8 + (max - p) / (max - min) * 74]);
+    const ma = pts.map((_, i) => i < 9 ? null : pts.slice(i - 9, i + 1).reduce((a, b) => a + b) / 10);
+    const maPath = ma.map((p, i) => p == null ? '' : `${ma[i - 1] == null ? 'M' : 'L'}${xy[i][0]} ${8 + (max - p) / (max - min) * 74}`).join(' ');
+    svg.innerHTML = `<path d="M${xy.map(p => p.join(' ')).join(' L')} L400 90 L0 90 Z" fill="var(--p-brand-sub)"/>`
+      + `<path d="M${xy.map(p => p.join(' ')).join(' L')}" fill="none" stroke="var(--p-line)" stroke-width="2"/>`
+      + `<path d="${maPath}" fill="none" stroke="var(--p-ma)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+  }
+
+  function makeSample(classes, modeLabel) {
+    const node = document.getElementById('sample').content.firstElementChild.cloneNode(true);
+    node.className = 'panel ' + classes;
+    node.querySelector('.mode').textContent = modeLabel;
+    sparkline(node.querySelector('svg'));
+    return node;
+  }
+  function fillSwatches(panel) {
+    const cs = getComputedStyle(panel);
+    panel.querySelector('.sw').innerHTML = SWATCH_KEYS.map(([k, label]) =>
+      `<div><i style="background:var(--p-${k})"></i><span><b>${label}</b>${cs.getPropertyValue('--p-' + k).trim()}</span></div>`).join('');
+  }
+
+  const pc = document.getElementById('palettes');
+  PALETTES.forEach(([id, name, tag, desc]) => {
+    const head = document.createElement('div'); head.className = 'opt-head';
+    head.innerHTML = `<h3>${id} · ${name}</h3><span class="tag">${tag}</span><p>${desc}</p>`;
+    const pair = document.createElement('div'); pair.className = 'pair';
+    const d = makeSample(`${id} dark T1`, 'Dark mode'), l = makeSample(`${id} light T1`, 'Light mode');
+    pair.append(d, l); pc.append(head, pair); fillSwatches(d); fillSwatches(l);
+  });
+
+  const tc = document.getElementById('types');
+  function renderTypes(p) {
+    tc.innerHTML = '';
+    TYPES.forEach(([id, name, tag, desc]) => {
+      const head = document.createElement('div'); head.className = 'opt-head';
+      head.innerHTML = `<h3>${name}</h3><span class="tag">${tag}</span><p>${desc}</p>`;
+      const pair = document.createElement('div'); pair.className = 'pair';
+      const text = document.createElement('div'); text.className = `panel ${p} dark ${id} type-sample`;
+      text.innerHTML = `<div class="label">Market today</div><h4>See the Nigerian market clearly</h4>
+        <p>MTN Nigeria rose 2.3% today on ₦4.1B traded, its strongest session in three weeks. MACD crossed above its signal line while RSI recovered from 34 to 56.</p>
+        <div class="nums mono">₦1,234.50 · 98.10 · +12.40 · −3.10 · 0123456789</div>
+        <div class="nums mono" style="font-size:28px;font-weight:500;color:var(--p-text)">₦245.00 <span class="up" style="font-size:16px">▲ +2.31%</span></div>`;
+      pair.append(text, makeSample(`${p} light ${id}`, 'In context · light'));
+      tc.append(head, pair);
+    });
+  }
+  document.querySelectorAll('.tp-switch button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tp-switch button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    renderTypes(b.dataset.p);
+  }));
+  renderTypes('A');
+</script>
+</body>
+</html>

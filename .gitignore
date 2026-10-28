@@ -11,3 +11,28 @@ tests/
 .devcontainer/
 
 test**
+# ── New platform (backend/ + frontend/) ──
+node_modules/
+dist/
+.venv/
+venv/
+.ruff_cache/
+.mypy_cache/
+coverage/
+.coverage
+playwright-report/
+test-results/
+
+# ── Tests are never tracked (owner decision 2026-10-26, D-11) ──
+# tests/ and test** above cover Python; these cover the React app's conventions.
+*.test.*
+*.spec.*
+__tests__/
+e2e/
+
+# email template previews (python -m app.cli email-templates render)
+email-previews/
+*.sqlite3
+streamlitApp/
+
+registry.json

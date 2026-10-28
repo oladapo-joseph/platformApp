@@ -1,0 +1,40 @@
+# Lint, types and builds only: tests are never committed (D-11) and run locally before merge.
+name: CI
+
+on:
+  push:
+    branches: [main, newdesign]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check app
+      - name: Format
+        run: uv run ruff format --check app
+      - name: Types
+        run: uv run mypy
+      - name: API contract (frozen v1; additive changes only, update openapi-v1.json in the same PR)
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+        run: |
+          uv run python -c "import json; from app.main import create_app; print(json.dumps(create_app().openapi(), indent=2, sort_keys=True))" > /tmp/openapi.json
+          diff -u openapi-v1.json /tmp/openapi.json
+      - name: Dependency audit (known vulnerabilities; ASVS 15.2.1, docs/12 §5)
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project --format requirements-txt -o /tmp/requirements.txt
+          uvx pip-audit --requirement /tmp/requirements.txt --progress-spinner off
