@@ -111,19 +111,25 @@ uv run python -m app.cli send-test-email --to you@example.com
 
 > **Pointing the backend at the production database** creates the platform's own collections (`sessions`, `email_tokens`, `invites`, `access_requests`, `audit_log`) and a partial unique index on `app_users.email` at startup. Both are additive and the Streamlit app is unaffected (D-17), but use a separate `MONGODB_DB` for experiments.
 
-## 4. Frontend (planned, Phase 3)
+## 4. Frontend (Phase 3)
+
+Needs Node ≥ 22. TypeScript is pinned to 5.9 (ADR-002).
 
 ```bash
 cd platformApp/frontend
 npm ci
-npm run gen:api          # regenerate src/api/schema.d.ts from http://localhost:8000/api/v1/openapi.json
-npm run dev              # http://localhost:5173 — Vite proxies /api → :8000
-npm run test             # vitest
-npm run e2e              # playwright (needs backend running)
-npm run lint && npm run typecheck
+npm run dev              # http://localhost:5173; Vite proxies /api to :8000 (set API_URL to change it)
+npm run gen:api          # regenerate src/api/schema.d.ts from backend/openapi-v1.json
+npm run lint && npm run format:check && npm run typecheck
+npm run build            # dist/, which FastAPI serves at / (FRONTEND_DIST)
+npm run test             # vitest (tests are local only, D-11)
 ```
 
-`src/styles/tokens.css` is synced from `design/tokens.css` by a `predev`/`prebuild` script. Edit tokens only in `design/`.
+`src/styles/tokens.css` and `public/brand/` are copied from `design/` and `brand/` by `npm run sync:tokens` (run automatically before `dev` and `build`). They're git-ignored: edit the originals.
+
+**Colours come only from tokens.** Use the Tailwind names mapped in `src/styles/globals.css` (`bg-surface`, `text-fg-2`, `text-gain`, `border-line`, …). Tailwind's default palette is switched off and ESLint rejects hex literals.
+
+**Trying the app without touching production data:** point the backend at a separate database (`MONGODB_DB=equitylens_dev`) or a local mongod, not the shared Atlas `ngx` database, because signing in writes sessions and audit events.
 
 ## 5. Full stack in one container (planned)
 

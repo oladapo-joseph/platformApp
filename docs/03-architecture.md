@@ -226,8 +226,8 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | Styling | Tailwind CSS v4 reading the CSS variables in `design/tokens.css` |
 | Accessible primitives | Radix UI (dialog, popover, dropdown, tabs, tooltip, toggle-group), wrapped in our own components |
 | Price charts | TradingView **Lightweight Charts** (candles/lines, volume, RSI/MACD panes, markers). Apache-2.0; attribution required |
-| Other charts | **Apache ECharts** (modular imports: treemap, bar, scatter) |
-| Tables | TanStack Table (sorting, filtering, virtualisation for the full price table) |
+| Other charts | Sector treemap: `d3-hierarchy` layout drawn as SVG; ranked bars in HTML. **Apache ECharts** reserved for the v1.1 scatter (ADR-002, amended) |
+| Tables | Semantic `<table>` sorted in memory (~150 rows); sort, search and filters in the URL |
 | Forms | react-hook-form + zod |
 | Dates | date-fns + `@date-fns/tz` (Africa/Lagos) |
 | API client | `openapi-typescript` generated types + a thin `fetch` wrapper (CSRF header, problem+json errors) |
@@ -238,7 +238,9 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | Route | Screen | Access |
 | --- | --- | --- |
 | `/` | Landing page (value prop, screenshots, sign-up CTA, disclaimer) | public |
-| `/signup` · `/login` · `/verify` · `/forgot` · `/reset` | Auth flows | public |
+| `/login` · `/forgot` · `/request-invite` · `/signup` | Auth flows (`/signup` explains invite-only and links to the request form) | public, signed out |
+| `/invite#token=` · `/reset#token=` · `/verify#token=` | Email links: the token is read from the fragment and removed from the address bar | public |
+| `/terms` | Terms and disclaimer (full terms after legal review, D-06) | public |
 | `/app` → `/app/market` | Market today (snapshot) · `?start&end` for range mode | user |
 | `/app/stocks/:symbol` | Stock page: chart, indicators, signals, AI, peers, data | user |
 | `/app/news` | News: filterable by stock, sector, topic, scope, regulator, source, date (US-9.8) | user |

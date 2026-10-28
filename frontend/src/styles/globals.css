@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "./tokens.css"; /* synced from /design/tokens.css (npm run sync:tokens) */
+
+/* Only design tokens: Tailwind's default palette is switched off, so bg-red-500 and
+   friends don't exist (docs/06 §10). Theming lives in the CSS variables themselves. */
+@theme inline {
+  --color-*: initial;
+  --color-canvas: var(--color-bg-canvas);
+  --color-surface: var(--color-bg-surface);
+  --color-raised: var(--color-bg-raised);
+  --color-sunken: var(--color-bg-sunken);
+  --color-hover: var(--color-bg-hover);
+  --color-selected: var(--color-bg-selected);
+  --color-line-subtle: var(--color-border-subtle);
+  --color-line: var(--color-border-default);
+  --color-line-input: var(--color-border-input);
+  --color-fg: var(--color-text-primary);
+  --color-fg-2: var(--color-text-secondary);
+  --color-fg-muted: var(--color-text-muted);
+  --color-on-brand: var(--color-text-on-brand);
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-pressed: var(--color-brand-pressed);
+  --color-brand-subtle: var(--color-brand-subtle);
+  --color-gain: var(--color-gain);
+  --color-gain-subtle: var(--color-gain-subtle);
+  --color-loss: var(--color-loss);
+  --color-loss-subtle: var(--color-loss-subtle);
+  --color-unchanged: var(--color-unchanged);
+  --color-danger: var(--color-danger);
+  --color-danger-subtle: var(--color-danger-subtle);
+  --color-warning: var(--color-warning);
+  --color-warning-subtle: var(--color-warning-subtle);
+  --color-info: var(--color-info);
+  --color-info-subtle: var(--color-info-subtle);
+  --color-ai: var(--color-ai);
+  --color-ai-subtle: var(--color-ai-subtle);
+  --color-focus: var(--color-focus);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --ease-standard: var(--ease-standard);
+  --ease-enter: var(--ease-enter);
+  --ease-exit: var(--ease-exit);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-canvas font-sans text-base text-fg antialiased;
+    min-height: 100dvh;
+  }
+  /* One focus style everywhere (docs/06 §8) */
+  :focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+  ::selection {
+    background: var(--color-brand-subtle);
+  }
+}
+
+@layer utilities {
+  /* Numbers, tickers, prices: Plex Mono with tabular figures */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  /* uppercase label (docs/06 §3 "Overline"); not named .overline, which is Tailwind's text-decoration utility */
+  .eyebrow {
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-overline);
+    text-transform: uppercase;
+  }
+  /* Touch targets: ≥ 44 px on coarse pointers (docs/06 §8) */
+  @media (pointer: coarse) {
+    .touch-target {
+      min-height: var(--touch-target-min);
+      min-width: var(--touch-target-min);
+    }
+  }
+}
+
+/* Logo lockups: the "-dark" file is drawn for dark backgrounds, "-light" for light ones */
+.logo-on-light {
+  display: none;
+}
+:root[data-theme="light"] .logo-on-dark {
+  display: none;
+}
+:root[data-theme="light"] .logo-on-light {
+  display: inline-block;
+}
+/* Cards: borders separate them in dark mode, a small shadow in light mode (docs/06 §5) */
+:root[data-theme="light"] .card-shadow {
+  box-shadow: var(--shadow-sm);
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .logo-on-dark {
+    display: none;
+  }
+  :root:not([data-theme]) .logo-on-light {
+    display: inline-block;
+  }
+  :root:not([data-theme]) .card-shadow {
+    box-shadow: var(--shadow-sm);
+  }
+}

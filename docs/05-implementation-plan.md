@@ -129,6 +129,16 @@ Also recorded: every access and account event in `audit_log`, strictly append-on
 
 ## P3 — Frontend core
 
+**Status 2026-10-28: P3a built.** P3 ships in slices, each checked in a browser against the API before the next:
+
+| Slice | Contents | Status |
+| --- | --- | --- |
+| P3a | Scaffold, tokens, API client + generated types, routing, session, app shell, core components, all auth and invite screens, placeholder routes | ✅ Built. 18 local unit tests; Playwright run of sign-in, invite acceptance, legacy banner and sign-out at 390, 900 and 1440 px in both themes with **zero axe violations**; first-load JS 157 KB gzipped |
+| P3b | Market Today (snapshot and range), SymbolSearch | ✅ Built. Headline, tiles with deltas vs the previous session, movers computed to US-2.2 (traded stocks only; most traded by value), sector heatmap + ranked bars + table, top stories, the full price list, period presets and custom dates, all view state in the URL; search palette (`/`, Ctrl/⌘ K). 27 local unit tests; Playwright at 390 and 1440 px in both themes with zero axe violations. Market chunk 15 KB gzipped |
+| P3c | Stock page | ✅ Built. Header + key stats, Lightweight Charts (candle/line, 1M–ALL, SMA/EMA/Bollinger overlays with colour + dash, volume/RSI/MACD panes, signal markers, OHLC readout, ←/→ keyboard reading announced to screen readers, "View as table"), signals list linked both ways with the markers, news grouped About / Mentions / Sector, peers with match breakdown, OHLCV data + CSV, Share, unknown-ticker state; whole view in the URL with back/forward. 36 local unit tests; Playwright at 390 and 1440 px in both themes with zero axe violations. Chart library is a lazy 60 KB-gzipped chunk |
+| P3d | News page, Account page, full landing page | Next |
+| P3e | Playwright journeys J1–J3, J6, J7; axe on every route; Lighthouse; parity checklist | |
+
 **Scope.** `frontend/` scaffold (Vite, TS strict, Tailwind v4 + tokens, Radix), app shell (desktop sidebar, mobile bottom nav, top bar with search), design-system components ([06 §6](06-design-system.md#6-components)), auth screens, Market Today (snapshot and range modes), the stock page (chart, overlays, panels, strategy signals, **news panel** (US-9.1), peers, data table with CSV export), and the landing page. Theme switch. Generated API types.
 
 **Acceptance criteria:**

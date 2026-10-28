@@ -1,0 +1,95 @@
+/** Ticker, company, last price and change, Share, and the key-stats row (US-3.2, US-3.9). Freshness is in the top bar. */
+import { Share2 } from "lucide-react";
+import { useState } from "react";
+
+import type { Bar, StockProfile } from "@/api/types";
+import { Button } from "@/components/ui/Button";
+import { PriceChange } from "@/components/ui/market";
+import { money, price, volume } from "@/lib/format";
+import { sectorName } from "@/lib/sectors";
+import { yearRange } from "@/lib/stock";
+
+async function share(symbol: string, company: string, toast: (m: string) => void) {
+  const url = window.location.href;
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  if (coarse && typeof navigator.share === "function") {
+    try {
+      await navigator.share({ title: `${symbol} · ${company} · EquityLensNG`, url });
+      return;
+    } catch {
+      /* cancelled, or not allowed: fall back to copying */
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast("Link copied");
+  } catch {
+    toast("Copy the address bar to share this view");
+  }
+}
+
+export function StockHeader({
+  profile,
+  yearBars,
+  toast,
+}: {
+  profile: StockProfile;
+  yearBars: Bar[];
+  toast: (m: string) => void;
+}) {
+  const q = profile.quote;
+  const year = yearRange(yearBars);
+  const [more, setMore] = useState(false);
+  const stats: [string, string][] = [
+    ["Previous close", price(q?.prev_close)],
+    ["Day range", q?.low != null && q.high != null ? `${price(q.low)} – ${price(q.high)}` : "—"],
+    ["Volume", volume(q?.volume)],
+    ["Value", money(q?.value)],
+    ["Deals", q?.trades != null ? q.trades.toLocaleString("en-NG") : "—"],
+    ["Market cap", money(profile.market_cap)],
+    ["52-week range", year ? `${price(year.low)} – ${price(year.high)}` : "—"],
+  ];
+
+  return (
+    <header className="mb-6 flex flex-col gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="num text-2xl font-semibold tracking-tight text-fg md:text-3xl">{profile.symbol}</h1>
+          <p className="text-base text-fg">{profile.company}</p>
+          <p className="text-sm text-fg-muted">
+            {sectorName(profile.sector)}
+            {profile.subsector ? ` · ${profile.subsector}` : ""}
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<Share2 aria-hidden className="size-4" />}
+          onClick={() => void share(profile.symbol, profile.company, toast)}
+        >
+          Share
+        </Button>
+      </div>
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
+        <p className="num text-4xl font-medium text-fg">{price(q?.close)}</p>
+        <PriceChange abs={q?.change} pct={q?.pct_change} variant="pill" className="mb-1" />
+      </div>
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 lg:grid-cols-7">
+        {stats.map(([label, value], i) => (
+          <div key={label} className={i >= 4 && !more ? "max-sm:hidden" : undefined}>
+            <dt className="text-xs text-fg-muted">{label}</dt>
+            <dd className="num text-sm text-fg">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      <button
+        type="button"
+        onClick={() => setMore((m) => !m)}
+        aria-expanded={more}
+        className="self-start text-sm font-medium text-brand underline-offset-2 hover:underline sm:hidden"
+      >
+        {more ? "Show fewer stats" : "Show more stats"}
+      </button>
+    </header>
+  );
+}

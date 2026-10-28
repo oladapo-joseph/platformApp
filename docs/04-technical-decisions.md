@@ -21,7 +21,9 @@
 
 ## ADR-002 — Frontend: React + Vite + TypeScript, Tailwind v4 + Radix, Lightweight Charts + ECharts
 
-**Status:** Proposed
+**Status:** Accepted; scaffold built 2026-10-28 (P3a). Versions: React 19, React Router 8, Vite 8, Tailwind 4.3, TanStack Query 5, the `radix-ui` package. **TypeScript is pinned to 5.9**: 7.0 is out, but `openapi-typescript` and `typescript-eslint` don't support it yet; revisit when they do.
+
+**Amended 2026-10-28 (P3b):** the sector treemap is drawn with `d3-hierarchy` (layout only) as plain SVG instead of ECharts: about a tenth of the size, and every cell is a focusable button with a spoken label. TanStack Table is not used: lists are ~150 rows, so a semantic `<table>` sorted in memory is simpler. ECharts remains the plan for the v1.1 movers scatter (US-2.7).
 
 **Context.** We need a fast, accessible, responsive SPA with finance-grade charts. The team is small.
 

@@ -36,3 +36,7 @@ email-previews/
 streamlitApp/
 
 registry.json
+# frontend: copies of /design and /brand made by `npm run sync:tokens` (edit the originals)
+frontend/src/styles/tokens.css
+frontend/public/brand/
+frontend/public/favicon.svg

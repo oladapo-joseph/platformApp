@@ -23,6 +23,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `docs/10-news-tagging.md`: problems in the crawler's current news tagger (T1–T7, including 11 real NGX tickers that are ordinary words or names), **tag schema v2** (relevance tiers, topics, scope, regulators, sectors/subsectors, content type, geography, estimated dates), matching rules, controlled vocabularies, rollout with a precision gate, and how the app uses the tags.
 - **US-9.8 News page** with filters and facet counts; the bottom nav becomes Market · News · Watchlist · Account (search moves to the top bar); FilterPanel, FilterChips and TopicChip components.
 
+### Built — Phase 3c: the stock page (2026-10-28)
+- `/app/stocks/:symbol`: ticker, company, sector, last price and change, key stats (previous close, day range, volume, value, deals, market cap, 52-week range when there's a year of data), Share (device share sheet on phones, "Link copied" on desktop).
+- **Chart** (TradingView Lightweight Charts, loaded on demand): candle or line over 1M–ALL; SMA 50/200, EMA 12/26 and Bollinger 20 overlays, distinguished by colour and dash with a legend; volume, RSI 14 (70/30 lines) and MACD panes; buy ▲ / sell ▼ markers; a crosshair readout of date, O/H/L/C, change and volume. Focus the chart and use ←/→ to read each day aloud; "View as table" shows the same data. Every indicator has a one-line explainer.
+- **Signals** for MACD crossover, RSI reversal or SMA golden cross: a summary ("3 buy and 4 sell signals in 6 months. Latest: sell, 5 days ago."), a descriptive list with price since each signal, linked both ways with the chart markers, and a clear state when a strategy lacks history.
+- **News** grouped "About", "Mentions" and "Sector news", with topic chips; **Peers** with match % and why; **Data** (OHLCV, newest first) with CSV download named `SYMBOL_start_end.csv`.
+- The whole view (range, type, overlays, panes, strategy, table, tab) is in the URL; back/forward step through changes. An unknown ticker says so and opens search; `/app/stocks` offers search and popular stocks.
+
+### Built — Phase 3b: Market Today and stock search (2026-10-28)
+- **Market Today** (`/app/market`): a template headline ("More stocks rose than fell today (19 up, 18 down). ₦8.4B traded."), tiles for breadth, value, volume and deals with change vs the previous session, top gainers / losers / most traded (tabs on phones), sectors as a heatmap + ranked diverging bars + table, top stories, and every stock in a sortable, searchable list.
+- **Period mode**: "Last session | Period" with 1W, 1M, 3M, YTD, 1Y and custom dates; the title names the period. Mode, dates, sector, search and sort live in the URL, so reloading or sharing restores the view.
+- Movers follow US-2.2 exactly (stocks that traded only; a falling stock never appears among gainers or vice versa; most traded ranked by value). The API's `summary` movers differ, so the app computes them from the full stock list it already receives.
+- **Stock search** everywhere: `/` or Ctrl/⌘ K, ranked ticker-then-name matches with highlighting, recent and popular stocks, keyboard-only operation; full-screen on phones.
+- Freshness wording follows US-2.3 ("Markets closed · showing Fri 24 Oct", "Data may be delayed").
+
+### Built — Phase 3a: frontend foundation (2026-10-28)
+- `frontend/`: Vite + React 19 + TypeScript (strict) + Tailwind v4 driven only by the design tokens (the default palette is switched off; a lint rule rejects hex colours). `npm run sync:tokens` copies `design/tokens.css` and the logos in before every dev/build run.
+- API client: same-origin `fetch` with the CSRF header, problem+json → `ApiError`, a one-time CSRF refresh, and a broadcast when a session ends. Types generated from `backend/openapi-v1.json` (`npm run gen:api`; CI fails if they drift).
+- App shell: sidebar (≥ 1024), icon rail (768–1023), bottom nav (< 768); skip link, landmarks, `aria-current`; freshness stamp; user menu with theme (automatic, light, dark, applied before first paint) and sign-out; the "add your email" banner for legacy users (US-1.7).
+- Screens: sign in (returns you to the page you asked for; explains signed-out and expired sessions), forgotten password, reset, confirm email, accept invite (with expired/used/invalid states), request an invite, invite-only sign-up notice, terms, a first landing page, and placeholders for the P3b–P4 routes.
+- Every route is its own chunk (157 KB gzipped first load). CI: lint, format, types, API-type drift, build, `npm audit`; Dependabot covers npm.
+
 ### Security — ASVS 5.0 Level 1 review of auth & accounts (2026-10-28)
 - `docs/12-security-review.md`: all 70 Level 1 requirements assessed (51 apply: 34 passed as built, 9 fixed, 4 for the frontend, 4 for deployment), the anti-automation controls, deployment and frontend requirements, the dependency policy, and Level 2 gaps for the owner.
 - **Cookies** are `__Host-el_session` / `__Host-el_csrf` outside local. **Signing in** (also reset and invite acceptance) ends the session the browser arrived with.

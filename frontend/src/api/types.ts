@@ -1,0 +1,25 @@
+import type { components } from "./schema";
+
+/** Response and request bodies, by their OpenAPI schema names (regenerate: npm run gen:api). */
+export type Schemas = components["schemas"];
+export type Me = Schemas["Me"];
+export type MarketStatus = Schemas["MarketStatus"];
+export type InviteView = Schemas["InviteView"];
+export type Snapshot = Schemas["Snapshot"];
+export type Quote = Schemas["Quote"];
+export type RangeSummary = Schemas["RangeSummary"];
+export type RangeRow = Schemas["RangeRow"];
+export type SectorAggregate = Schemas["SectorAggregate"];
+export type DirectoryEntry = Schemas["DirectoryEntry"];
+export type Article = Schemas["Article"];
+export type StockProfile = Schemas["StockProfile"];
+export type Bar = Schemas["Bar"];
+export type BarsResponse = Schemas["BarsResponse"];
+export type PeriodStats = Schemas["PeriodStats"];
+export type IndicatorsResponse = Schemas["IndicatorsResponse"];
+export type SignalsResponse = Schemas["SignalsResponse"];
+export type SignalEvent = Schemas["SignalEvent"];
+export type StrategyInfo = Schemas["StrategyInfo"];
+export type StockNews = Schemas["StockNews"];
+export type SimilarResponse = Schemas["SimilarResponse"];
+export type PeerEntry = Schemas["PeerEntry"];

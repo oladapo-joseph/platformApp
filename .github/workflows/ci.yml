@@ -38,3 +38,29 @@ jobs:
         run: |
           uv export --locked --no-dev --no-hashes --no-emit-project --format requirements-txt -o /tmp/requirements.txt
           uvx pip-audit --requirement /tmp/requirements.txt --progress-spinner off
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Lint (incl. no hex colours outside the tokens)
+        run: npm run lint
+      - name: Format
+        run: npm run format:check
+      - name: Types
+        run: npm run sync:tokens && npm run typecheck
+      - name: API types match the frozen contract
+        run: npm run gen:api && git diff --exit-code src/api/schema.d.ts
+      - name: Build (SPA served by FastAPI, ADR-008)
+        run: npm run build
+      - name: Dependency audit (ASVS 15.2.1)
+        run: npm audit --omit=dev --audit-level=high
