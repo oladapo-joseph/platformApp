@@ -52,6 +52,52 @@
         if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
       } catch (e) {}
     </script>
+    <!-- Starts the first requests while the app's code downloads (P3 criterion 3): the screen's
+         own code (the build fills in ROUTE_CHUNKS, vite.config.ts), the session check and, on
+         Market Today, its data (the private parts once signed in). Each response is used once by
+         src/api/client.ts; the URLs must match what it builds. -->
+    <script>
+      (function () {
+        var chunks = /* ROUTE_CHUNKS */ {};
+        var path = location.pathname.replace(/\/$/, "") || "/";
+        (chunks[path] || chunks[path.replace(/[^/]+$/, "")] || []).forEach(function (href) {
+          var link = document.createElement("link");
+          link.rel = "modulepreload";
+          link.crossOrigin = "";
+          link.href = href;
+          document.head.appendChild(link);
+        });
+        var early = (window.__early = {});
+        var get = function (u) {
+          return (early[u] = fetch(u, { headers: { Accept: "application/json" }, credentials: "same-origin" }));
+        };
+        if (path.indexOf("/app") !== 0) return;
+        var me = get("/api/v1/auth/me");
+        if ((path !== "/app" && path !== "/app/market") || /[?&]start=/.test(location.search)) return;
+        var status = get("/api/v1/market/status");
+        // the status code alone says signed in, so the snapshot starts before the app reads the body
+        var signedIn = me.then(function (r) {
+          if (r.ok) {
+            get("/api/v1/market/snapshot");
+            get("/api/v1/market/history?days=20");
+          }
+          return r.ok;
+        });
+        Promise.all([
+          signedIn,
+          status.then(function (r) {
+            return r.ok ? r.clone().json() : null;
+          }),
+        ])
+          .then(function (b) {
+            if (!b[0] || !b[1] || !b[1].latest_trade_date) return;
+            var d = new Date(b[1].latest_trade_date + "T00:00:00Z");
+            d.setUTCDate(d.getUTCDate() - 1); // the API steps back over weekends and holidays
+            get("/api/v1/market/snapshot?date=" + d.toISOString().slice(0, 10));
+          })
+          .catch(function () {});
+      })();
+    </script>
   </head>
   <body>
     <!-- Painted before the app's JavaScript arrives, then replaced on mount (P3 criterion 3) -->

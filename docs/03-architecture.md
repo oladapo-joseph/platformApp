@@ -262,6 +262,8 @@ frontend/src/
 └── styles/         tokens.css (copied from /design), globals.css
 ```
 
+**First load (P3 criterion 3).** Each screen is its own chunk. `index.html` paints the brand mark at once and runs two small inline scripts, allowed by the CSP by hash (doc 12 §6.7). One applies the saved theme. The other is the boot script: it modulepreloads the screen's chunks, from a path → files map that a Vite plugin writes at build (`ROUTE_CHUNKS` in `vite.config.ts`), and starts `/auth/me`. On Market Today it also starts status, then, once the session answers 200, the snapshot, history and previous session. `api/client.ts` uses each of those responses once, in the first 10 s only. The router's loaders prefetch the same queries for in-app navigation; private data always waits for the session check.
+
 ---
 
 ## 5. Environments & deployment (ADR-008, D-03)

@@ -28,16 +28,17 @@ const prefetch = (load: (q: URLSearchParams, session: Promise<unknown>) => void)
 
 function marketToday(q: URLSearchParams, session: Promise<unknown>) {
   if (q.get("start")) return; // a period: the range request is cheap and doesn't chain
-  // public, and it names the latest session, so the session before it needn't wait for the snapshot
-  const status = queryClient.fetchQuery(statusQuery).catch(() => null);
+  void queryClient.prefetchQuery(statusQuery); // public
   void session.then((me) => {
     if (!me) return;
-    void queryClient.prefetchQuery(snapshotQuery());
     void queryClient.prefetchQuery(historyQuery(20));
     void queryClient.prefetchQuery(topStoriesQuery(q.get("sector")));
-    void status.then((s) => {
-      if (s?.latest_trade_date) void queryClient.prefetchQuery(previousSnapshotQuery(s.latest_trade_date));
-    });
+    // the previous trading day: on a first load index.html's boot script has already asked for it
+    // (off /market/status), so this, after the snapshot, only adds it for in-app navigation
+    void queryClient
+      .fetchQuery(snapshotQuery())
+      .then((s) => queryClient.prefetchQuery(previousSnapshotQuery(s.trade_date)))
+      .catch(() => undefined);
   });
 }
 

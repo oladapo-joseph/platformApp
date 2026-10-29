@@ -45,6 +45,18 @@ export function onSessionEnded(fn: SessionListener): () => void {
   };
 }
 
+// Responses index.html's boot script requested while this code was downloading, by URL. A GET
+// takes its match once, in the first seconds only (never a stale answer), so the first screen's
+// data needn't wait for the app to start (P3 criterion 3).
+const early: Partial<Record<string, Promise<Response>>> =
+  (globalThis as { __early?: Partial<Record<string, Promise<Response>>> }).__early ?? {};
+
+function takeEarly(href: string): Promise<Response> | undefined {
+  const res = early[href];
+  early[href] = undefined;
+  return performance.now() < 10_000 ? res : undefined;
+}
+
 let csrfToken: Promise<string> | null = null;
 
 function csrf(): Promise<string> {
@@ -84,9 +96,16 @@ async function send(path: string, opts: RequestOptions, retried = false): Promis
   if (opts.body !== undefined) headers["Content-Type"] = "application/json";
   if (UNSAFE.has(method)) headers["X-CSRF-Token"] = await csrf();
 
+  const href = url(path, opts.query);
+  const started = method === "GET" ? takeEarly(href) : undefined;
+  if (started) {
+    const res = await started.catch(() => null);
+    if (res) return res; // a network failure falls through to a fresh request
+  }
+
   let res: Response;
   try {
-    res = await fetch(url(path, opts.query), {
+    res = await fetch(href, {
       method,
       headers,
       credentials: "same-origin",
