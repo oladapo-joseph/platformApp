@@ -3,6 +3,7 @@ import { ArrowUpRight } from "lucide-react";
 import { Link } from "react-router";
 
 import type { Article } from "@/api/types";
+import { cn } from "@/lib/cn";
 import { day, stamp } from "@/lib/dates";
 import { valueLabel } from "@/lib/news";
 
@@ -18,6 +19,7 @@ export function NewsItem({
   showDate = false,
   topicsFor,
   topicHref,
+  lead = false,
 }: {
   article: Article;
   showDate?: boolean;
@@ -25,6 +27,8 @@ export function NewsItem({
   topicsFor?: string;
   /** On the News page: topic chips that add the topic to the current filters (US-9.8) */
   topicHref?: (topic: string) => string;
+  /** The day's lead story: the headline in the display serif, a size up */
+  lead?: boolean;
 }) {
   const href =
     topicHref ??
@@ -43,9 +47,12 @@ export function NewsItem({
         href={article.url}
         target="_blank"
         rel="noopener noreferrer nofollow"
-        className="group inline-flex items-start gap-1 font-medium text-fg hover:text-brand"
+        className={cn(
+          "group inline-flex items-start gap-1 text-fg hover:text-brand",
+          lead ? "font-headline text-xl leading-snug font-semibold" : "font-medium",
+        )}
       >
-        <span className="line-clamp-2">{article.title || article.source}</span>
+        <span className={lead ? "line-clamp-3" : "line-clamp-2"}>{article.title || article.source}</span>
         <ArrowUpRight aria-hidden className="mt-0.5 size-4 shrink-0 text-fg-muted group-hover:text-brand" />
         <span className="sr-only">(opens in a new tab)</span>
       </a>

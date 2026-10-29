@@ -11,43 +11,42 @@ import type { MarketRow } from "@/lib/market";
 
 type ListKey = "gainers" | "losers" | "mostTraded";
 
-const LISTS: { key: ListKey; title: string; sort: string; empty: string }[] = [
-  { key: "gainers", title: "Top gainers", sort: "-pct", empty: "No stocks rose." },
-  { key: "losers", title: "Top losers", sort: "pct", empty: "No losers: no traded stock fell." },
-  { key: "mostTraded", title: "Most traded", sort: "-value", empty: "Nothing traded." },
+const LISTS: { key: ListKey; title: string; tab: string; sort: string; empty: string }[] = [
+  { key: "gainers", title: "Rising", tab: "Rising", sort: "-pct", empty: "No stocks rose." },
+  { key: "losers", title: "Falling", tab: "Falling", sort: "pct", empty: "No losers: no traded stock fell." },
+  { key: "mostTraded", title: "Where the money went", tab: "Most traded", sort: "-value", empty: "Nothing traded." },
 ];
 
 function MoverRows({ rows, byValue, empty }: { rows: MarketRow[]; byValue: boolean; empty: string }) {
   if (!rows.length) return <p className="px-1 py-6 text-center text-sm text-fg-2">{empty}</p>;
+  const top = Math.max(...rows.map((r) => r.value), 1);
   return (
     <ol className="divide-y divide-line-subtle">
       {rows.map((r) => (
         <li key={r.symbol}>
           <Link
             to={`/app/stocks/${r.symbol}`}
-            className="-mx-2 flex items-center gap-3 rounded-md px-2 py-2.5 hover:bg-hover"
+            className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors duration-(--duration-instant) hover:bg-hover"
           >
             <span className="min-w-0 flex-1">
-              <span className="num block text-sm font-medium text-fg">{r.symbol}</span>
+              <span className="num block text-sm font-semibold text-fg">{r.symbol}</span>
               <span className="block truncate text-xs text-fg-muted" title={r.company}>
-                {r.company}
+                {byValue ? `${money(r.value)} traded` : r.company}
               </span>
             </span>
-            <span className="flex flex-col items-end gap-0.5">
-              {byValue ? (
-                <span className="num text-sm text-fg">{money(r.value)}</span>
-              ) : (
-                <span className="num text-sm text-fg">{price(r.close)}</span>
-              )}
-              {byValue ? (
-                <PriceChange pct={r.pct} className="text-xs" />
-              ) : (
-                <span className="flex items-center gap-2 text-xs">
-                  <span className="num text-fg-muted">{money(r.value)}</span>
-                  <PriceChange pct={r.pct} />
+            {byValue ? (
+              <span className="flex w-32 flex-col items-end gap-1.5">
+                <span aria-hidden className="h-1.5 w-full overflow-hidden rounded-full bg-sunken">
+                  <span className="block h-full rounded-full bg-brand" style={{ width: `${(r.value / top) * 100}%` }} />
                 </span>
-              )}
-            </span>
+                <PriceChange pct={r.pct} className="text-xs" />
+              </span>
+            ) : (
+              <>
+                <span className="num text-sm text-fg-2">{price(r.close)}</span>
+                <PriceChange pct={r.pct} variant="solid" className="min-w-[5.5rem]" />
+              </>
+            )}
           </Link>
         </li>
       ))}
@@ -95,7 +94,7 @@ export function Movers({
             onChange={setTab}
             tabs={LISTS.map((l) => ({
               value: l.key,
-              label: l.key === "gainers" ? "Gainers" : l.key === "losers" ? "Losers" : "Most traded",
+              label: l.tab,
               content: <MoverRows rows={lists[l.key]} byValue={l.key === "mostTraded"} empty={l.empty} />,
             }))}
           />
@@ -115,9 +114,9 @@ export function Movers({
       </h2>
       <div className="grid grid-cols-3 gap-4">
         {LISTS.map((l) => (
-          <Card key={l.key} className="p-4">
+          <Card key={l.key} className="p-5">
             <div className="mb-1 flex items-baseline justify-between">
-              <h3 className="text-lg font-medium text-fg">{l.title}</h3>
+              <h3 className="font-headline text-xl font-semibold text-fg">{l.title}</h3>
               {seeAll(l.sort)}
             </div>
             <MoverRows rows={lists[l.key]} byValue={l.key === "mostTraded"} empty={l.empty} />

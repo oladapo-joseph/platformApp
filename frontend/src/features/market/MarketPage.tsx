@@ -3,16 +3,19 @@
  * stat tiles, movers, sectors, top stories and every stock. View state lives in the URL.
  */
 import { useEffect, useMemo } from "react";
-import { Link, useLocation } from "react-router";
+import { useLocation } from "react-router";
 
-import { useMarketStatus, usePreviousSnapshot, useRange, useSnapshot } from "@/api/market";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { useMarketHistory, useMarketStatus, usePreviousSnapshot, useRange, useSnapshot } from "@/api/market";
+import type { SectorAggregate } from "@/api/types";
 import { Card, ErrorState, Skeleton } from "@/components/ui/feedback";
+import { PriceChange } from "@/components/ui/market";
 import { StatTile } from "@/components/ui/StatTile";
 import { isoDay, weekday } from "@/lib/dates";
 import { money, volume } from "@/lib/format";
-import { fromQuotes, fromRange, headline, movers, periodLabel, totals, type Totals } from "@/lib/market";
+import { fromQuotes, fromRange, marketTitle, movers, periodLabel, standfirst, totals, type Totals } from "@/lib/market";
+import { sectorName } from "@/lib/sectors";
 
+import { BreadthRing } from "./BreadthRing";
 import { Movers } from "./Movers";
 import { PeriodControls } from "./PeriodControls";
 import { Sectors } from "./Sectors";
@@ -48,9 +51,12 @@ export default function MarketPage() {
       ? "Market today"
       : `Market · ${weekday(latest)}`;
 
+  const history = useMarketHistory(20);
+  const trend = (key: "total_value" | "total_volume" | "total_trades") =>
+    p.period ? undefined : history.data?.sessions.map((s) => s[key]);
+
   return (
     <>
-      <PageHeader title={heading} actions={latest && <PeriodControls p={p} latest={latest} />} />
       {source.isFetching && !source.isPending && (
         <div aria-hidden className="fixed inset-x-0 top-0 z-(--z-toast) h-0.5 animate-pulse bg-brand" />
       )}
@@ -59,11 +65,33 @@ export default function MarketPage() {
           <ErrorState error={source.error} onRetry={() => void source.refetch()} title="The market didn't load" />
         </Card>
       ) : !source.data ? (
-        <MarketSkeleton />
+        <MarketSkeleton heading={heading} />
       ) : (
         <div className="flex flex-col gap-6">
-          <p className="max-w-3xl text-lg text-fg-2">{headline(t, p.period)}</p>
-          <Tiles t={t} prev={p.period ? null : prevTotals} hrefWith={p.hrefWith} />
+          <section aria-labelledby="market-title" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
+            <Card className="flex flex-col gap-4 rounded-xl p-6 shadow-elev-2 md:p-8">
+              <p className="eyebrow text-fg-muted">{heading}</p>
+              <h1
+                id="market-title"
+                className="font-headline text-4xl leading-[1.05] font-semibold tracking-tight text-fg md:text-5xl"
+              >
+                <span className="sr-only">{heading}: </span>
+                {marketTitle(t, p.period)}
+              </h1>
+              <p className="max-w-3xl text-base text-fg-2 md:text-lg">
+                {standfirst(t, p.period ? null : prevTotals, source.data.summary.sectors, p.period)}
+              </p>
+              {latest && (
+                <div className="mt-1">
+                  <PeriodControls p={p} latest={latest} />
+                </div>
+              )}
+            </Card>
+            <Card className="flex items-center justify-center rounded-xl p-6 shadow-elev-2">
+              <BreadthRing t={t} hrefWith={p.hrefWith} />
+            </Card>
+          </section>
+          <Tiles t={t} prev={p.period ? null : prevTotals} sectors={source.data.summary.sectors} trend={trend} />
           <Movers lists={lists} hrefWith={p.hrefWith} period={p.period} />
           <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -85,48 +113,33 @@ export default function MarketPage() {
 function Tiles({
   t,
   prev,
-  hrefWith,
+  sectors,
+  trend,
 }: {
   t: Totals;
   prev: Totals | null;
-  hrefWith: (patch: Record<string, string | null>) => string;
+  sectors: SectorAggregate[];
+  trend: (key: "total_value" | "total_volume" | "total_trades") => number[] | undefined;
 }) {
   const vs = "vs previous session";
-  const link = "font-medium underline-offset-2 hover:underline";
+  const best = [...sectors]
+    .filter((x) => x.avg_pct_change !== null)
+    .sort((x, y) => (y.avg_pct_change ?? 0) - (x.avg_pct_change ?? 0))[0];
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-      <StatTile
-        label="Breadth"
-        value={
-          <span className="flex gap-3">
-            <Link to={{ search: hrefWith({ sort: "-pct" }), hash: "all-stocks" }} className={`${link} text-gain`}>
-              <span aria-hidden>▲ </span>
-              {t.up}
-              <span className="sr-only"> up</span>
-            </Link>
-            <Link to={{ search: hrefWith({ sort: "pct" }), hash: "all-stocks" }} className={`${link} text-loss`}>
-              <span aria-hidden>▼ </span>
-              {t.down}
-              <span className="sr-only"> down</span>
-            </Link>
-          </span>
-        }
-      >
-        <p className="text-xs text-fg-2">
-          {t.flat} unchanged · {t.up + t.down + t.flat} stocks
-        </p>
-      </StatTile>
       <StatTile
         label="Value traded"
         value={money(t.value)}
         delta={prev ? pctDelta(t.value, prev.value) : undefined}
         deltaLabel={vs}
+        trend={trend("total_value")}
       />
       <StatTile
         label="Volume"
         value={volume(t.volume)}
         delta={prev ? pctDelta(t.volume, prev.volume) : undefined}
         deltaLabel={vs}
+        trend={trend("total_volume")}
       />
       {t.trades !== null ? (
         <StatTile
@@ -134,10 +147,18 @@ function Tiles({
           value={t.trades.toLocaleString("en-NG")}
           delta={prev?.trades ? pctDelta(t.trades, prev.trades) : undefined}
           deltaLabel={vs}
+          trend={trend("total_trades")}
         />
       ) : (
         <StatTile label="Trading days" value={t.days ?? "—"} />
       )}
+      <StatTile label="Strongest sector" value={best ? sectorName(best.sector) : "—"}>
+        {best?.avg_pct_change != null && (
+          <p className="text-xs text-fg-2">
+            <PriceChange pct={best.avg_pct_change} /> average move
+          </p>
+        )}
+      </StatTile>
     </div>
   );
 }
@@ -151,11 +172,15 @@ function useScrollToHash(ready: boolean) {
   }, [ready, hash, search]);
 }
 
-function MarketSkeleton() {
+function MarketSkeleton({ heading }: { heading: string }) {
   return (
     <div aria-busy className="flex flex-col gap-6">
+      <h1 className="sr-only">{heading}</h1>
       <span className="sr-only">Loading the market</span>
-      <Skeleton className="h-6 w-full max-w-2xl" />
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-6">
+        <Skeleton className="h-64 rounded-xl" />
+        <Skeleton className="h-64 rounded-xl max-lg:hidden" />
+      </div>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-28" />

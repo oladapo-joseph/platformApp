@@ -6,6 +6,7 @@ export type Me = Schemas["Me"];
 export type MarketStatus = Schemas["MarketStatus"];
 export type InviteView = Schemas["InviteView"];
 export type Snapshot = Schemas["Snapshot"];
+export type MarketHistory = Schemas["MarketHistory"];
 export type Quote = Schemas["Quote"];
 export type RangeSummary = Schemas["RangeSummary"];
 export type RangeRow = Schemas["RangeRow"];

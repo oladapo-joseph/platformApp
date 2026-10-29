@@ -65,6 +65,19 @@ class MarketSummary(BaseModel):
     sectors: list[SectorAggregate]
 
 
+class SessionTotals(BaseModel):
+    trade_date: date
+    total_value: float
+    total_volume: float
+    total_trades: float
+    stock_count: int
+    breadth: Breadth
+
+
+class MarketHistory(BaseModel):
+    sessions: list[SessionTotals] = Field(description="Oldest first, ending with the latest session")
+
+
 class Snapshot(BaseModel):
     trade_date: date
     data_as_of: datetime | None

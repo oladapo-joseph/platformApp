@@ -11,6 +11,8 @@
   --color-sunken: var(--color-bg-sunken);
   --color-hover: var(--color-bg-hover);
   --color-selected: var(--color-bg-selected);
+  --color-nav: var(--color-bg-nav);
+  --color-brand-glow: var(--color-brand-glow);
   --color-line-subtle: var(--color-border-subtle);
   --color-line: var(--color-border-default);
   --color-line-input: var(--color-border-input);
@@ -27,6 +29,10 @@
   --color-loss: var(--color-loss);
   --color-loss-subtle: var(--color-loss-subtle);
   --color-unchanged: var(--color-unchanged);
+  --color-gain-pill: var(--color-gain-pill);
+  --color-on-gain-pill: var(--color-on-gain-pill);
+  --color-loss-pill: var(--color-loss-pill);
+  --color-on-loss-pill: var(--color-on-loss-pill);
   --color-danger: var(--color-danger);
   --color-danger-subtle: var(--color-danger-subtle);
   --color-warning: var(--color-warning);
@@ -38,6 +44,12 @@
   --color-focus: var(--color-focus);
   --color-transparent: transparent;
   --color-current: currentColor;
+
+  /* font-headline: the display serif for page headlines and card titles (docs/06 §3) */
+  --font-headline: var(--font-display);
+  /* shadow-elev-1: cards and tiles; shadow-elev-2: the page's lead panel (docs/06 §5) */
+  --shadow-elev-1: var(--shadow-card);
+  --shadow-elev-2: var(--shadow-hero);
 
   --ease-standard: var(--ease-standard);
   --ease-enter: var(--ease-enter);
@@ -109,10 +121,6 @@
 :root[data-theme="light"] .only-light {
   display: block;
 }
-/* Cards: borders separate them in dark mode, a small shadow in light mode (docs/06 §5) */
-:root[data-theme="light"] .card-shadow {
-  box-shadow: var(--shadow-sm);
-}
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) .logo-on-dark {
     display: none;
@@ -125,8 +133,5 @@
   }
   :root:not([data-theme]) .only-light {
     display: block;
-  }
-  :root:not([data-theme]) .card-shadow {
-    box-shadow: var(--shadow-sm);
   }
 }

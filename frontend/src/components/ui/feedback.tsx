@@ -8,7 +8,8 @@ import { cn } from "@/lib/cn";
 import { Button } from "./Button";
 
 export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("card-shadow rounded-lg border border-line bg-surface", className)} {...rest} />;
+  // depth from the elevation token; the transparent border shows up in forced-colors mode
+  return <div className={cn("rounded-lg border border-transparent bg-surface shadow-elev-1", className)} {...rest} />;
 }
 
 export type Tone = "neutral" | "brand" | "gain" | "loss" | "warning" | "info" | "ai" | "danger";

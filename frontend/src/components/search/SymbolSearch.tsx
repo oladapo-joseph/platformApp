@@ -53,7 +53,7 @@ export function SymbolSearch() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger
-        className="touch-target flex h-10 items-center gap-2 rounded-md border border-line px-3 text-sm text-fg-muted hover:border-line-input max-md:w-10 max-md:justify-center max-md:px-0 md:w-72"
+        className="touch-target flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm text-fg-muted shadow-elev-1 hover:border-line-input max-md:w-10 max-md:justify-center max-md:px-0 md:w-80"
         aria-keyshortcuts="/ Control+K Meta+K"
       >
         <Search aria-hidden className="size-4 shrink-0" />

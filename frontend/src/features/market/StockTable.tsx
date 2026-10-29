@@ -110,7 +110,7 @@ export function StockTable({ rows, p }: { rows: MarketRow[]; p: MarketParams }) 
   return (
     <Card id="all-stocks" className="scroll-mt-24 p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-medium text-fg">All stocks</h2>
+        <h2 className="font-headline text-xl font-semibold text-fg">All stocks</h2>
         <div className="relative w-full sm:w-64">
           <Search
             aria-hidden

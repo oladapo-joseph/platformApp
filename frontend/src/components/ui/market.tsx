@@ -15,6 +15,12 @@ const pillTone = {
   down: "pill-tint [--pill-tint:var(--color-loss-subtle)]",
   flat: "bg-sunken",
 } as const;
+// Solid pills for ranked lists: the strongest emphasis, text ≥ 7:1 on the fill in both themes
+const solidTone = {
+  up: "bg-gain-pill text-on-gain-pill",
+  down: "bg-loss-pill text-on-loss-pill",
+  flat: "bg-sunken text-fg-2",
+} as const;
 
 /**
  * Direction is never colour alone: arrow + sign + value, with the direction spelled out
@@ -28,7 +34,7 @@ export function PriceChange({
 }: {
   abs?: number | null;
   pct?: number | null;
-  variant?: "inline" | "pill";
+  variant?: "inline" | "pill" | "solid";
   className?: string;
 }) {
   const dir = direction(pct ?? abs);
@@ -37,8 +43,9 @@ export function PriceChange({
     <span
       className={cn(
         "num inline-flex items-center gap-1 whitespace-nowrap",
-        tone[dir],
+        variant === "solid" ? solidTone[dir] : tone[dir],
         variant === "pill" && cn("rounded-full px-2 py-0.5 text-sm", pillTone[dir]),
+        variant === "solid" && "justify-center rounded-lg px-2 py-1 text-xs font-semibold",
         className,
       )}
     >

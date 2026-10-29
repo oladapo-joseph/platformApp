@@ -54,13 +54,13 @@ const logo = readFileSync(join(root, "..", "brand", "equitylens-logo-horizontal-
 const og = await browser.newPage({ viewport: { width: 1200, height: 630 }, colorScheme: "dark" });
 await og.setContent(
   `<!doctype html><html><head>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=block" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;600&display=block" />
 <style>${tokens}
   body { margin: 0; width: 1200px; height: 630px; display: flex; flex-direction: column; justify-content: center;
          gap: 36px; padding: 0 96px; box-sizing: border-box; background: var(--color-bg-canvas);
          font-family: "IBM Plex Sans", system-ui, sans-serif; }
   .logo svg { height: 72px; width: auto; }
-  h1 { margin: 0; font-size: 64px; line-height: 1.1; font-weight: 600; color: var(--color-text-primary); }
+  h1 { margin: 0; font: 600 68px/1.05 'Fraunces', Georgia, serif; letter-spacing: -0.02em; color: var(--color-text-primary); }
   p { margin: 0; font-size: 30px; color: var(--color-text-secondary); }
   .bar { width: 120px; height: 8px; border-radius: 4px; background: var(--color-brand); }
 </style></head><body><div class="logo">${logo}</div><div class="bar"></div>

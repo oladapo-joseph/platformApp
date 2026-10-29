@@ -125,6 +125,8 @@ npm run build            # dist/, which FastAPI serves at / (FRONTEND_DIST)
 npm run test             # vitest (tests are local only, D-11)
 ```
 
+**End-to-end checks (local only, D-11).** `frontend/e2e/` is git-ignored. `npx playwright install chromium webkit` once, then `npx playwright test -c e2e` builds the app, starts `e2e/serve.py` (FastAPI on :8000 over an in-memory MongoDB with synthetic market data; emails land in `e2e/.outbox.jsonl`) and runs the journeys on Chromium and WebKit at phone and desktop sizes; the HTML report is in `e2e/.report`. With that server running, `node e2e/lighthouse.mjs [--cpu=N]` runs Lighthouse (mobile) on four pages; pass `--cpu` ≈ the printed host benchmark ÷ 375 on a slow machine.
+
 **Landing images.** `public/landing/*.jpg` (screenshots in each theme) and `public/og-image.png` (the link preview) are captured from a running app: `EL_EMAIL=… EL_PASSWORD=… node scripts/landing-shots.mjs [base-url]` (default `http://localhost:4173`, i.e. `npm run preview` with the backend on :8000). Recapture them from production data before launch.
 
 `src/styles/tokens.css` and `public/brand/` are copied from `design/` and `brand/` by `npm run sync:tokens` (run automatically before `dev` and `build`). They're git-ignored: edit the originals.

@@ -143,7 +143,7 @@ export function Sectors({
     <Card className="p-4">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-medium text-fg">Sectors</h2>
+          <h2 className="font-headline text-xl font-semibold text-fg">Sectors</h2>
           <p className="text-xs text-fg-muted">Average % change of each sector's stocks. Select one to filter.</p>
         </div>
         <SegmentedControl label="Sector view" size="sm" value={shown} onChange={setView} options={options} />

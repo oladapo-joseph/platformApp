@@ -22,7 +22,7 @@ function Screenshot({ name, alt, eager = false }: { name: string; alt: string; e
     className: "h-auto w-full",
   };
   return (
-    <div className="card-shadow overflow-hidden rounded-xl border border-line bg-surface">
+    <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-elev-2">
       <img src={`/landing/${name}-dark.jpg`} alt={alt} {...common} className={cn(common.className, "only-dark")} />
       <img src={`/landing/${name}-light.jpg`} alt={alt} {...common} className={cn(common.className, "only-light")} />
     </div>
@@ -101,7 +101,10 @@ export default function LandingPage() {
         >
           <div>
             <p className="eyebrow text-brand">For Nigerian Exchange investors</p>
-            <h1 id="hero" className="mt-3 text-4xl leading-tight font-semibold tracking-tight text-fg md:text-5xl">
+            <h1
+              id="hero"
+              className="mt-3 font-headline text-5xl leading-[1.05] font-semibold tracking-tight text-fg md:text-6xl"
+            >
               See the Nigerian market clearly.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-fg-2">
@@ -119,7 +122,10 @@ export default function LandingPage() {
 
         <section aria-labelledby="features" className="border-y border-line-subtle bg-surface py-16">
           <div className={wrap}>
-            <h2 id="features" className="max-w-2xl text-2xl font-semibold tracking-tight text-fg md:text-3xl">
+            <h2
+              id="features"
+              className="max-w-2xl font-headline text-3xl font-semibold tracking-tight text-fg md:text-4xl"
+            >
               What you can do with it
             </h2>
             <div className="mt-12 flex flex-col gap-16">
@@ -127,7 +133,7 @@ export default function LandingPage() {
                 <article key={f.title} className="grid items-center gap-8 lg:grid-cols-2">
                   <div className={cn(i % 2 === 1 && "lg:order-2")}>
                     <f.icon aria-hidden className="size-6 text-brand" />
-                    <h3 className="mt-3 text-xl font-semibold text-fg">{f.title}</h3>
+                    <h3 className="mt-3 font-headline text-2xl font-semibold text-fg">{f.title}</h3>
                     <p className="mt-2 text-fg-2">{f.body}</p>
                     <ul className="mt-4 flex flex-col gap-2">
                       {f.points.map((p) => (
@@ -146,7 +152,7 @@ export default function LandingPage() {
         </section>
 
         <section aria-labelledby="honest" className={cn(wrap, "py-16")}>
-          <h2 id="honest" className="max-w-2xl text-2xl font-semibold tracking-tight text-fg md:text-3xl">
+          <h2 id="honest" className="max-w-2xl font-headline text-3xl font-semibold tracking-tight text-fg md:text-4xl">
             Information, not advice
           </h2>
           <p className="mt-4 max-w-2xl text-fg-2">
@@ -157,7 +163,7 @@ export default function LandingPage() {
 
         <section aria-labelledby="access" className="border-t border-line-subtle bg-surface py-16">
           <div className={wrap}>
-            <h2 id="access" className="text-2xl font-semibold tracking-tight text-fg md:text-3xl">
+            <h2 id="access" className="font-headline text-3xl font-semibold tracking-tight text-fg md:text-4xl">
               How access works
             </h2>
             <ol className="mt-8 grid gap-6 md:grid-cols-3">

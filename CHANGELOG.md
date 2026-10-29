@@ -23,6 +23,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `docs/10-news-tagging.md`: problems in the crawler's current news tagger (T1–T7, including 11 real NGX tickers that are ordinary words or names), **tag schema v2** (relevance tiers, topics, scope, regulators, sectors/subsectors, content type, geography, estimated dates), matching rules, controlled vocabularies, rollout with a precision gate, and how the app uses the tags.
 - **US-9.8 News page** with filters and facet counts; the bottom nav becomes Market · News · Watchlist · Account (search moves to the top bar); FilterPanel, FilterChips and TopicChip components.
 
+### Changed — the new look: Depth + Editorial headline (2026-10-28)
+- **Design system v0.2** (docs/06, ADR-010 amended): dark mode moves to layered navy surfaces with soft elevation instead of outlined boxes. Both themes gain card and hero elevation tokens, solid gain/loss pills, a sidebar surface, larger radii (16 px cards, 20 px hero panels) and a brand glow used only on the active nav item. Contrast re-checked: every text token is at least 4.5:1 in both themes (the light selected tint was lightened to keep brand text at 4.53:1).
+- **Fraunces** display serif (self-hosted) for page headlines and card titles; Plex Sans and Plex Mono for everything else.
+- **Market Today** leads with a serif headline chosen from fixed wording by breadth ("A narrow day for the bulls.", "A broad rally.", "Sellers in control."…) and a standfirst built from the numbers ("…but trading thinned: ₦8.4B changed hands, 43% less than the session before. ICT led; oil & gas dragged."). A breadth ring sits beside it; the value, volume and deals tiles get 20-session sparklines, and a "Strongest sector" tile replaces the breadth tile. Movers are "Rising", "Falling" and "Where the money went", with solid change pills and value bars; Top stories opens with a lead-story card.
+- **Shell:** navy sidebar with a glowing active item and an NGX open/closed card, translucent top bar, raised search field, and a pill behind the active icon in the phone nav.
+- **Stock page** header is a hero card (sector eyebrow, ticker, company name in the serif, large price with a solid change pill). Sign-in pages, News, Account, Terms and the landing page use the serif titles; the landing screenshots and link-preview image were recaptured.
+- **API (v1, additive):** `GET /market/history?days=` returns per-session totals and breadth for the sparklines.
+
+### Built — Phase 3e: checks, security and fonts (2026-10-28)
+- **Content Security Policy for the app** (docs/12 §6.7): pages may only load scripts, fonts, images and API calls from their own origin, with no inline scripts, `object-src 'none'` and `frame-ancestors 'none'`.
+- **IBM Plex is self-hosted** (`@fontsource/ibm-plex-sans`, `@fontsource/ibm-plex-mono`, only the subsets a page uses). The Google Fonts stylesheet blocked the first paint; on a throttled phone it delayed Market Today's first text by about 15 s.
+- A local Playwright suite (git-ignored, D-11) covers journeys J1, J2, J3, J6 and J7, axe on every route in both themes, CSP violations, visible focus and reduced motion, on Chromium and WebKit at phone and desktop sizes, plus a Lighthouse script. Vitest now runs only `src/` tests.
+- Feature parity checklist against the Streamlit app (docs/05).
+
 ### Built — Phase 3d: News, Account and the landing page (2026-10-28)
 - **News** (`/app/news`, US-9.8): every kept headline (90 days), newest or most important first, with a headline search and filters for topic, stocks (with "Headline mentions only"), date (since yesterday, 7, 30, 90 days or a custom range), sector, subsector, scope, regulator, type and source. Every option shows its count and is disabled, not hidden, at zero. Opinion pieces are hidden until asked for and carry an "Opinion" badge. Active filters are removable chips with "Clear all"; with no results, the page names the filter that narrows it most and offers to remove it. Desktop has a filter rail; phones get topic chips and a bottom sheet that says "Apply (11 articles)" before applying. Topic chips on a headline add that topic to the filters. Everything is in the URL, so the stock page's "news on this topic" links land on a filtered view.
 - **Account** (`/app/account`): change name; add or change email (confirmation link; the current password is needed once an email is confirmed; the "Add email" banner lands on `#email`); change password (other devices are signed out); theme saved to the account so it follows you to other devices; "Sign out of all devices"; delete the account by typing your email.
@@ -33,6 +47,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ### Fixed
 - The selected item in the desktop sidebar met only 4.4:1 contrast in the light theme; its label now uses body text, with the icon in brand green.
 - The "Add email" link in the migrated-account banner failed contrast on the light theme's blue tint; it's now body text, underlined.
+- Green and red change pills (e.g. the stock header's price change) dropped to 4.4:1 on the light page background; they now sit on an opaque surface under the tint.
 
 ### Built — Phase 3c: the stock page (2026-10-28)
 - `/app/stocks/:symbol`: ticker, company, sector, last price and change, key stats (previous close, day range, volume, value, deals, market cap, 52-week range when there's a year of data), Share (device share sheet on phones, "Link copied" on desktop).

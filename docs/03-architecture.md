@@ -132,6 +132,7 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /market/status` | Latest `fetched_at`, last trading date, is-market-open, data age | public | 60 s |
 | `GET /market/snapshot?date=` | Stats, breadth, gainers/losers/most-traded, full price table | user | 5 min |
 | `GET /market/range?start=&end=` | Cumulative per-symbol period performance | user | 5 min |
+| `GET /market/history?days=20` | Value, volume, deals and breadth for each of the last 2–60 sessions, oldest first: Market Today's tile sparklines (added to v1, additive) | user | 5 min |
 | `GET /market/sectors?date=` or `?start=&end=` | Sector aggregates | user | 5 min |
 | `GET /strategies` | Signal strategies (slug, label, description, warm-up days) | user | — |
 | `GET /stocks` | Symbol directory: symbol, company name, sector (powers search) | user | 1 h |

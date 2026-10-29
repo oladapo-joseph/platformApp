@@ -11,9 +11,9 @@ export function TopStories({ sector }: { sector: string | null }) {
   const { data, isPending, error, refetch } = useTopStories(sector);
   if (!isPending && !error && data.articles.length === 0 && !sector) return null; // nothing in a week: hide
   return (
-    <Card className="p-4">
+    <Card className="p-5">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-medium text-fg">Top stories</h2>
+        <h2 className="font-headline text-xl font-semibold text-fg">Top stories</h2>
         <Link to="/app/news" className="text-sm font-medium text-brand underline-offset-2 hover:underline">
           All news
         </Link>
@@ -38,8 +38,13 @@ export function TopStories({ sector }: { sector: string | null }) {
           {data.older && (
             <p className="mt-1 text-xs text-fg-muted">Nothing new in 48 hours: the latest from this week.</p>
           )}
+          {data.articles[0] && (
+            <div className="mt-3 rounded-lg bg-selected px-4">
+              <NewsItem article={data.articles[0]} showDate={data.older} lead />
+            </div>
+          )}
           <div className="divide-y divide-line-subtle">
-            {data.articles.map((a) => (
+            {data.articles.slice(1).map((a) => (
               <NewsItem key={a.id} article={a} showDate={data.older} />
             ))}
           </div>

@@ -216,6 +216,24 @@ class BarsRepo:
         ]
         return [_flatten_trades_day(d) for d in self.trades.aggregate(pipeline)]
 
+    def range_bars(self, start: str, end: str) -> list[dict[str, Any]]:
+        """Every symbol's bar for every trade date in [start, end] (market history; keep ranges short)."""
+        out: list[dict[str, Any]] = []
+        for source, s, e in self.segments(start, end):
+            rng = _date_range(s, e)
+            if source == "daily_bars":
+                q = {**({"trade_date": rng} if rng else {}), **_BAR_HAS_PRICE}
+                out += [_clean_bar(d) for d in self.bars.find(q, {"_id": 0})]
+                continue
+            pipeline: list[dict[str, Any]] = [
+                {"$match": {"fetched_at": _fetched_window(s, e), **_HAS_PRICE}},
+                {"$group": {"_id": {"symbol": "$Symbol", "trade_date": TRADE_DATE_EXPR}, **_DAY_GROUP}},
+                {"$match": {"_id.trade_date": rng} if rng else {}},
+                {"$set": {"trade_date": "$_id.trade_date"}},
+            ]
+            out += [_flatten_trades_day(d) for d in self.trades.aggregate(pipeline)]
+        return out
+
     def range_summaries(self, start: str, end: str) -> list[dict[str, Any]]:
         """Per symbol across [start, end]: first open, last close, high, low, totals, trading days."""
         merged: dict[str, dict[str, Any]] = {}

@@ -1357,6 +1357,23 @@
         "title": "MarkerHeadline",
         "type": "object"
       },
+      "MarketHistory": {
+        "properties": {
+          "sessions": {
+            "description": "Oldest first, ending with the latest session",
+            "items": {
+              "$ref": "#/components/schemas/SessionTotals"
+            },
+            "title": "Sessions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sessions"
+        ],
+        "title": "MarketHistory",
+        "type": "object"
+      },
       "MarketStatus": {
         "properties": {
           "data_age_minutes": {
@@ -2351,6 +2368,44 @@
           "sectors"
         ],
         "title": "SectorsResponse",
+        "type": "object"
+      },
+      "SessionTotals": {
+        "properties": {
+          "breadth": {
+            "$ref": "#/components/schemas/Breadth"
+          },
+          "stock_count": {
+            "title": "Stock Count",
+            "type": "integer"
+          },
+          "total_trades": {
+            "title": "Total Trades",
+            "type": "number"
+          },
+          "total_value": {
+            "title": "Total Value",
+            "type": "number"
+          },
+          "total_volume": {
+            "title": "Total Volume",
+            "type": "number"
+          },
+          "trade_date": {
+            "format": "date",
+            "title": "Trade Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "trade_date",
+          "total_value",
+          "total_volume",
+          "total_trades",
+          "stock_count",
+          "breadth"
+        ],
+        "title": "SessionTotals",
         "type": "object"
       },
       "SignalEvent": {
@@ -3985,6 +4040,53 @@
         "summary": "Check an invite link before showing the form",
         "tags": [
           "access"
+        ]
+      }
+    },
+    "/api/v1/market/history": {
+      "get": {
+        "operationId": "history_api_v1_market_history_get",
+        "parameters": [
+          {
+            "description": "Sessions, ending with the latest",
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Sessions, ending with the latest",
+              "maximum": 60,
+              "minimum": 2,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketHistory"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Totals and breadth for each of the last sessions (tile sparklines)",
+        "tags": [
+          "market"
         ]
       }
     },

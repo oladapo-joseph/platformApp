@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import type { Bar, StockProfile } from "@/api/types";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
 import { money, price, volume } from "@/lib/format";
 import { sectorName } from "@/lib/sectors";
@@ -51,15 +52,15 @@ export function StockHeader({
   ];
 
   return (
-    <header className="mb-6 flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <Card className="mb-6 flex flex-col gap-5 rounded-xl p-6 shadow-elev-2 md:p-8">
+      <header className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="num text-2xl font-semibold tracking-tight text-fg md:text-3xl">{profile.symbol}</h1>
-          <p className="text-base text-fg">{profile.company}</p>
-          <p className="text-sm text-fg-muted">
+          <p className="eyebrow text-fg-muted">
             {sectorName(profile.sector)}
             {profile.subsector ? ` · ${profile.subsector}` : ""}
           </p>
+          <h1 className="num mt-2 text-3xl font-semibold tracking-tight text-fg md:text-4xl">{profile.symbol}</h1>
+          <p className="mt-1 font-headline text-xl font-semibold text-fg-2 md:text-2xl">{profile.company}</p>
         </div>
         <Button
           variant="secondary"
@@ -69,12 +70,12 @@ export function StockHeader({
         >
           Share
         </Button>
-      </div>
+      </header>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
-        <p className="num text-4xl font-medium text-fg">{price(q?.close)}</p>
-        <PriceChange abs={q?.change} pct={q?.pct_change} variant="pill" className="mb-1" />
+        <p className="num text-4xl font-medium text-fg md:text-5xl">{price(q?.close)}</p>
+        <PriceChange abs={q?.change} pct={q?.pct_change} variant="solid" className="mb-1.5 text-sm" />
       </div>
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-4 lg:grid-cols-7">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-line-subtle pt-4 sm:grid-cols-4 lg:grid-cols-7">
         {stats.map(([label, value], i) => (
           <div key={label} className={i >= 4 && !more ? "max-sm:hidden" : undefined}>
             <dt className="text-xs text-fg-muted">{label}</dt>
@@ -90,6 +91,6 @@ export function StockHeader({
       >
         {more ? "Show fewer stats" : "Show more stats"}
       </button>
-    </header>
+    </Card>
   );
 }

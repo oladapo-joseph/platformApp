@@ -39,7 +39,7 @@ function Section({
   return (
     <Card className={danger ? "border-danger" : undefined}>
       <section aria-labelledby={`${id}-title`} id={id} className="scroll-mt-24 p-4 md:p-6">
-        <h2 id={`${id}-title`} className="text-lg font-semibold text-fg">
+        <h2 id={`${id}-title`} className="font-headline text-xl font-semibold text-fg">
           {title}
         </h2>
         {description && <p className="mt-1 text-sm text-fg-2">{description}</p>}
@@ -278,7 +278,9 @@ function SignOutEverywhere() {
       <AlertDialog.Portal>
         <AlertDialog.Overlay className={dialogOverlay} />
         <AlertDialog.Content className={dialogContent}>
-          <AlertDialog.Title className="text-lg font-semibold text-fg">Sign out of all devices?</AlertDialog.Title>
+          <AlertDialog.Title className="font-headline text-xl font-semibold text-fg">
+            Sign out of all devices?
+          </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-sm text-fg-2">
             Every device signed in to your account is signed out, this one included. You'll need your password to sign
             in again.
@@ -326,7 +328,9 @@ function DeleteAccount({ me }: { me: Me }) {
       <AlertDialog.Portal>
         <AlertDialog.Overlay className={dialogOverlay} />
         <AlertDialog.Content className={dialogContent}>
-          <AlertDialog.Title className="text-lg font-semibold text-fg">Delete your account?</AlertDialog.Title>
+          <AlertDialog.Title className="font-headline text-xl font-semibold text-fg">
+            Delete your account?
+          </AlertDialog.Title>
           <AlertDialog.Description className="mt-2 text-sm text-fg-2">
             This deletes your account, your watchlist and your AI usage, and signs you out everywhere. It can't be
             undone.

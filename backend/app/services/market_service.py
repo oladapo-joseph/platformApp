@@ -1,6 +1,7 @@
 """Market today / over a range: snapshot, period performance, sectors, freshness."""
 
-from datetime import date, datetime, time
+from collections import defaultdict
+from datetime import date, datetime, time, timedelta
 from typing import Any
 
 from app.core.cache import ttl_cache
@@ -87,6 +88,38 @@ def snapshot(trade_date: str) -> dict[str, Any]:
         "summary": summarize([_row(q) for q in quotes]),
         "stocks": quotes,
     }
+
+
+@ttl_cache(seconds=300, maxsize=16)
+def history(days: int) -> dict[str, Any]:
+    """Market totals and breadth for the last `days` sessions, oldest first (sparklines, US-2.1)."""
+    end = resolve_trade_date(None)
+    start = (date.fromisoformat(end) - timedelta(days=days * 2 + 10)).isoformat()  # weekends and holidays
+    rows: dict[str, list[SymbolRow]] = defaultdict(list)
+    deals: dict[str, float] = defaultdict(float)
+    for bar in get_repos().bars.range_bars(start, end):
+        pct = resolve_pct(bar["pct_change"], bar["close"], bar["prev_close"])
+        day = bar["trade_date"]
+        rows[day].append(
+            SymbolRow(
+                bar["symbol"], bar["sector"] or "Unknown", bar["close"], pct, bar["volume"] or 0.0, bar["value"] or 0.0
+            )
+        )
+        deals[day] += bar["trades"] or 0.0
+    sessions = []
+    for day in sorted(rows)[-days:]:
+        s = summarize(rows[day])
+        sessions.append(
+            {
+                "trade_date": day,
+                "total_value": s["total_value"],
+                "total_volume": s["total_volume"],
+                "total_trades": deals[day],
+                "stock_count": s["stock_count"],
+                "breadth": s["breadth"],
+            }
+        )
+    return {"sessions": sessions}
 
 
 def check_range(start: date, end: date) -> None:

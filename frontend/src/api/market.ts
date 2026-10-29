@@ -2,7 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { format, parseISO, subDays } from "date-fns";
 
 import { api } from "./client";
-import type { Article, DirectoryEntry, MarketStatus, RangeSummary, Snapshot } from "./types";
+import type { Article, DirectoryEntry, MarketHistory, MarketStatus, RangeSummary, Snapshot } from "./types";
 
 const FIVE_MIN = 5 * 60_000;
 
@@ -35,6 +35,15 @@ export function usePreviousSnapshot(tradeDate: string | undefined) {
     queryFn: ({ signal }) => api<Snapshot>("/market/snapshot", { query: { date: before }, signal }),
     enabled: !!before,
     staleTime: Infinity, // a past session never changes
+  });
+}
+
+/** Totals for the last sessions, oldest first: the tiles' sparklines (US-2.1). */
+export function useMarketHistory(days = 20) {
+  return useQuery({
+    queryKey: ["market", "history", days],
+    queryFn: ({ signal }) => api<MarketHistory>("/market/history", { query: { days }, signal }),
+    staleTime: FIVE_MIN,
   });
 }
 

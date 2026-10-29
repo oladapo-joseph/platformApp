@@ -364,6 +364,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/market/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Totals and breadth for each of the last sessions (tile sparklines) */
+        get: operations["history_api_v1_market_history_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/market/range": {
         parameters: {
             query?: never;
@@ -1112,6 +1129,14 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** MarketHistory */
+        MarketHistory: {
+            /**
+             * Sessions
+             * @description Oldest first, ending with the latest session
+             */
+            sessions: components["schemas"]["SessionTotals"][];
+        };
         /** MarketStatus */
         MarketStatus: {
             /** Data Age Minutes */
@@ -1418,6 +1443,23 @@ export interface components {
              * Format: date
              */
             start: string;
+        };
+        /** SessionTotals */
+        SessionTotals: {
+            breadth: components["schemas"]["Breadth"];
+            /** Stock Count */
+            stock_count: number;
+            /** Total Trades */
+            total_trades: number;
+            /** Total Value */
+            total_value: number;
+            /** Total Volume */
+            total_volume: number;
+            /**
+             * Trade Date
+             * Format: date
+             */
+            trade_date: string;
         };
         /** SignalEvent */
         SignalEvent: {
@@ -2335,6 +2377,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InviteView"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    history_api_v1_market_history_get: {
+        parameters: {
+            query?: {
+                /** @description Sessions, ending with the latest */
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarketHistory"];
                 };
             };
             /** @description Validation Error */

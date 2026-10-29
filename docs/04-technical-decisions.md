@@ -141,6 +141,8 @@ There is also a **one-off backfill script**. It processes history one symbol at 
 
 **Decision.** Tokens live in `design/tokens.css` as CSS custom properties, which are the single source for Tailwind and both chart libraries. IBM Plex Sans for UI text, IBM Plex Mono with tabular figures for numbers and tickers, preserving continuity with today's all-Mono look. The brand green `#00C896` is kept for dark mode, with a contrast-safe `#00805F` for text on light. See [`06-design-system.md`](06-design-system.md).
 
+**Amended 2026-10-28 (owner).** After seeing the built app, the owner found dark mode too plain and chose a blend of two directions from a design canvas: **A · Depth** (layered navy surfaces, soft elevation, sparklines, solid change pills, a single brand glow on the active nav item) and **C · Editorial**'s headline (a **Fraunces** display serif for page headlines and card titles, with a plain-language standfirst built from the data by template). Plex Sans and Plex Mono stay for everything else; Lens Green stays the brand colour. Tokens v0.2; fonts self-hosted (Fontsource). Rejected: B · Terminal (too dense for first-time investors).
+
 ---
 
 ## ADR-011 — Quality gates

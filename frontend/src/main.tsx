@@ -1,5 +1,7 @@
-// IBM Plex (ADR-010), self-hosted: no third-party request blocks the first paint, and the CSP
-// stays 'self'. Each file declares unicode ranges, so only the subsets a page uses download.
+// IBM Plex plus the Fraunces display serif (ADR-010), self-hosted: no third-party request blocks
+// the first paint, and the CSP stays 'self'. Each file declares unicode ranges, so only the
+// subsets a page uses download.
+import "@fontsource/fraunces/600.css";
 import "@fontsource/ibm-plex-sans/400.css";
 import "@fontsource/ibm-plex-sans/500.css";
 import "@fontsource/ibm-plex-sans/600.css";

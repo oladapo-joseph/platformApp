@@ -1,6 +1,6 @@
 # 06 — Design System: "Lens"
 
-> Status: **v0.1**. Colour and typography were **decided 2026-10-26**: palette A · Lens Green with IBM Plex Sans + Plex Mono (ADR-010; the options compared are in [`design/options.html`](../design/options.html)). Components and patterns are still for review.
+> Status: **v0.2 (2026-10-28)**. Colour and typography were **decided 2026-10-26**: palette A · Lens Green with IBM Plex Sans + Plex Mono (ADR-010; the options compared are in [`design/options.html`](../design/options.html)). **v0.2 is the owner's "Depth + Editorial headline" direction:** layered navy surfaces with soft elevation in dark mode, sparklines, solid change pills, and a **Fraunces** display serif for page headlines and card titles (ADR-010 amended). The directions compared are on the owner's private design canvas: https://claude.ai/artifact/CMSSf8YwJtVn8d5Yfv2NHF
 > Tokens: [`design/tokens.css`](../design/tokens.css) · Visual reference: open [`design/preview.html`](../design/preview.html) in a browser · Brand: [`07-brand-guidelines.md`](07-brand-guidelines.md)
 
 ## 1. Design principles
@@ -9,7 +9,8 @@
 2. **Honest data.** Always show *when* the data is from (WAT). Never imply real-time. Show empty, partial, and stale states plainly.
 3. **Direction is never colour alone.** Every gain or loss pairs colour with a sign (`+`/`−`) **and** an arrow (▲/▼). About 1 in 12 men has a red–green colour vision deficiency.
 4. **AI is labelled.** Anything model-generated sits in the violet AI treatment, with disclaimer, model, and timestamp.
-5. **Calm by default.** Dark, low-glare surfaces; colour is reserved for meaning (brand action, gain/loss, AI, alerts). No gradients or glows on data.
+5. **Calm by default, with depth.** Layered navy surfaces lifted by soft elevation rather than outlines; colour is reserved for meaning (brand action, gain/loss, AI, alerts). The one glow is the active navigation item (dark mode). No gradients or glows on data.
+7. **Tell the day like an editor.** A page leads with a plain-language headline in the display serif and a one-sentence standfirst built from the numbers by template (never AI), then the detail.
 6. **Mobile is first-class.** Design at 360 px first, then enhance. Touch targets ≥ 44 px.
 
 ## 2. Colour
@@ -20,15 +21,17 @@ All values are in [`tokens.css`](../design/tokens.css). Contrast was checked aga
 
 | Token | Dark | Light | Use |
 | --- | --- | --- | --- |
-| `--color-bg-canvas` | `#0B0E13` | `#F6F7F9` | Page background |
-| `--color-bg-surface` | `#12161D` | `#FFFFFF` | Cards, sidebar, panels |
-| `--color-bg-raised` | `#191E27` | `#FFFFFF` + shadow | Menus, popovers, dialogs |
-| `--color-bg-sunken` | `#080A0E` | `#EEF0F4` | Chart plot area, inset wells |
-| `--color-border-subtle` / `-default` | `#1E2330` / `#2C3240` | `#E6E9EF` / `#D6DAE2` | Dividers / card outlines |
-| `--color-border-input` | `#626B80` (3.4:1) | `#848C9C` (3.4:1) | Form-field boundaries |
-| `--color-text-primary` | `#E9ECF2` (16.3:1) | `#0E131C` (18.6:1) | Body, headings, numbers |
-| `--color-text-secondary` | `#AEB4C2` (9.3:1) | `#465063` (8.1:1) | Supporting text, labels |
-| `--color-text-muted` | `#8A91A2` (6.1:1) | `#5E677A` (5.7:1) | Captions, timestamps, axis labels. **Lowest allowed text colour** |
+| `--color-bg-canvas` | `#070B14` (deep navy) | `#F3F5F9` | Page background |
+| `--color-bg-surface` | `#0F1626` | `#FFFFFF` | Cards, panels |
+| `--color-bg-nav` | `#0A101C` | `#FFFFFF` | Sidebar, bottom nav |
+| `--color-bg-raised` | `#141D31` | `#FFFFFF` + shadow | Menus, popovers, dialogs |
+| `--color-bg-sunken` | `#0A101C` | `#EEF2F7` | Chart plot area, inset wells, bar tracks |
+| `--color-bg-selected` | `#10241F` | `#EBF8F3` | Selected row, active nav item, lead story |
+| `--color-border-subtle` / `-default` | `#172033` / `#1F2A40` | `#E8ECF2` / `#DCE1EA` | Dividers / outlines (cards use elevation, §5) |
+| `--color-border-input` | `#61708F` (3.5:1) | `#848C9C` (3.4:1) | Form-field boundaries |
+| `--color-text-primary` | `#EDF1F8` (17.5:1) | `#0E1526` (18.6:1) | Body, headings, numbers |
+| `--color-text-secondary` | `#B4BED0` (9.6:1) | `#3A4660` (9.6:1) | Supporting text, labels |
+| `--color-text-muted` | `#8D98AE` (6.2:1) | `#5B6780` (5.9:1) | Captions, timestamps, axis labels. **Lowest allowed text colour** |
 
 The legacy muted `#6B7280` (3.96:1 on the old background) is retired.
 
@@ -39,7 +42,10 @@ The legacy muted `#6B7280` (3.96:1 on the old background) is retired.
 | `--color-brand` | `#00C896` | `#00805F` | Lens Green: primary action, active nav, focus ring, links |
 | `--color-gain` | `#2FD38F` | `#047A4E` | Price up (+ ▲) |
 | `--color-loss` | `#FF6B81` | `#C42343` | Price down (− ▼) |
-| `--color-unchanged` | `#AEB4C2` | `#465063` | No change (0.00% ■) |
+| `--color-unchanged` | `#B4BED0` | `#3A4660` | No change (0.00% ■) |
+| `--color-gain-pill` / `--color-on-gain-pill` | `#2FD38F` / `#04130E` | `#D9F3E7` / `#035C3B` | Solid change pill in ranked lists (movers, stock header) |
+| `--color-loss-pill` / `--color-on-loss-pill` | `#FF7A8E` / `#1A0509` | `#FBE1E6` / `#9E1A35` | Same, for falls |
+| `--color-brand-glow` | `rgb(0 200 150 / 0.18)` | none | The active nav item's halo (the only glow) |
 | `--color-danger` | `#FF6B81` | `#C42343` | Errors, destructive actions |
 | `--color-warning` | `#F5B841` | `#8F5B00` | Stale data, quota near limit |
 | `--color-info` | `#6CB2FF` | `#1D63C9` | Neutral notices |
@@ -67,18 +73,16 @@ Overlay lines also differ by **dash pattern** (SMA solid, EMA dashed, BB dotted)
 
 | Role | Font | Size/line | Weight | Notes |
 | --- | --- | --- | --- | --- |
-| Display (landing hero) | Plex Sans | 48/1.1 (`5xl`) | 600 | `--tracking-tight` |
+| Headline (market headline, landing hero) | **Fraunces** (`font-headline`) | 48–60/1.05 | 600 | `--tracking-tight`; one per page |
+| Page and card titles | **Fraunces** (`font-headline`) | 30–36 page, 20 card | 600 | Never body copy, labels, numbers or tickers |
 | Price headline | **Plex Mono** | 36/40 (`4xl`) | 500 | tabular-nums |
-| Page title | Plex Sans | 30/36 desktop, 24/32 mobile | 600 | |
-| Section title | Plex Sans | 20/28 | 600 | |
-| Card title | Plex Sans | 18/28 | 500 | |
 | Body | Plex Sans | 16/24 | 400 | |
 | Secondary / table cell | Plex Sans | 14/20 | 400 | numbers in table cells use Mono |
 | Overline / label | Plex Sans | 12/16 | 500 | UPPERCASE, `--tracking-overline`. Short labels only |
 | Numbers, tickers, prices, % | **Plex Mono** | inherits | 400–500 | `font-variant-numeric: tabular-nums` and right-aligned in tables |
 | Caption, timestamps, axis | Plex Sans | 12/16 | 400 | `--color-text-muted` |
 
-**Rules:** 12 px is the floor. Avoid letter-spacing beyond overlines. Load fonts from Google Fonts with `display=swap`, Sans 400/500/600 and Mono 400/500 only.
+**Rules:** 12 px is the floor. Avoid letter-spacing beyond overlines. Fonts are self-hosted with Fontsource (`display: swap`, unicode-range subsets; the CSP allows no third-party fonts): Sans 400/500/600, Mono 400/500, Fraunces 600 only.
 
 ### Number formatting (`lib/format.ts`)
 
@@ -106,8 +110,8 @@ Use the true minus sign `−` (U+2212) in display. Screen-reader text reads "dow
 
 ## 5. Shape, elevation & motion
 
-- **Radius:** 4 badges · 8 buttons/inputs · 12 cards · 16 dialogs · full pills.
-- **Elevation:** in dark mode, separate with borders (`--color-border-default`); use shadows only for overlays (menus, dialogs, toasts). In light mode, cards get `--shadow-sm`.
+- **Radius:** 4 badges · 8 buttons/inputs · 16 cards (`rounded-lg`) · 20 hero panels and dialogs (`rounded-xl`) · full pills.
+- **Elevation:** surfaces separate by depth, not outlines. Cards and tiles use `shadow-elev-1` (`--shadow-card`: a hairline top highlight plus a soft shadow in dark, a soft shadow in light); the page's lead panel (market headline, stock header) uses `shadow-elev-2` (`--shadow-hero`). Overlays keep `--shadow-md`/`-lg`. Cards keep a transparent border so forced-colors mode still outlines them.
 - **Motion:** 80–320 ms with `--ease-standard`. Animate opacity and transform only. Number changes may flash a subtle tint (`-subtle` background) for 600 ms, *never* blink. All durations drop to 0 under `prefers-reduced-motion`.
 
 ## 6. Components

@@ -103,7 +103,7 @@ The React app must:
 4. **14.3.1:** on sign-out or a `401 session-expired`, clear cached account data: the query cache, plus any per-user data in storage.
 5. **Token links:** read `#token=` from `location.hash`, then remove it at once with `history.replaceState`, so the token isn't left in history or a screenshot.
 6. **CSRF:** call `GET /auth/csrf` before the first POST and send `X-CSRF-Token` on every POST, PUT, PATCH and DELETE.
-7. **Good practice (L2 3.4.3):** a real CSP for the SPA: `script-src 'self'`, no inline scripts, `connect-src 'self'`.
+7. **Good practice (L2 3.4.3):** a real CSP for the SPA: `script-src 'self'`, no inline scripts, `connect-src 'self'`. ✅ **Done in P3e (2026-10-28):** non-API responses send `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'`. Inline *styles* stay allowed because Radix's scroll lock injects a `<style>` element; scripts never are. Fonts are self-hosted, so nothing loads from a third party. The e2e suite fails on any CSP violation.
 
 **Phase 4:** the watchlist and AI endpoints must scope every query to the signed-in user's id (8.2.2, no IDOR). That needs a test per endpoint that tries another user's id.
 

@@ -7,6 +7,7 @@ import { format, parseISO, startOfYear, subMonths, subWeeks, subYears } from "da
 
 import type { Quote, RangeRow } from "@/api/types";
 
+import { sectorName } from "./sectors";
 import { money } from "./format";
 
 export interface MarketRow {
@@ -102,19 +103,72 @@ export function totals(rows: MarketRow[]): Totals {
   };
 }
 
-/** The newspaper standfirst of US-2.1: a template, never AI. */
-export function headline(t: Totals, period: boolean): string {
-  const when = period ? "over the period" : "today";
-  const counts = `(${t.up} up, ${t.down} down)`;
-  const lead =
+/**
+ * The page headline of US-2.1, in the display serif: chosen from fixed wording by how lopsided
+ * breadth was. A template, never AI, so it costs nothing and reads the same for everyone.
+ */
+export function marketTitle(t: Totals, period: boolean): string {
+  const moved = t.up + t.down;
+  if (moved === 0) return period ? "A flat stretch." : "A quiet session.";
+  if (t.up === t.down) return "A split market.";
+  const share = Math.max(t.up, t.down) / moved;
+  const bulls = t.up > t.down;
+  if (share >= 0.7) return bulls ? "A broad rally." : "Sellers in control.";
+  if (share >= 0.55) return bulls ? "Buyers had the edge." : "Sellers had the edge.";
+  const span = period ? "stretch" : "day";
+  return bulls ? `A narrow ${span} for the bulls.` : `A narrow ${span} for the bears.`;
+}
+
+export interface SectorMove {
+  sector: string;
+  avg_pct_change: number | null;
+}
+
+/** "ICT" stays upper case; anything else reads lower case mid-sentence. */
+const midSentence = (sector: string) => {
+  const name = sectorName(sector);
+  return name === name.toUpperCase() ? name : name.charAt(0).toLowerCase() + name.slice(1);
+};
+
+/**
+ * The standfirst under the headline (US-2.1): breadth, how trading compared with the session
+ * before, and which sectors led and dragged. "More stocks rose than fell, 19 to 18, but trading
+ * thinned: ₦8.4B changed hands, 44% less than the session before. ICT led; oil & gas dragged."
+ */
+export function standfirst(t: Totals, prev: Totals | null, sectors: SectorMove[], period: boolean): string {
+  const breadth =
     t.up === 0 && t.down === 0
-      ? `No prices moved ${when}.`
+      ? `No prices moved${period ? " over the period" : ""}`
       : t.up > t.down
-        ? `More stocks rose than fell ${when} ${counts}.`
+        ? `More stocks rose than fell, ${t.up} to ${t.down}`
         : t.down > t.up
-          ? `More stocks fell than rose ${when} ${counts}.`
-          : `As many stocks rose as fell ${when} ${counts}.`;
-  return `${lead} ${money(t.value)} traded.`;
+          ? `More stocks fell than rose, ${t.down} to ${t.up}`
+          : `As many stocks rose as fell, ${t.up} each`;
+  let trading = `. ${money(t.value)} traded${period ? " over the period" : ""}.`;
+  if (!period && prev?.value) {
+    const change = ((t.value - prev.value) / prev.value) * 100;
+    const pct = `${Math.round(Math.abs(change))}%`;
+    trading =
+      change <= -10
+        ? `, but trading thinned: ${money(t.value)} changed hands, ${pct} less than the session before.`
+        : change >= 10
+          ? `, and trading picked up: ${money(t.value)} changed hands, ${pct} more than the session before.`
+          : `. ${money(t.value)} changed hands, about the same as the session before.`;
+  }
+  const ranked = sectors
+    .filter((x): x is SectorMove & { avg_pct_change: number } => x.avg_pct_change !== null)
+    .sort((x, y) => y.avg_pct_change - x.avg_pct_change);
+  const best = ranked[0];
+  const worst = ranked.at(-1);
+  let lead = "";
+  if (best && best.avg_pct_change > 0 && worst && worst.avg_pct_change < 0 && best !== worst) {
+    lead = ` ${sectorName(best.sector)} led; ${midSentence(worst.sector)} dragged.`;
+  } else if (best && best.avg_pct_change > 0) {
+    lead = ` ${sectorName(best.sector)} led.`;
+  } else if (worst && worst.avg_pct_change < 0) {
+    lead = ` ${sectorName(worst.sector)} fell the most.`;
+  }
+  return breadth + trading + lead;
 }
 
 export type Preset = "1W" | "1M" | "3M" | "YTD" | "1Y";

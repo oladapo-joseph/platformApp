@@ -4,6 +4,7 @@ import { cn } from "@/lib/cn";
 import { MINUS } from "@/lib/format";
 
 import { Card } from "./feedback";
+import { Sparkline } from "./Sparkline";
 
 /**
  * KPI tile (docs/06 §6): eyebrow label, Mono value, optional delta vs a named period.
@@ -14,6 +15,7 @@ export function StatTile({
   value,
   delta,
   deltaLabel,
+  trend,
   children,
   className,
 }: {
@@ -22,13 +24,18 @@ export function StatTile({
   /** Percent change vs the comparison period */
   delta?: number | null;
   deltaLabel?: string;
+  /** Recent values, oldest first, drawn as a sparkline in the brand colour */
+  trend?: number[];
   children?: ReactNode;
   className?: string;
 }) {
   return (
-    <Card className={cn("flex flex-col gap-1 p-4", className)}>
+    <Card className={cn("flex flex-col gap-1 p-4 md:p-5", className)}>
       <p className="eyebrow text-fg-muted">{label}</p>
-      <p className="num text-2xl font-medium text-fg md:text-3xl">{value}</p>
+      <div className="flex items-end justify-between gap-3">
+        <p className="num text-2xl font-medium text-fg md:text-3xl">{value}</p>
+        {trend && <Sparkline values={trend} className="mb-1 text-brand max-sm:hidden" />}
+      </div>
       {delta !== undefined && delta !== null && Number.isFinite(delta) && (
         <p className="text-xs text-fg-2">
           <span aria-hidden>{delta > 0 ? "▲" : delta < 0 ? "▼" : "■"} </span>

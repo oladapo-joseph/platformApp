@@ -36,7 +36,7 @@ export function NewsPanel({ symbol, sector, heading = true }: { symbol: string; 
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {heading && <h2 className="text-lg font-medium text-fg">News</h2>}
+        {heading && <h2 className="font-headline text-xl font-semibold text-fg">News</h2>}
         <SegmentedControl
           label="Sort news"
           size="sm"

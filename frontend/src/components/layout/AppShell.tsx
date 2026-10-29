@@ -10,6 +10,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
 
 import { meKey, useMe } from "@/api/auth";
 import { onSessionEnded } from "@/api/client";
+import { useMarketStatus } from "@/api/market";
 import { SymbolSearch } from "@/components/search/SymbolSearch";
 import { Banner } from "@/components/ui/feedback";
 import { Logo } from "@/components/ui/Logo";
@@ -54,9 +55,9 @@ function SideNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label="Main"
-      className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1 border-r border-line-subtle bg-surface p-3 md:flex md:w-(--layout-sidebar-w-collapsed) lg:w-(--layout-sidebar-w)"
+      className="sticky top-0 hidden h-dvh shrink-0 flex-col gap-1.5 border-r border-line-subtle bg-nav p-3 md:flex md:w-(--layout-sidebar-w-collapsed) lg:w-(--layout-sidebar-w) lg:p-4"
     >
-      <Link to="/app/market" className="mb-4 flex h-10 items-center justify-center rounded-md lg:justify-start lg:px-2">
+      <Link to="/app/market" className="mb-5 flex h-10 items-center justify-center rounded-md lg:justify-start lg:px-2">
         <span className="lg:hidden">
           <Logo variant="mark" />
         </span>
@@ -71,8 +72,10 @@ function SideNav({ items }: { items: NavItem[] }) {
           title={label}
           className={({ isActive }) =>
             cn(
-              "flex h-10 items-center justify-center gap-3 rounded-md text-sm font-medium lg:justify-start lg:px-3",
-              isActive ? "bg-selected text-fg [&_svg]:text-brand" : "text-fg-2 hover:bg-hover hover:text-fg",
+              "flex h-11 items-center justify-center gap-3 rounded-xl text-sm font-medium transition-colors duration-(--duration-instant) lg:justify-start lg:px-3",
+              isActive
+                ? "bg-selected text-fg shadow-[inset_0_0_0_1px_var(--color-brand-glow),0_0_24px_var(--color-brand-glow)] [&_svg]:text-brand"
+                : "text-fg-2 hover:bg-hover hover:text-fg",
             )
           }
         >
@@ -80,7 +83,27 @@ function SideNav({ items }: { items: NavItem[] }) {
           <span className="sr-only lg:not-sr-only">{label}</span>
         </NavLink>
       ))}
+      <MarketPulse />
     </nav>
+  );
+}
+
+/** Sidebar footer: whether NGX is trading right now (desktop only; the top bar has the data stamp). */
+function MarketPulse() {
+  const { data } = useMarketStatus();
+  if (!data) return null;
+  const open = data.is_trading_hours;
+  return (
+    <div className="mt-auto hidden rounded-lg bg-surface p-3.5 shadow-elev-1 lg:block">
+      <p className="text-xs text-fg-muted">NGX market</p>
+      <p className="mt-1 flex items-center gap-2 text-sm font-medium text-fg">
+        <span
+          aria-hidden
+          className={cn("size-2 rounded-full", open ? "bg-brand shadow-[0_0_10px_var(--color-brand)]" : "bg-warning")}
+        />
+        {open ? "Open · 10:00–14:30 WAT" : "Closed"}
+      </p>
+    </div>
   );
 }
 
@@ -88,7 +111,7 @@ function BottomNav({ items }: { items: NavItem[] }) {
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-(--z-sticky) grid h-(--layout-bottomnav-h) grid-cols-4 border-t border-line-subtle bg-surface pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="fixed inset-x-0 bottom-0 z-(--z-sticky) grid h-(--layout-bottomnav-h) grid-cols-4 border-t border-line-subtle bg-nav/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
     >
       {items.slice(0, 4).map(({ to, label, icon: Icon }) => (
         <NavLink
@@ -96,13 +119,24 @@ function BottomNav({ items }: { items: NavItem[] }) {
           to={to}
           className={({ isActive }) =>
             cn(
-              "flex flex-col items-center justify-center gap-1 text-xs font-medium",
-              isActive ? "text-brand" : "text-fg-muted hover:text-fg",
+              "group flex flex-col items-center justify-center gap-1 text-xs font-medium",
+              isActive ? "text-fg [&_svg]:text-brand" : "text-fg-muted hover:text-fg",
             )
           }
         >
-          <Icon aria-hidden className="size-5" />
-          {label}
+          {({ isActive }) => (
+            <>
+              <span
+                className={cn(
+                  "flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-(--duration-instant)",
+                  isActive && "bg-selected",
+                )}
+              >
+                <Icon aria-hidden className="size-5" />
+              </span>
+              {label}
+            </>
+          )}
         </NavLink>
       ))}
     </nav>
@@ -111,7 +145,7 @@ function BottomNav({ items }: { items: NavItem[] }) {
 
 function TopBar() {
   return (
-    <header className="sticky top-0 z-(--z-sticky) flex h-(--layout-topbar-h) items-center gap-3 border-b border-line-subtle bg-canvas/95 px-4 backdrop-blur md:px-6 lg:px-8">
+    <header className="sticky top-0 z-(--z-sticky) flex h-(--layout-topbar-h) items-center gap-3 border-b border-line-subtle bg-canvas/80 px-4 backdrop-blur-md md:px-6 lg:px-8">
       <Link to="/app/market" className="md:hidden" aria-label="EquityLensNG home">
         <Logo variant="mark" />
       </Link>
