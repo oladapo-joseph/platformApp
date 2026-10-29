@@ -23,6 +23,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `docs/10-news-tagging.md`: problems in the crawler's current news tagger (T1–T7, including 11 real NGX tickers that are ordinary words or names), **tag schema v2** (relevance tiers, topics, scope, regulators, sectors/subsectors, content type, geography, estimated dates), matching rules, controlled vocabularies, rollout with a precision gate, and how the app uses the tags.
 - **US-9.8 News page** with filters and facet counts; the bottom nav becomes Market · News · Watchlist · Account (search moves to the top bar); FilterPanel, FilterChips and TopicChip components.
 
+### Changed — faster first load (2026-10-29)
+- The router starts a screen's requests as soon as its URL matches, alongside its code: the session check, then Market Today's status, snapshot, previous session, sparklines and top stories in parallel, instead of one after another as components mount. Query definitions are shared by the hooks and the prefetch.
+- `index.html` paints the brand mark on the page background before the JavaScript runs, and the router's loading fallback shows the same frame.
+- The theme script is inline in `index.html` (it no longer costs a request before the first paint); the backend's CSP allows it by its sha256 hash, computed from the build at start-up (doc 12 amended). `public/theme-init.js` is gone.
+- `index.html` preloads the first screen's fonts (Fraunces 600, Plex Sans 400 and its latin-ext subset for ₦), so the headline no longer reflows and shifts the page when they arrive.
+- Market Today requests the previous session as soon as `/market/status` names the latest one (not after the snapshot), and renders the sector treemap, top stories and full price list on the frame after the headline paints.
+- Lighthouse (mobile, calibrated, local) on Market Today: 63 → 79–84, CLS 0, first paint 3.3 → about 2.1 s; LCP 4.4 → about 3.8 s. Not yet at the 85 / 2.5 s target (PENDING-ACTIONS).
+
 ### Changed — the new look: Depth + Editorial headline (2026-10-28)
 - **Design system v0.2** (docs/06, ADR-010 amended): dark mode moves to layered navy surfaces with soft elevation instead of outlined boxes. Both themes gain card and hero elevation tokens, solid gain/loss pills, a sidebar surface, larger radii (16 px cards, 20 px hero panels) and a brand glow used only on the active nav item. Contrast re-checked: every text token is at least 4.5:1 in both themes (the light selected tint was lightened to keep brand text at 4.53:1).
 - **Fraunces** display serif (self-hosted) for page headlines and card titles; Plex Sans and Plex Mono for everything else.

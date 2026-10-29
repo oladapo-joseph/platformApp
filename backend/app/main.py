@@ -4,8 +4,10 @@ App factory: middleware, routers, problem+json errors, optional SPA mount (ADR-0
 Run with: uvicorn app.main:create_app --factory
 """
 
+import base64
 import hashlib
 import logging
+import re
 import time
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
@@ -35,13 +37,24 @@ _PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "acce
 _UNSAFE = {"POST", "PUT", "PATCH", "DELETE"}
 _DOCS = f"{API_PREFIX}/docs"  # Swagger UI loads its scripts from a CDN
 # The React app (docs/12 §6, ASVS 3.4.3): scripts, fonts, images and API calls from this origin
-# only, no inline scripts (theme-init.js is a file). Inline *styles* stay allowed: Radix's scroll
+# only. The one inline script, index.html's theme script (it must run before first paint), is
+# allowed by its hash, never by 'unsafe-inline'. Inline *styles* stay allowed: Radix's scroll
 # lock injects a <style> element, and style attributes carry chart and layout sizes.
 SPA_CSP = (
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
     "font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; "
     "frame-ancestors 'none'"
 )
+_INLINE_SCRIPT = re.compile(r"<script>(.*?)</script>", re.DOTALL)  # no attributes: not src or module
+
+
+def spa_csp(index_html: str) -> str:
+    """SPA_CSP plus a sha256 source for each inline script in the built index.html, read at start-up."""
+    hashes = "".join(
+        f" 'sha256-{base64.b64encode(hashlib.sha256(body.encode()).digest()).decode()}'"
+        for body in _INLINE_SCRIPT.findall(index_html)
+    )
+    return SPA_CSP.replace("script-src 'self'", f"script-src 'self'{hashes}", 1)
 
 
 @asynccontextmanager
@@ -67,6 +80,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         lifespan=lifespan,
     )
     app.state.settings = settings
+    app.state.spa_csp = SPA_CSP  # gains the theme script's hash when the build is mounted
     use_sender(build_sender(settings))
     errors.install(app)
 
@@ -145,7 +159,7 @@ def _install_middleware(app: FastAPI, settings: Settings) -> None:
         elif path.startswith(API_PREFIX):
             csp = "default-src 'none'; frame-ancestors 'none'"
         else:
-            csp = SPA_CSP
+            csp = request.app.state.spa_csp
         response.headers["Content-Security-Policy"] = csp
         if settings.env != "local":
             response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains"
@@ -168,6 +182,7 @@ def _mount_spa(app: FastAPI, settings: Settings) -> None:
     index = dist / "index.html"
     if not index.is_file():
         return
+    app.state.spa_csp = spa_csp(index.read_text(encoding="utf-8"))
     if (dist / "assets").is_dir():
         app.mount("/assets", StaticFiles(directory=dist / "assets"), name="assets")
 

@@ -82,7 +82,7 @@ Overlay lines also differ by **dash pattern** (SMA solid, EMA dashed, BB dotted)
 | Numbers, tickers, prices, % | **Plex Mono** | inherits | 400–500 | `font-variant-numeric: tabular-nums` and right-aligned in tables |
 | Caption, timestamps, axis | Plex Sans | 12/16 | 400 | `--color-text-muted` |
 
-**Rules:** 12 px is the floor. Avoid letter-spacing beyond overlines. Fonts are self-hosted with Fontsource (`display: swap`, unicode-range subsets; the CSP allows no third-party fonts): Sans 400/500/600, Mono 400/500, Fraunces 600 only.
+**Rules:** 12 px is the floor. Avoid letter-spacing beyond overlines. Fonts are self-hosted with Fontsource (`display: swap`, unicode-range subsets; the CSP allows no third-party fonts): Sans 400/500/600, Mono 400/500, Fraunces 600 only. `index.html` preloads the three files the first screen needs: Fraunces 600 and Plex Sans 400 (Latin), plus Plex Sans 400 latin-ext, which holds ₦ (U+20A6). Without the preloads the headline reflows when they swap in and shifts the page.
 
 ### Number formatting (`lib/format.ts`)
 

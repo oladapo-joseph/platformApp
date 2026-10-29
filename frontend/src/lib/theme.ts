@@ -1,6 +1,6 @@
 /**
  * Light, dark or follow the OS (US-6.2). The choice is kept in localStorage so
- * public/theme-init.js can apply it before first paint, and saved to the account
+ * index.html's theme script can apply it before first paint, and saved to the account
  * (useThemeChoice) so it follows the user to other devices.
  */
 export type ThemeChoice = "system" | "light" | "dark";

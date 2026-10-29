@@ -47,3 +47,24 @@ export function useDebounced<T>(value: T, ms = 200): T {
   }, [value, ms]);
   return settled;
 }
+
+/**
+ * False until the frame after `ready` first turns true has painted. Lets a page show what's above
+ * the fold before it builds heavy sections below it (P3 criterion 3); stays true afterwards.
+ */
+export function useAfterPaint(ready: boolean): boolean {
+  const [painted, setPainted] = useState(false);
+  useEffect(() => {
+    if (!ready || painted) return;
+    let timer = 0;
+    // a frame callback runs just before the paint; the timeout after it
+    const frame = requestAnimationFrame(() => {
+      timer = window.setTimeout(() => setPainted(true));
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimeout(timer);
+    };
+  }, [ready, painted]);
+  return ready && painted;
+}

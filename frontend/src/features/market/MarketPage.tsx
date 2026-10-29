@@ -12,6 +12,7 @@ import { PriceChange } from "@/components/ui/market";
 import { StatTile } from "@/components/ui/StatTile";
 import { isoDay, weekday } from "@/lib/dates";
 import { money, volume } from "@/lib/format";
+import { useAfterPaint } from "@/lib/hooks";
 import { fromQuotes, fromRange, marketTitle, movers, periodLabel, standfirst, totals, type Totals } from "@/lib/market";
 import { sectorName } from "@/lib/sectors";
 
@@ -42,7 +43,9 @@ export default function MarketPage() {
   const prevTotals = useMemo(() => (previous.data ? totals(fromQuotes(previous.data.stocks)) : null), [previous.data]);
   const lists = useMemo(() => movers(rows), [rows]);
 
-  useScrollToHash(!!source.data);
+  // the treemap, stories and full price list render after the headline has painted
+  const below = useAfterPaint(!!source.data);
+  useScrollToHash(below);
 
   const today = isoDay(new Date());
   const heading = p.period
@@ -93,17 +96,29 @@ export default function MarketPage() {
           </section>
           <Tiles t={t} prev={p.period ? null : prevTotals} sectors={source.data.summary.sectors} trend={trend} />
           <Movers lists={lists} hrefWith={p.hrefWith} period={p.period} />
-          <div className="grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <Sectors
-                sectors={source.data.summary.sectors}
-                selected={p.sector}
-                onSelect={(sector) => p.update({ sector })}
-              />
+          {below ? (
+            <>
+              <div className="grid gap-6 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <Sectors
+                    sectors={source.data.summary.sectors}
+                    selected={p.sector}
+                    onSelect={(sector) => p.update({ sector })}
+                  />
+                </div>
+                <TopStories sector={p.sector} />
+              </div>
+              <StockTable rows={rows} p={p} />
+            </>
+          ) : (
+            <div aria-busy className="flex flex-col gap-6">
+              <div className="grid gap-6 lg:grid-cols-3">
+                <Skeleton className="h-96 lg:col-span-2" />
+                <Skeleton className="h-96" />
+              </div>
+              <Skeleton className="h-96" />
             </div>
-            <TopStories sector={p.sector} />
-          </div>
-          <StockTable rows={rows} p={p} />
+          )}
         </div>
       )}
     </>

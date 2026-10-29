@@ -135,3 +135,15 @@
     display: block;
   }
 }
+
+/* index.html's first paint, before the app mounts (and the router's fallback): the brand mark on
+   the page background */
+.boot {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  background: var(--color-bg-canvas);
+}
+.boot > * {
+  grid-area: 1 / 1;
+}

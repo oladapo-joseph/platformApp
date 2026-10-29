@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
 
 import { applyTheme, savedTheme, subscribeTheme, type ThemeChoice } from "@/lib/theme";
@@ -9,20 +9,22 @@ import type { InviteView, Me, Schemas } from "./types";
 export const meKey = ["me"] as const;
 
 /** The signed-in user, or null when signed out (a 401 isn't an error here). */
+export const meQuery = queryOptions({
+  queryKey: meKey,
+  queryFn: async ({ signal }) => {
+    try {
+      return await api<Me>("/auth/me", { signal });
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) return null;
+      throw e;
+    }
+  },
+  staleTime: 5 * 60_000,
+  retry: false,
+});
+
 export function useMe() {
-  return useQuery({
-    queryKey: meKey,
-    queryFn: async ({ signal }) => {
-      try {
-        return await api<Me>("/auth/me", { signal });
-      } catch (e) {
-        if (e instanceof ApiError && e.status === 401) return null;
-        throw e;
-      }
-    },
-    staleTime: 5 * 60_000,
-    retry: false,
-  });
+  return useQuery(meQuery);
 }
 
 export function useLogin() {

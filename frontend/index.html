@@ -19,11 +19,49 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- Sets data-theme before first paint (no flash); external so a strict CSP can forbid inline scripts -->
-    <script src="/theme-init.js"></script>
+    <!-- The hero's fonts, fetched with the code so the headline doesn't reflow (and shift the page)
+         when they swap in. Plex Sans' latin-ext subset holds ₦ (U+20A6), on almost every screen.
+         The other weights load on demand. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/node_modules/@fontsource/fraunces/files/fraunces-latin-600-normal.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2"
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      crossorigin
+      href="/node_modules/@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-ext-400-normal.woff2"
+    />
+    <!-- Applies the saved theme before first paint (no flash). Inline so it doesn't block the first
+         paint on a request; the backend's CSP allows it by its hash (docs/12 §6). "system" (or
+         nothing saved) leaves data-theme unset, so tokens.css follows the OS (docs/06 §2, US-6.2). -->
+    <script>
+      try {
+        var t = localStorage.getItem("el-theme");
+        if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Painted before the app's JavaScript arrives, then replaced on mount (P3 criterion 3) -->
+    <div id="root">
+      <div class="boot" aria-busy="true">
+        <img src="/brand/mark-dark.svg" width="56" height="56" alt="" class="logo-on-dark" />
+        <img src="/brand/mark-light.svg" width="56" height="56" alt="" class="logo-on-light" />
+        <span class="sr-only">Loading EquityLensNG</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
