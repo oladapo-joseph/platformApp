@@ -25,7 +25,7 @@ export function AuthLayout({
         <Logo />
       </Link>
       <main className="w-full max-w-md">
-        <Card className="p-6 sm:p-8">
+        <Card className="rounded-xl p-6 shadow-elev-2 sm:p-8">
           <h1 className="font-headline text-3xl font-semibold tracking-tight text-fg">{title}</h1>
           {subtitle && <p className="mt-2 text-sm text-fg-2">{subtitle}</p>}
           <div className="mt-6">{children}</div>

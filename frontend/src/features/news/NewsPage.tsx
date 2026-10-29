@@ -72,7 +72,7 @@ function SearchBox({
         maxLength={80}
         onChange={(e) => setDraft(e.target.value)}
         placeholder="Search headlines"
-        className="touch-target h-10 w-full rounded-md border border-line-input bg-surface pr-3 pl-9 text-base text-fg placeholder:text-fg-muted"
+        className="touch-target h-10 w-full rounded-xl border border-line-input bg-surface pr-3 pl-9 text-base text-fg shadow-elev-1 placeholder:text-fg-muted"
       />
     </div>
   );
@@ -261,13 +261,13 @@ export default function NewsPage() {
       <PageHeader title="News" description="Nigerian market and company headlines from the last 90 days." />
       <div className="flex gap-8">
         {wide && (
-          <aside aria-labelledby="news-filters" className="w-64 shrink-0">
-            <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pr-1">
+          <aside aria-labelledby="news-filters" className="w-72 shrink-0">
+            <Card className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto px-4 pt-4 pb-2">
               <h2 id="news-filters" className="eyebrow pb-1 text-fg-muted">
                 Filters
               </h2>
               <NewsFilterControls filters={filters} facets={facets} onChange={(f) => set(f)} />
-            </div>
+            </Card>
           </aside>
         )}
         <div className="flex min-w-0 flex-1 flex-col gap-3">
