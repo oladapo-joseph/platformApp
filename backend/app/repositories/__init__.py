@@ -12,6 +12,7 @@ from app.repositories.invites_repo import AccessRequestsRepo, InvitesRepo
 from app.repositories.news_repo import NewsRepo
 from app.repositories.sessions_repo import EmailTokensRepo, SessionsRepo
 from app.repositories.users_repo import UsersRepo
+from app.repositories.watchlist_repo import WatchlistRepo
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,7 @@ class Repos:
     invites: InvitesRepo
     access_requests: AccessRequestsRepo
     audit: AuditRepo
+    watchlists: WatchlistRepo
 
 
 _repos: Repos | None = None
@@ -42,13 +44,22 @@ def init_repos(db: Database, settings: Settings) -> Repos:
         invites=InvitesRepo(db),
         access_requests=AccessRequestsRepo(db),
         audit=AuditRepo(db),
+        watchlists=WatchlistRepo(db),
     )
     return _repos
 
 
 def ensure_indexes(repos: Repos) -> None:
     """Indexes on platform-owned collections only; the crawler's collections are never touched."""
-    for repo in (repos.users, repos.sessions, repos.email_tokens, repos.invites, repos.access_requests, repos.audit):
+    for repo in (
+        repos.users,
+        repos.sessions,
+        repos.email_tokens,
+        repos.invites,
+        repos.access_requests,
+        repos.audit,
+        repos.watchlists,
+    ):
         repo.ensure_indexes()
 
 

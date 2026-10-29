@@ -6,6 +6,7 @@ import { useEffect, useMemo } from "react";
 import { useLocation } from "react-router";
 
 import { useMarketHistory, useMarketStatus, usePreviousSnapshot, useRange, useSnapshot } from "@/api/market";
+import { useWatchlist } from "@/api/watchlist";
 import type { SectorAggregate } from "@/api/types";
 import { Card, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
@@ -23,6 +24,7 @@ import { Sectors } from "./Sectors";
 import { StockTable } from "./StockTable";
 import { TopStories } from "./TopStories";
 import { useMarketParams } from "./useMarketParams";
+import { YourStocks } from "./YourStocks";
 
 const pctDelta = (now: number, before: number | null | undefined) => (before ? ((now - before) / before) * 100 : null);
 
@@ -34,6 +36,8 @@ export default function MarketPage() {
   const latest = snapshot.data?.trade_date ?? status.data?.latest_trade_date ?? null;
   const previous = usePreviousSnapshot(p.period ? undefined : snapshot.data?.trade_date);
   const source = p.period ? range : snapshot;
+  // "Your stocks" sits above the tiles: wait for it so it doesn't push the page down when it lands
+  const watchlist = useWatchlist();
 
   const rows = useMemo(
     () => (p.period ? fromRange(range.data?.stocks ?? []) : fromQuotes(snapshot.data?.stocks ?? [])),
@@ -67,7 +71,7 @@ export default function MarketPage() {
         <Card>
           <ErrorState error={source.error} onRetry={() => void source.refetch()} title="The market didn't load" />
         </Card>
-      ) : !source.data ? (
+      ) : !source.data || watchlist.isPending ? (
         <MarketSkeleton heading={heading} />
       ) : (
         <div className="flex flex-col gap-6">
@@ -94,6 +98,7 @@ export default function MarketPage() {
               <BreadthRing t={t} hrefWith={p.hrefWith} />
             </Card>
           </section>
+          <YourStocks rows={rows} />
           <Tiles t={t} prev={p.period ? null : prevTotals} sectors={source.data.summary.sectors} trend={trend} />
           <Movers lists={lists} hrefWith={p.hrefWith} period={p.period} />
           {below ? (

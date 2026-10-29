@@ -15,6 +15,7 @@ import { SymbolSearch } from "@/components/search/SymbolSearch";
 import { Banner } from "@/components/ui/feedback";
 import { Logo } from "@/components/ui/Logo";
 import { FreshnessStamp } from "@/components/ui/market";
+import { Toaster } from "@/components/ui/Toaster";
 import { cn } from "@/lib/cn";
 import { applyTheme, savedTheme, type ThemeChoice } from "@/lib/theme";
 
@@ -237,6 +238,7 @@ export function AppShell() {
         </main>
       </div>
       <BottomNav items={items} />
+      <Toaster />
     </div>
   );
 }

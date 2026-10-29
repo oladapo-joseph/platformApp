@@ -444,6 +444,7 @@ def delete_me(user: dict[str, Any], confirm: str, meta: RequestMeta) -> None:
     audit.record("account.deleted", audit.actor_of(user), meta, target=audit.target("user", user["_id"], _label(user)))
     repos.sessions.delete_for_user(user["_id"])
     repos.email_tokens.delete_for_user(user["_id"])
+    repos.watchlists.delete_for_user(user["_id"])
     repos.users.delete(user["_id"])
 
 

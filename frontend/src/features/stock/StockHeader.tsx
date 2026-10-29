@@ -6,6 +6,7 @@ import type { Bar, StockProfile } from "@/api/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
+import { WatchStar } from "@/components/ui/WatchStar";
 import { money, price, volume } from "@/lib/format";
 import { sectorName } from "@/lib/sectors";
 import { yearRange } from "@/lib/stock";
@@ -62,14 +63,17 @@ export function StockHeader({
           <h1 className="num mt-2 text-3xl font-semibold tracking-tight text-fg md:text-4xl">{profile.symbol}</h1>
           <p className="mt-1 font-headline text-xl font-semibold text-fg-2 md:text-2xl">{profile.company}</p>
         </div>
-        <Button
-          variant="secondary"
-          size="sm"
-          icon={<Share2 aria-hidden className="size-4" />}
-          onClick={() => void share(profile.symbol, profile.company, toast)}
-        >
-          Share
-        </Button>
+        <div className="flex items-center gap-2">
+          <WatchStar symbol={profile.symbol} label="Watchlist" />
+          <Button
+            variant="secondary"
+            size="sm"
+            icon={<Share2 aria-hidden className="size-4" />}
+            onClick={() => void share(profile.symbol, profile.company, toast)}
+          >
+            Share
+          </Button>
+        </div>
       </header>
       <div className="flex flex-wrap items-end gap-x-4 gap-y-1">
         <p className="num text-4xl font-medium text-fg md:text-5xl">{price(q?.close)}</p>

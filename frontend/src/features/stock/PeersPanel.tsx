@@ -9,6 +9,7 @@ import type { PeerEntry } from "@/api/types";
 import { SegmentedControl } from "@/components/ui/controls";
 import { EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
+import { WatchStar } from "@/components/ui/WatchStar";
 import { money } from "@/lib/format";
 import { useMediaQuery } from "@/lib/hooks";
 
@@ -94,12 +95,15 @@ export function PeersPanel({ symbol, start, end }: { symbol: string; start: stri
               {data.peers.map((p) => (
                 <tr key={p.symbol} className="hover:bg-hover">
                   <th scope="row" className="px-4 py-2 text-left font-normal">
-                    <Link to={`/app/stocks/${p.symbol}`} className="hover:text-brand">
-                      <span className="num block font-medium text-fg">{p.symbol}</span>
-                      <span className="block text-xs text-fg-muted">
-                        {p.company} · {p.subsector}
-                      </span>
-                    </Link>
+                    <div className="-ml-2 flex items-center gap-1">
+                      <WatchStar symbol={p.symbol} />
+                      <Link to={`/app/stocks/${p.symbol}`} className="hover:text-brand">
+                        <span className="num block font-medium text-fg">{p.symbol}</span>
+                        <span className="block text-xs text-fg-muted">
+                          {p.company} · {p.subsector}
+                        </span>
+                      </Link>
+                    </div>
                   </th>
                   <td className="num px-4 py-2 text-right text-fg">{money(p.market_cap)}</td>
                   <td className="num px-4 py-2 text-right text-fg">{money(p.traded_value)}</td>
@@ -118,10 +122,11 @@ export function PeersPanel({ symbol, start, end }: { symbol: string; start: stri
       ) : (
         <ul className="flex flex-col gap-2">
           {data.peers.map((p) => (
-            <li key={p.symbol}>
+            <li key={p.symbol} className="relative">
+              <WatchStar symbol={p.symbol} className="absolute top-1.5 right-1.5" />
               <Link
                 to={`/app/stocks/${p.symbol}`}
-                className="flex flex-col gap-1.5 rounded-md border border-line-subtle p-3 hover:bg-hover"
+                className="flex flex-col gap-1.5 rounded-md border border-line-subtle p-3 pr-12 hover:bg-hover"
               >
                 <span className="flex items-baseline justify-between gap-2">
                   <span className="num font-medium text-fg">{p.symbol}</span>

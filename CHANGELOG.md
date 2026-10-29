@@ -23,6 +23,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - `docs/10-news-tagging.md`: problems in the crawler's current news tagger (T1–T7, including 11 real NGX tickers that are ordinary words or names), **tag schema v2** (relevance tiers, topics, scope, regulators, sectors/subsectors, content type, geography, estimated dates), matching rules, controlled vocabularies, rollout with a precision gate, and how the app uses the tags.
 - **US-9.8 News page** with filters and facet counts; the bottom nav becomes Market · News · Watchlist · Account (search moves to the top bar); FilterPanel, FilterChips and TopicChip components.
 
+### Built — Phase 4a: the watchlist (2026-10-29, in review)
+- **API (v1, additive):** `GET /me/watchlist`, `PUT`/`DELETE /me/watchlist/{symbol}` (in the order added; a no-op when already there or gone; at most 50, checked atomically in one MongoDB update), `GET /me/watchlist/overview` (latest close, day change, period change for 1W/1M/3M/YTD, a sparkline and the latest signal of a chosen strategy, per stock), `GET /me/watchlist/news` (the last 7 days), and `watchlist=true` on `GET /news`. Stored in `app_watchlists` (D-19). `/me/*` responses are `no-store`. Deleting an account deletes its watchlist.
+- **☆ everywhere (US-5.1):** on the stock header, the price list, the movers and the peers. Optimistic, with `aria-pressed` and "Add MTNN to watchlist" / "Remove MTNN from watchlist" names. A failure puts it back with a message; the limit message comes from the API.
+- **Watchlist page (US-5.2, US-5.4, US-9.4):** price, day change, period change, sparkline and latest signal per stock; period, sort and signal strategy in the URL; "4 of 6 up today"; removal with Undo for 5 s; a News tab tagged with which of your stocks each story mentions; an empty state with search and popular stocks one tap away.
+- **"Your stocks" on Market (US-5.3):** compact cards under the headline, before the summary tiles, scrolling sideways on phones.
+- **News "My watchlist" filter (US-9.8):** in the filter rail, as a chip on phones, and in the URL (`watchlist=1`).
+- One app-wide toast (`notify`) for messages raised from many places at once, paused while hovered or focused so Undo stays reachable.
+- The boot script and the router start the watchlist with the session on every app screen, so the stars and "Your stocks" don't pop in late.
+
 ### Changed — faster first load (2026-10-29)
 - The router starts a screen's requests as soon as its URL matches, alongside its code: the session check, then Market Today's status, snapshot, previous session, sparklines and top stories in parallel, instead of one after another as components mount. Query definitions are shared by the hooks and the prefetch.
 - `index.html` paints the brand mark on the page background before the JavaScript runs, and the router's loading fallback shows the same frame.

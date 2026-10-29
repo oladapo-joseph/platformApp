@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 
 import { meQuery } from "@/api/auth";
 import { historyQuery, previousSnapshotQuery, snapshotQuery, statusQuery, topStoriesQuery } from "@/api/market";
+import { watchlistOverviewQuery, watchlistQuery } from "@/api/watchlist";
 import { AppShell } from "@/components/layout/AppShell";
 import { Logo } from "@/components/ui/Logo";
 
@@ -42,6 +43,20 @@ function marketToday(q: URLSearchParams, session: Promise<unknown>) {
   });
 }
 
+function watchlist(q: URLSearchParams, session: Promise<unknown>) {
+  const period = q.get("period");
+  void session.then(
+    (me) =>
+      me &&
+      queryClient.prefetchQuery(
+        watchlistOverviewQuery(
+          period === "1W" || period === "3M" || period === "YTD" ? period : "1M",
+          q.get("strategy") ?? undefined,
+        ),
+      ),
+  );
+}
+
 export const router = createBrowserRouter([
   {
     errorElement: <RouteError />,
@@ -71,7 +86,10 @@ export const router = createBrowserRouter([
       {
         path: "/app",
         element: <RequireUser />,
-        ...prefetch(() => undefined), // starts the session check
+        // the session check, then the watchlist every ☆ reads
+        ...prefetch((_q, session) => {
+          void session.then((me) => me && queryClient.prefetchQuery(watchlistQuery));
+        }),
         children: [
           {
             element: <AppShell />,
@@ -81,7 +99,11 @@ export const router = createBrowserRouter([
               { path: "stocks", lazy: page(() => import("@/features/stock/StockPage")) },
               { path: "stocks/:symbol", lazy: page(() => import("@/features/stock/StockPage")) },
               { path: "news", lazy: page(() => import("@/features/news/NewsPage")) },
-              { path: "watchlist", lazy: page(() => import("@/features/watchlist/WatchlistPage")) },
+              {
+                path: "watchlist",
+                lazy: page(() => import("@/features/watchlist/WatchlistPage")),
+                ...prefetch(watchlist),
+              },
               { path: "account", lazy: page(() => import("@/features/account/AccountPage")) },
               {
                 element: <RequireAdmin />,

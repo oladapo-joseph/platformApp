@@ -7,10 +7,13 @@ from app.api.deps import require_user
 from app.db.mongo import WAT
 from app.repositories.news_repo import NewsFilter
 from app.schemas.news import Article, ContentType, NewsPage, Scope, Topic
-from app.services import news_service
+from app.services import news_service, watchlist_service
 from app.services.stock_service import normalize_symbol
 
 router = APIRouter(prefix="/news", tags=["news"], dependencies=[Depends(require_user)])
+
+
+NO_STOCK = "-"  # not a valid ticker, so no article mentions it
 
 
 def _csv(raw: str | None, upper: bool = False) -> tuple[str, ...]:
@@ -35,6 +38,7 @@ def top(
 @router.get("", response_model=NewsPage, summary="News page: filtered, cursor-paginated, with facets")
 def search(
     symbols: str | None = Query(None, description="Comma list of tickers"),
+    watchlist: bool = Query(False, description="Add my watchlist's stocks to `symbols`"),
     sectors: str | None = None,
     subsectors: str | None = None,
     topics: list[Topic] = Query(default=[]),
@@ -49,9 +53,15 @@ def search(
     sort: Literal["recent", "importance"] = "recent",
     limit: int = Query(20, ge=1, le=50),
     cursor: str | None = None,
+    user: dict = Depends(require_user),
 ) -> dict:
+    picked = tuple(normalize_symbol(s) for s in _csv(symbols, upper=True))
+    if watchlist:
+        mine = watchlist_service.symbols_of(user["_id"])
+        # an empty watchlist must match nothing, not lift the stock filter
+        picked = tuple(dict.fromkeys((*picked, *mine))) or (NO_STOCK,)
     f = NewsFilter(
-        symbols=tuple(normalize_symbol(s) for s in _csv(symbols, upper=True)),
+        symbols=picked,
         sectors=_csv(sectors, upper=True),
         subsectors=_csv(subsectors),
         topics=tuple(dict.fromkeys(topics)),

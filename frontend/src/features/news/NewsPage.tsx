@@ -8,6 +8,7 @@ import { Dialog } from "radix-ui";
 import { useEffect, useState } from "react";
 
 import { useNews, useNewsCount } from "@/api/news";
+import { useWatchlist } from "@/api/watchlist";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/controls";
@@ -137,7 +138,7 @@ function FilterSheet({ filters, set }: { filters: NewsFilters; set: (f: NewsFilt
   );
 }
 
-/** Phones: the most-used filter one tap away (US-9.8 UX notes). */
+/** Phones: the most-used filters one tap away: my watchlist and topics (US-9.8 UX notes). */
 function TopicChips({
   filters,
   set,
@@ -153,23 +154,30 @@ function TopicChips({
       topic: filters.topic.includes(t) ? filters.topic.filter((x) => x !== t) : [...filters.topic, t],
     });
   const ordered = [...TOPICS].sort((a, b) => (counts.get(b.value) ?? 0) - (counts.get(a.value) ?? 0));
+  const { data: watchlist } = useWatchlist();
+  const chip = (on: boolean) =>
+    cn(
+      "touch-target h-8 shrink-0 rounded-full border px-3 text-sm whitespace-nowrap",
+      on ? "border-brand bg-brand-subtle text-fg" : "border-line text-fg-2 hover:border-line-input",
+    );
   return (
-    <div role="group" aria-label="Topics" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <div role="group" aria-label="Quick filters" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+      {(filters.watchlist || !!watchlist?.symbols.length) && (
+        <button
+          type="button"
+          aria-pressed={filters.watchlist}
+          onClick={() => set({ ...filters, watchlist: !filters.watchlist })}
+          className={chip(filters.watchlist)}
+        >
+          My watchlist
+        </button>
+      )}
       {ordered
         .filter((t) => filters.topic.includes(t.value) || counts.get(t.value))
         .map((t) => {
           const on = filters.topic.includes(t.value);
           return (
-            <button
-              key={t.value}
-              type="button"
-              aria-pressed={on}
-              onClick={() => toggle(t.value)}
-              className={cn(
-                "touch-target h-8 shrink-0 rounded-full border px-3 text-sm whitespace-nowrap",
-                on ? "border-brand bg-brand-subtle text-fg" : "border-line text-fg-2 hover:border-line-input",
-              )}
-            >
+            <button key={t.value} type="button" aria-pressed={on} onClick={() => toggle(t.value)} className={chip(on)}>
               {t.label}
             </button>
           );

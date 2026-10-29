@@ -3014,6 +3014,224 @@
         ],
         "title": "ValidationError",
         "type": "object"
+      },
+      "Watchlist": {
+        "properties": {
+          "limit": {
+            "description": "Most stocks a watchlist can hold",
+            "title": "Limit",
+            "type": "integer"
+          },
+          "symbols": {
+            "description": "Oldest added first",
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbols",
+          "limit"
+        ],
+        "title": "Watchlist",
+        "type": "object"
+      },
+      "WatchlistNews": {
+        "properties": {
+          "articles": {
+            "description": "Newest first; `symbols` on each says which stocks it mentions",
+            "items": {
+              "$ref": "#/components/schemas/Article"
+            },
+            "title": "Articles",
+            "type": "array"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbols",
+          "articles"
+        ],
+        "title": "WatchlistNews",
+        "type": "object"
+      },
+      "WatchlistOverview": {
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The market's latest session",
+            "title": "As Of"
+          },
+          "period": {
+            "enum": [
+              "1W",
+              "1M",
+              "3M",
+              "YTD"
+            ],
+            "title": "Period",
+            "type": "string"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "First day of the period",
+            "title": "Start"
+          },
+          "stocks": {
+            "description": "In watchlist order",
+            "items": {
+              "$ref": "#/components/schemas/WatchlistRow"
+            },
+            "title": "Stocks",
+            "type": "array"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/StrategyInfo"
+          }
+        },
+        "required": [
+          "period",
+          "start",
+          "as_of",
+          "strategy",
+          "stocks"
+        ],
+        "title": "WatchlistOverview",
+        "type": "object"
+      },
+      "WatchlistRow": {
+        "properties": {
+          "close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "pct_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Change on `trade_date` vs the session before, %",
+            "title": "Pct Change"
+          },
+          "period_pct_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "First open in the period to the latest close, %",
+            "title": "Period Pct Change"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "signal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SignalEvent"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The strategy's latest signal, on any date"
+          },
+          "spark": {
+            "description": "Closes across the period, oldest first, at most 60 points",
+            "items": {
+              "type": "number"
+            },
+            "title": "Spark",
+            "type": "array"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "trade_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The stock's latest session: older than `as_of` if it didn't trade",
+            "title": "Trade Date"
+          }
+        },
+        "required": [
+          "symbol",
+          "company",
+          "sector",
+          "trade_date",
+          "close",
+          "pct_change",
+          "period_pct_change",
+          "spark",
+          "signal"
+        ],
+        "title": "WatchlistRow",
+        "type": "object"
       }
     }
   },
@@ -4300,6 +4518,237 @@
         ]
       }
     },
+    "/api/v1/me/watchlist": {
+      "get": {
+        "operationId": "get_api_v1_me_watchlist_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "My watchlist's symbols",
+        "tags": [
+          "watchlist"
+        ]
+      }
+    },
+    "/api/v1/me/watchlist/news": {
+      "get": {
+        "operationId": "news_api_v1_me_watchlist_news_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistNews"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "News mentioning any of my stocks",
+        "tags": [
+          "watchlist"
+        ]
+      }
+    },
+    "/api/v1/me/watchlist/overview": {
+      "get": {
+        "operationId": "overview_api_v1_me_watchlist_overview_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "1M",
+              "enum": [
+                "1W",
+                "1M",
+                "3M",
+                "YTD"
+              ],
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Signal strategy slug (GET /strategies)",
+            "in": "query",
+            "name": "strategy",
+            "required": false,
+            "schema": {
+              "default": "macd_crossover",
+              "description": "Signal strategy slug (GET /strategies)",
+              "title": "Strategy",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchlistOverview"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Each stock's price, changes, trend and signal",
+        "tags": [
+          "watchlist"
+        ]
+      }
+    },
+    "/api/v1/me/watchlist/{symbol}": {
+      "delete": {
+        "operationId": "remove_api_v1_me_watchlist__symbol__delete",
+        "parameters": [
+          {
+            "description": "NGX ticker, e.g. MTNN",
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "description": "NGX ticker, e.g. MTNN",
+              "examples": [
+                "MTNN"
+              ],
+              "title": "Symbol",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove a stock (no-op if it isn't there)",
+        "tags": [
+          "watchlist"
+        ]
+      },
+      "put": {
+        "operationId": "add_api_v1_me_watchlist__symbol__put",
+        "parameters": [
+          {
+            "description": "NGX ticker, e.g. MTNN",
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "description": "NGX ticker, e.g. MTNN",
+              "examples": [
+                "MTNN"
+              ],
+              "title": "Symbol",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Watchlist"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a stock (no-op if it's there; 50 at most)",
+        "tags": [
+          "watchlist"
+        ]
+      }
+    },
     "/api/v1/news": {
       "get": {
         "operationId": "search_api_v1_news_get",
@@ -4320,6 +4769,18 @@
               ],
               "description": "Comma list of tickers",
               "title": "Symbols"
+            }
+          },
+          {
+            "description": "Add my watchlist's stocks to `symbols`",
+            "in": "query",
+            "name": "watchlist",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Add my watchlist's stocks to `symbols`",
+              "title": "Watchlist",
+              "type": "boolean"
             }
           },
           {

@@ -73,9 +73,13 @@
         };
         if (path.indexOf("/app") !== 0) return;
         var me = get("/api/v1/auth/me");
+        // every /app screen's stars read the watchlist; the status code alone says signed in
+        me.then(function (r) {
+          if (r.ok) get("/api/v1/me/watchlist");
+        });
         if ((path !== "/app" && path !== "/app/market") || /[?&]start=/.test(location.search)) return;
         var status = get("/api/v1/market/status");
-        // the status code alone says signed in, so the snapshot starts before the app reads the body
+        // likewise the snapshot starts before the app reads the session's body
         var signedIn = me.then(function (r) {
           if (r.ok) {
             get("/api/v1/market/snapshot");

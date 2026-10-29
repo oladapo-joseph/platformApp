@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.deps import CSRF_HEADER
-from app.api.v1 import admin, auth, health, invites, market, news, stocks
+from app.api.v1 import admin, auth, health, invites, market, news, stocks, watchlist
 from app.core import errors, security
 from app.core import logging as app_logging
 from app.core.config import Settings, get_settings
@@ -33,7 +33,7 @@ log = logging.getLogger("equitylens.api")
 API_PREFIX = "/api/v1"
 _NO_HTTP_CACHE = (f"{API_PREFIX}/healthz", f"{API_PREFIX}/readyz")
 # per-user or security-sensitive: never cached by the browser
-_PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "access-requests"))
+_PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "access-requests", "me"))
 _UNSAFE = {"POST", "PUT", "PATCH", "DELETE"}
 _DOCS = f"{API_PREFIX}/docs"  # Swagger UI loads its scripts from a CDN
 # The React app (docs/12 §6, ASVS 3.4.3): scripts, fonts, images and API calls from this origin
@@ -84,7 +84,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     use_sender(build_sender(settings))
     errors.install(app)
 
-    for router in (health.router, auth.router, invites.router, admin.router, market.router, stocks.router, news.router):
+    for router in (
+        health.router,
+        auth.router,
+        invites.router,
+        admin.router,
+        market.router,
+        stocks.router,
+        news.router,
+        watchlist.router,
+    ):
         app.include_router(router, prefix=API_PREFIX)
 
     _install_middleware(app, settings)

@@ -9,6 +9,7 @@ import { Link } from "react-router";
 
 import { Card, EmptyState } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
+import { WatchStar } from "@/components/ui/WatchStar";
 import { cn } from "@/lib/cn";
 import { change, money, price, volume } from "@/lib/format";
 import { useDebounced } from "@/lib/hooks";
@@ -175,12 +176,15 @@ export function StockTable({ rows, p }: { rows: MarketRow[]; p: MarketParams }) 
                     scope="row"
                     className="sticky left-0 bg-surface px-3 py-2 text-left font-normal group-hover:bg-hover sm:px-4"
                   >
-                    <Link to={`/app/stocks/${r.symbol}`} className="block min-w-0 hover:text-brand">
-                      <span className="num block font-medium text-fg">{r.symbol}</span>
-                      <span className="block max-w-24 truncate text-xs text-fg-muted sm:max-w-44" title={r.company}>
-                        {r.company}
-                      </span>
-                    </Link>
+                    <div className="-ml-2 flex items-center gap-1">
+                      <WatchStar symbol={r.symbol} />
+                      <Link to={`/app/stocks/${r.symbol}`} className="block min-w-0 hover:text-brand">
+                        <span className="num block font-medium text-fg">{r.symbol}</span>
+                        <span className="block max-w-24 truncate text-xs text-fg-muted sm:max-w-44" title={r.company}>
+                          {r.company}
+                        </span>
+                      </Link>
+                    </div>
                   </th>
                   {cols.map((c) => (
                     <td key={c.key} className="num px-3 py-2 text-right whitespace-nowrap text-fg sm:px-4">

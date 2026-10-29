@@ -449,6 +449,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/watchlist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My watchlist's symbols */
+        get: operations["get_api_v1_me_watchlist_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/watchlist/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** News mentioning any of my stocks */
+        get: operations["news_api_v1_me_watchlist_news_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/watchlist/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Each stock's price, changes, trend and signal */
+        get: operations["overview_api_v1_me_watchlist_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/watchlist/{symbol}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Add a stock (no-op if it's there; 50 at most) */
+        put: operations["add_api_v1_me_watchlist__symbol__put"];
+        post?: never;
+        /** Remove a stock (no-op if it isn't there) */
+        delete: operations["remove_api_v1_me_watchlist__symbol__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/news": {
         parameters: {
             query?: never;
@@ -1656,6 +1725,86 @@ export interface components {
             /** Error Type */
             type: string;
         };
+        /** Watchlist */
+        Watchlist: {
+            /**
+             * Limit
+             * @description Most stocks a watchlist can hold
+             */
+            limit: number;
+            /**
+             * Symbols
+             * @description Oldest added first
+             */
+            symbols: string[];
+        };
+        /** WatchlistNews */
+        WatchlistNews: {
+            /**
+             * Articles
+             * @description Newest first; `symbols` on each says which stocks it mentions
+             */
+            articles: components["schemas"]["Article"][];
+            /** Symbols */
+            symbols: string[];
+        };
+        /** WatchlistOverview */
+        WatchlistOverview: {
+            /**
+             * As Of
+             * @description The market's latest session
+             */
+            as_of: string | null;
+            /**
+             * Period
+             * @enum {string}
+             */
+            period: "1W" | "1M" | "3M" | "YTD";
+            /**
+             * Start
+             * @description First day of the period
+             */
+            start: string | null;
+            /**
+             * Stocks
+             * @description In watchlist order
+             */
+            stocks: components["schemas"]["WatchlistRow"][];
+            strategy: components["schemas"]["StrategyInfo"];
+        };
+        /** WatchlistRow */
+        WatchlistRow: {
+            /** Close */
+            close: number | null;
+            /** Company */
+            company: string | null;
+            /**
+             * Pct Change
+             * @description Change on `trade_date` vs the session before, %
+             */
+            pct_change: number | null;
+            /**
+             * Period Pct Change
+             * @description First open in the period to the latest close, %
+             */
+            period_pct_change: number | null;
+            /** Sector */
+            sector: string | null;
+            /** @description The strategy's latest signal, on any date */
+            signal: components["schemas"]["SignalEvent"] | null;
+            /**
+             * Spark
+             * @description Closes across the period, oldest first, at most 60 points
+             */
+            spark: number[];
+            /** Symbol */
+            symbol: string;
+            /**
+             * Trade Date
+             * @description The stock's latest session: older than `as_of` if it didn't trade
+             */
+            trade_date: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -2539,11 +2688,162 @@ export interface operations {
             };
         };
     };
+    get_api_v1_me_watchlist_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Watchlist"];
+                };
+            };
+        };
+    };
+    news_api_v1_me_watchlist_news_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchlistNews"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_v1_me_watchlist_overview_get: {
+        parameters: {
+            query?: {
+                period?: "1W" | "1M" | "3M" | "YTD";
+                /** @description Signal strategy slug (GET /strategies) */
+                strategy?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchlistOverview"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_api_v1_me_watchlist__symbol__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description NGX ticker, e.g. MTNN */
+                symbol: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Watchlist"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_api_v1_me_watchlist__symbol__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description NGX ticker, e.g. MTNN */
+                symbol: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Watchlist"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     search_api_v1_news_get: {
         parameters: {
             query?: {
                 /** @description Comma list of tickers */
                 symbols?: string | null;
+                /** @description Add my watchlist's stocks to `symbols` */
+                watchlist?: boolean;
                 sectors?: string | null;
                 subsectors?: string | null;
                 topics?: ("earnings" | "dividend" | "corporate_action" | "capital_raising" | "mergers_acquisitions" | "governance" | "listing_trading" | "regulation" | "monetary_policy" | "fx" | "macro" | "energy" | "market_wrap" | "legal" | "outlook")[];

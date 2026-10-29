@@ -7,6 +7,7 @@ import { ChevronRight, X } from "lucide-react";
 import { useId, useMemo, useState, type ReactNode } from "react";
 
 import { useDirectory } from "@/api/market";
+import { useWatchlist } from "@/api/watchlist";
 import type { NewsPage } from "@/api/types";
 import { cn } from "@/lib/cn";
 import {
@@ -15,6 +16,7 @@ import {
   DATE_PRESETS,
   DEFAULT_TYPES,
   FACET_KEY,
+  hasStocks,
   REGULATORS,
   SCOPES,
   TOPICS,
@@ -170,8 +172,10 @@ function StockPicker({
   onChange: (f: Filters) => void;
 }) {
   const { data: directory } = useDirectory();
+  const { data: watchlist } = useWatchlist();
   const [query, setQuery] = useState("");
   const id = useId();
+  const mine = watchlist?.symbols.length ?? 0;
   const matches = useMemo(
     () => rankStocks(directory ?? [], query, 5).filter((e) => !filters.symbol.includes(e.symbol)),
     [directory, query, filters.symbol],
@@ -182,6 +186,14 @@ function StockPicker({
   };
   return (
     <div className="flex flex-col gap-2">
+      <Option
+        checked={filters.watchlist}
+        disabled={!mine && !filters.watchlist}
+        onChange={() => onChange({ ...filters, watchlist: !filters.watchlist })}
+      >
+        My watchlist
+        <span className="text-xs text-fg-muted">{mine ? ` (${mine} stock${mine === 1 ? "" : "s"})` : " (empty)"}</span>
+      </Option>
       <label htmlFor={id} className="sr-only">
         Add a stock
       </label>
@@ -230,7 +242,7 @@ function StockPicker({
       />
       <Option
         checked={filters.headline}
-        disabled={!filters.symbol.length}
+        disabled={!hasStocks(filters)}
         onChange={() => onChange({ ...filters, headline: !filters.headline })}
       >
         Headline mentions only
@@ -350,7 +362,7 @@ export function NewsFilterControls({
       <Group title="Topic" active={filters.topic.length} defaultOpen>
         <CheckList filterKey="topic" values={TOPICS.map((t) => t.value)} {...props} />
       </Group>
-      <Group title="Stocks" active={filters.symbol.length} defaultOpen>
+      <Group title="Stocks" active={filters.symbol.length + (filters.watchlist ? 1 : 0)} defaultOpen>
         <StockPicker {...props} />
       </Group>
       <Group title="Published" active={filters.days === "90" ? 0 : 1} defaultOpen>

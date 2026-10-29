@@ -148,7 +148,8 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /news?symbols=&watchlist=&sectors=&subsectors=&topics=&scope=&regulators=&content_types=&sources=&from=&to=&title_only=&q=&sort=&cursor=` | **News page** (US-9.8): filtered, cursor-paginated list; the first page adds `facets` (counts per filter value, each applying every *other* filter so a second value in the same filter shows what it adds) and `total`. Untagged (pre-v2) articles count as `news` for `content_types` | user | 10 min |
 | `GET /me/watchlist/news?days=7` | News mentioning any watchlist stock (US-9.4) | user | 10 min |
 | `POST /news/{id}/feedback` `{symbol, reason}` | Report a mis-tagged article (US-9.7, v1.1) | user | — |
-| `GET/PUT/DELETE /me/watchlist[/{symbol}]` | Watchlist CRUD | user | — |
+| `GET/PUT/DELETE /me/watchlist[/{symbol}]` | Watchlist CRUD: `PUT` adds (a no-op if present; 409 `watchlist-full` past 50, checked atomically), `DELETE` removes; both return the list | user | — (`no-store`) |
+| `GET /me/watchlist/overview?period=1W\|1M\|3M\|YTD&strategy=` | Each watchlist stock's latest close and day change, period change (first open to latest close), up to 60 closes for a sparkline, and the strategy's latest signal (US-5.2; added to v1, additive) | user | 5 min per stock |
 | `GET /admin/users` · `PATCH /admin/users/{id}` | Search, role, activate/deactivate | admin | — |
 | `GET/POST /admin/invites` · `POST /admin/invites/{id}/resend` · `DELETE /admin/invites/{id}` | Send, list, resend, revoke invites | admin | — |
 | `GET /admin/access-requests` · `POST /admin/access-requests/{id}/approve` · `/decline` | Review "request an invite" submissions; approving sends an invite | admin | — |

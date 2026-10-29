@@ -5,6 +5,7 @@ import { Link } from "react-router";
 import { Tabs } from "@/components/ui/controls";
 import { Card } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
+import { WatchStar } from "@/components/ui/WatchStar";
 import { money, price } from "@/lib/format";
 import { useMediaQuery } from "@/lib/hooks";
 import type { MarketRow } from "@/lib/market";
@@ -23,10 +24,11 @@ function MoverRows({ rows, byValue, empty }: { rows: MarketRow[]; byValue: boole
   return (
     <ol className="divide-y divide-line-subtle">
       {rows.map((r) => (
-        <li key={r.symbol}>
+        <li key={r.symbol} className="-mx-2 flex items-center gap-1">
+          <WatchStar symbol={r.symbol} />
           <Link
             to={`/app/stocks/${r.symbol}`}
-            className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors duration-(--duration-instant) hover:bg-hover"
+            className="flex min-w-0 flex-1 items-center gap-3 rounded-lg py-2.5 pr-2 pl-1 transition-colors duration-(--duration-instant) hover:bg-hover"
           >
             <span className="min-w-0 flex-1">
               <span className="num block text-sm font-semibold text-fg">{r.symbol}</span>

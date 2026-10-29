@@ -77,6 +77,8 @@ export interface RequestOptions {
   query?: Query;
   body?: unknown;
   signal?: AbortSignal;
+  /** Let a small write finish even if the page unloads (a ☆ tapped just before closing the tab) */
+  keepalive?: boolean;
 }
 
 function url(path: string, query?: Query): string {
@@ -111,6 +113,7 @@ async function send(path: string, opts: RequestOptions, retried = false): Promis
       credentials: "same-origin",
       body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
       signal: opts.signal,
+      keepalive: opts.keepalive,
     });
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") throw e;

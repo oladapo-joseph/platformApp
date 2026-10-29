@@ -83,6 +83,8 @@ export type ListFilter = (typeof LIST_FILTERS)[number];
 
 export interface NewsFilters {
   symbol: string[];
+  /** Add my watchlist's stocks to `symbol` (US-9.8) */
+  watchlist: boolean;
   sector: string[];
   subsector: string[];
   topic: Topic[];
@@ -124,6 +126,7 @@ export function parseNewsParams(params: URLSearchParams): NewsFilters {
   const days = params.get("days");
   return {
     symbol: list(params, "symbol").map((s) => s.toUpperCase()),
+    watchlist: params.get("watchlist") === "1",
     sector: list(params, "sector").map((s) => s.toUpperCase()),
     subsector: list(params, "subsector"),
     topic: list(params, "topic").filter((t): t is Topic => has(TOPICS, t)),
@@ -144,6 +147,7 @@ export function parseNewsParams(params: URLSearchParams): NewsFilters {
 export function writeNewsParams(f: NewsFilters): URLSearchParams {
   const p = new URLSearchParams();
   for (const key of LIST_FILTERS) if (f[key].length) p.set(key, f[key].join(","));
+  if (f.watchlist) p.set("watchlist", "1");
   if (f.days === "custom") {
     if (f.from) p.set("from", f.from);
     if (f.to) p.set("to", f.to);
@@ -157,6 +161,9 @@ export function writeNewsParams(f: NewsFilters): URLSearchParams {
 export const watToday = () => format(new TZDate(Date.now(), TZ), "yyyy-MM-dd");
 export const watDaysAgo = (n: number) => format(subDays(new TZDate(Date.now(), TZ), n), "yyyy-MM-dd");
 
+/** Any stock filter: picked tickers or my watchlist ("Headline mentions only" needs one). */
+export const hasStocks = (f: NewsFilters) => f.symbol.length > 0 || f.watchlist;
+
 /** GET /news query. `today` is injectable for tests. */
 export function newsQuery(f: NewsFilters, today = watToday()): Query {
   const from =
@@ -167,6 +174,7 @@ export function newsQuery(f: NewsFilters, today = watToday()): Query {
         : format(subDays(new Date(`${today}T12:00:00`), Number(f.days)), "yyyy-MM-dd");
   return {
     symbols: f.symbol.join(",") || null,
+    watchlist: f.watchlist || null,
     sectors: f.sector.join(",") || null,
     subsectors: f.subsector.join(",") || null,
     topics: f.topic,
@@ -176,7 +184,7 @@ export function newsQuery(f: NewsFilters, today = watToday()): Query {
     sources: f.source.join(",") || null,
     from,
     to: f.days === "custom" ? f.to : null,
-    title_only: f.headline && f.symbol.length ? true : null,
+    title_only: f.headline && hasStocks(f) ? true : null,
     q: f.q.trim() || null,
     sort: f.sort,
   };
@@ -221,7 +229,7 @@ export function dateLabel(f: NewsFilters): string {
 }
 
 export interface ActiveChip {
-  key: ListFilter | "days" | "headline" | "q";
+  key: ListFilter | "watchlist" | "days" | "headline" | "q";
   value: string;
   label: string;
 }
@@ -230,11 +238,12 @@ export interface ActiveChip {
 export function activeChips(f: NewsFilters): ActiveChip[] {
   const chips: ActiveChip[] = [];
   if (f.q.trim()) chips.push({ key: "q", value: f.q, label: `“${f.q.trim()}”` });
+  if (f.watchlist) chips.push({ key: "watchlist", value: "1", label: "My watchlist" });
   for (const key of LIST_FILTERS) {
     for (const v of f[key]) chips.push({ key, value: v, label: valueLabel(key, v) });
   }
   if (f.days !== "90") chips.push({ key: "days", value: f.days, label: dateLabel(f) });
-  if (f.headline && f.symbol.length) chips.push({ key: "headline", value: "1", label: "Headline mentions only" });
+  if (f.headline && hasStocks(f)) chips.push({ key: "headline", value: "1", label: "Headline mentions only" });
   return chips;
 }
 
@@ -242,12 +251,14 @@ export function withoutChip(f: NewsFilters, chip: ActiveChip): NewsFilters {
   if (chip.key === "q") return { ...f, q: "" };
   if (chip.key === "days") return { ...f, days: "90", from: null, to: null };
   if (chip.key === "headline") return { ...f, headline: false };
+  if (chip.key === "watchlist") return { ...f, watchlist: false };
   const key = chip.key;
   return { ...f, [key]: (f[key] as string[]).filter((v) => v !== chip.value) };
 }
 
 export const CLEARED: Omit<NewsFilters, "sort"> = {
   symbol: [],
+  watchlist: false,
   sector: [],
   subsector: [],
   topic: [],
@@ -293,7 +304,13 @@ export function mostRestrictive(f: NewsFilters, facets: Facets): ActiveChip | nu
 
 /** Removes a whole filter (value "*") or one value. */
 export function withoutRestriction(f: NewsFilters, chip: ActiveChip): NewsFilters {
-  if (chip.value === "*" && chip.key !== "q" && chip.key !== "days" && chip.key !== "headline") {
+  if (
+    chip.value === "*" &&
+    chip.key !== "q" &&
+    chip.key !== "days" &&
+    chip.key !== "headline" &&
+    chip.key !== "watchlist"
+  ) {
     return { ...f, [chip.key]: [] };
   }
   return withoutChip(f, chip);

@@ -19,6 +19,7 @@ const ROUTE_CHUNKS = {
   "/app/market": "src/features/market/MarketPage.tsx",
   "/app/stocks/": "src/features/stock/StockPage.tsx",
   "/app/news": "src/features/news/NewsPage.tsx",
+  "/app/watchlist": "src/features/watchlist/WatchlistPage.tsx",
   "/app/account": "src/features/account/AccountPage.tsx",
 };
 
