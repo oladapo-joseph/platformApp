@@ -142,7 +142,13 @@ function Stocks({ symbols }: { symbols: string[] }) {
   return (
     <Card className="p-4 md:p-5">
       <div className="flex flex-wrap items-center gap-3">
-        <SegmentedControl label="Period" value={v.period} onChange={(period) => v.set({ period })} options={PERIODS} />
+        <SegmentedControl
+          label="Period"
+          track="watchlist.period"
+          value={v.period}
+          onChange={(period) => v.set({ period })}
+          options={PERIODS}
+        />
         <label className="flex items-center gap-2 text-sm text-fg-2">
           Sort
           <select
@@ -322,6 +328,7 @@ export default function WatchlistPage() {
       ) : (
         <Tabs
           label="Watchlist"
+          track="watchlist.tab"
           value={v.tab}
           onChange={(tab) => v.set({ tab: tab === "stocks" ? null : tab })}
           tabs={[

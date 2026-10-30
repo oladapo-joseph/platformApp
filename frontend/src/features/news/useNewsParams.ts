@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router";
 
+import { track } from "@/lib/analytics";
 import { parseNewsParams, writeNewsParams, type NewsFilters } from "@/lib/news";
 
 /**
@@ -13,9 +14,15 @@ export function useNewsParams() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` captures `params`
   const filters = useMemo(() => parseNewsParams(params), [key]);
   const set = useCallback(
-    (next: NewsFilters, { replace = false }: { replace?: boolean } = {}) =>
-      setParams(writeNewsParams(next), { replace, preventScrollReset: true }),
-    [setParams],
+    (next: NewsFilters, { replace = false }: { replace?: boolean } = {}) => {
+      // which filter changed, never what was typed (US-7.8)
+      const changed = (Object.keys(next) as (keyof NewsFilters)[]).find(
+        (k) => k !== "sort" && JSON.stringify(next[k]) !== JSON.stringify(filters[k]),
+      );
+      if (changed) track("news.filter", { filter: changed });
+      setParams(writeNewsParams(next), { replace, preventScrollReset: true });
+    },
+    [setParams, filters],
   );
   return { filters, set };
 }

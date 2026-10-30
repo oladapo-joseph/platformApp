@@ -7,6 +7,7 @@ from pymongo.database import Database
 from app.core.config import Settings
 from app.repositories.audit_repo import AuditRepo
 from app.repositories.bars_repo import BarsRepo
+from app.repositories.events_repo import EventsRepo
 from app.repositories.industry_repo import IndustryRepo
 from app.repositories.invites_repo import AccessRequestsRepo, InvitesRepo
 from app.repositories.news_repo import NewsRepo
@@ -27,6 +28,7 @@ class Repos:
     access_requests: AccessRequestsRepo
     audit: AuditRepo
     watchlists: WatchlistRepo
+    events: EventsRepo
 
 
 _repos: Repos | None = None
@@ -45,6 +47,7 @@ def init_repos(db: Database, settings: Settings) -> Repos:
         access_requests=AccessRequestsRepo(db),
         audit=AuditRepo(db),
         watchlists=WatchlistRepo(db),
+        events=EventsRepo(db),
     )
     return _repos
 
@@ -59,6 +62,7 @@ def ensure_indexes(repos: Repos) -> None:
         repos.access_requests,
         repos.audit,
         repos.watchlists,
+        repos.events,
     ):
         repo.ensure_indexes()
 

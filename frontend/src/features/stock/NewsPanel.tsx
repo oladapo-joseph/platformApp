@@ -39,6 +39,7 @@ export function NewsPanel({ symbol, sector, heading = true }: { symbol: string; 
         {heading && <h2 className="font-headline text-xl font-semibold text-fg">News</h2>}
         <SegmentedControl
           label="Sort news"
+          track="stock.news_sort"
           size="sm"
           value={sort}
           onChange={setSort}

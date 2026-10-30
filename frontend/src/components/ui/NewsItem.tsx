@@ -6,6 +6,7 @@ import type { Article } from "@/api/types";
 import { cn } from "@/lib/cn";
 import { day, stamp } from "@/lib/dates";
 import { valueLabel } from "@/lib/news";
+import { track } from "@/lib/analytics";
 
 import { Badge } from "./feedback";
 
@@ -45,6 +46,7 @@ export function NewsItem({
     <article className="flex flex-col gap-1.5 py-3">
       <a
         href={article.url}
+        onClick={() => track("news.open", { source: article.source })}
         target="_blank"
         rel="noopener noreferrer nofollow"
         className={cn(

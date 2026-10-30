@@ -362,6 +362,19 @@ class BarsRepo:
         )
         return str(rows[0]["_id"]) if rows else None
 
+    def last_fetch_at(self) -> datetime | None:
+        """The newest tradesData crawl (data health, US-7.6)."""
+        latest = self.trades.find_one({}, {"fetched_at": 1}, sort=[("fetched_at", -1)])
+        return latest["fetched_at"] if latest else None
+
+    def last_bars_update_at(self) -> datetime | None:
+        """The newest daily_bars write, on its latest session (no index on updated_at is ours to add)."""
+        doc = self.bars.find_one(_BAR_HAS_PRICE, {"trade_date": 1}, sort=[("trade_date", -1)])
+        if not doc:
+            return None
+        newest = self.bars.find_one({"trade_date": doc["trade_date"]}, {"updated_at": 1}, sort=[("updated_at", -1)])
+        return newest.get("updated_at") if newest else None
+
     def data_as_of(self) -> datetime | None:
         """When the newest data was crawled."""
         if self.source != "trades":

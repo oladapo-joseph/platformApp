@@ -92,6 +92,7 @@ export function Movers({
         <Card className="p-4">
           <Tabs
             label="Movers"
+            track="market.movers"
             value={tab}
             onChange={setTab}
             tabs={LISTS.map((l) => ({

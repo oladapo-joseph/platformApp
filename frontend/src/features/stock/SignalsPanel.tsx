@@ -50,6 +50,7 @@ export function SignalsPanel({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl
           label="Strategy"
+          track="stock.strategy"
           size="sm"
           value={strategy}
           onChange={onStrategy}

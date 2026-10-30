@@ -4,12 +4,14 @@
  * delete the account (US-6.4).
  */
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ChevronRight, Shield } from "lucide-react";
 import { AlertDialog } from "radix-ui";
 import { useEffect, useState, type ReactNode } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { z } from "zod";
 
+import { useAdminSummary } from "@/api/admin";
 import { useDeleteMe, useLogout, useMe, useThemeChoice, useUpdateMe } from "@/api/auth";
 import { ApiError } from "@/api/client";
 import type { Me } from "@/api/types";
@@ -255,10 +257,52 @@ function ThemePicker() {
   const [theme, setTheme] = useThemeChoice();
   return (
     <div className="flex flex-col gap-2">
-      <SegmentedControl label="Theme" value={theme} onChange={setTheme} options={THEMES} className="self-start" />
+      <SegmentedControl
+        label="Theme"
+        track="theme.change"
+        value={theme}
+        onChange={setTheme}
+        options={THEMES}
+        className="self-start"
+      />
       <p className="text-xs text-fg-muted">
         {theme === "system" ? "Follows your device's light or dark setting. " : ""}Saved to your account.
       </p>
+    </div>
+  );
+}
+
+/** US-7.8: pseudonymous usage events, on unless turned off here (saved to the account, so every device obeys). */
+function UsageChoice({ me }: { me: Me }) {
+  const update = useUpdateMe();
+  const on = update.isPending ? !!update.variables?.usage_analytics : me.usage_analytics;
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-start gap-3 text-sm">
+        <input
+          id="usage-analytics"
+          type="checkbox"
+          checked={on}
+          disabled={update.isPending}
+          onChange={(e) => update.mutate({ usage_analytics: e.target.checked })}
+          aria-describedby="usage-analytics-help"
+          className="touch-target mt-0.5 size-4 accent-(--color-brand)"
+        />
+        <div>
+          {/* a short name for the checkbox; the details are its description */}
+          <label htmlFor="usage-analytics" className="text-fg">
+            Share which pages and features I use
+          </label>
+          <p id="usage-analytics-help" className="mt-1 text-xs text-fg-muted">
+            It helps us improve EquityLensNG. No names, emails or IP addresses; kept for 90 days. Turning it off stops
+            it at once and keeps nothing new.{" "}
+            <Link to="/terms#privacy" className="text-brand underline underline-offset-2">
+              Privacy notice
+            </Link>
+          </p>
+        </div>
+      </div>
+      {update.error && <FormError message="That didn't save. Try again." />}
     </div>
   );
 }
@@ -372,6 +416,27 @@ function DeleteAccount({ me }: { me: Me }) {
   );
 }
 
+/** Phones have no Admin tab in the bottom nav: admins reach the console from here (US-8.2). */
+function AdminLink() {
+  const { data: summary } = useAdminSummary(true);
+  const waiting = (summary?.access_requests ?? 0) + (summary?.suspicious ?? 0);
+  return (
+    <Link
+      to="/app/admin"
+      className="flex items-center gap-3 rounded-lg border border-transparent bg-surface p-4 shadow-elev-1 hover:bg-hover"
+    >
+      <Shield aria-hidden className="size-5 text-brand" />
+      <span className="flex-1 font-medium text-fg">Admin console</span>
+      {waiting > 0 && (
+        <span className="num rounded-full bg-danger-subtle px-2 text-xs font-semibold text-danger">
+          {waiting} waiting
+        </span>
+      )}
+      <ChevronRight aria-hidden className="size-4 text-fg-muted" />
+    </Link>
+  );
+}
+
 export default function AccountPage() {
   const { data: me } = useMe();
   const [toastNode, toast] = useToast();
@@ -382,6 +447,7 @@ export default function AccountPage() {
     <>
       <PageHeader title="Account" description={since} />
       <div className="flex max-w-3xl flex-col gap-6">
+        {me.role === "admin" && <AdminLink />}
         <Section id="profile" title="Profile">
           <NameForm me={me} toast={toast} />
           {me.username && me.username !== me.email && (
@@ -407,6 +473,9 @@ export default function AccountPage() {
         </Section>
         <Section id="appearance" title="Appearance">
           <ThemePicker />
+        </Section>
+        <Section id="privacy" title="Privacy">
+          <UsageChoice me={me} />
         </Section>
         <Section
           id="devices"

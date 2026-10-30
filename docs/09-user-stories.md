@@ -721,6 +721,18 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 
 **UX notes:** Use the dense table on desktop and a stacked card list on mobile. Write actions as sentences, not codes ("Ada Obi approved `tunde@example.com`'s access request"). Relative time on hover/focus ("3 h ago"). An empty state for a filter with no results.
 
+### US-7.8 · See how people use the app
+
+**Story:** As the owner, I want to see which pages and features people use and how they move through the app, so that I know the typical flow and where to invest.
+`Must · P4 · J8 · Admin` (added 2026-10-29, owner)
+
+**Acceptance criteria:**
+
+- **Admin → Usage** shows, for the last 7, 30 or 90 days: active users, sessions, page views and pages per session; active users per day (with a table view); the most visited pages with people and average time on the page; the most used features; where sessions start; the most common page-to-page moves; the most common first three pages of a session; phone vs desktop.
+- Events come from the signed-in app only: a page view per screen (route template such as "Stock page", plus the ticker) and named feature events (starred a stock, opened search, changed chart range…). Nothing typed is sent.
+- It's **pseudonymous**: a random ID per browser session and a keyed hash of the user, no IP address, no user agent. Kept 90 days. It's separate from the audit log (US-7.7), which is a security record.
+- Anyone can turn it off in **Account → Privacy**; from then on nothing is kept, whatever the browser sends. Deleting the account deletes its usage events. The privacy notice says all this.
+
 ---
 
 ## E8 · Cross-cutting experience

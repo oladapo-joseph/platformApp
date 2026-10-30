@@ -146,7 +146,14 @@ export function Sectors({
           <h2 className="font-headline text-xl font-semibold text-fg">Sectors</h2>
           <p className="text-xs text-fg-muted">Average % change of each sector's stocks. Select one to filter.</p>
         </div>
-        <SegmentedControl label="Sector view" size="sm" value={shown} onChange={setView} options={options} />
+        <SegmentedControl
+          label="Sector view"
+          track="market.sectors_view"
+          size="sm"
+          value={shown}
+          onChange={setView}
+          options={options}
+        />
       </div>
       {shown === "table" && <SectorTable sectors={sectors} />}
       {shown === "bars" && <SectorBars sectors={sectors} selected={selected} onSelect={toggle} />}

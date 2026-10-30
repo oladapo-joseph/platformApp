@@ -160,7 +160,7 @@ There is also a **one-off backfill script**. It processes history one symbol at 
 
 ---
 
-## ADR-012 — AI provider behind an interface; Gemini (`google-genai`) is the interim default
+## ADR-012 — AI provider behind an interface; Claude (Anthropic) is the default, Gemini optional
 
 **Status:** Accepted (owner, 2026-10-26). The Claude API is currently unavailable to the team.
 
@@ -171,6 +171,8 @@ There is also a **one-off backfill script**. It processes history one symbol at 
 **Consequences.** Switching provider is a config change plus a short quality check, not a code change. Two adapters to test (contract tests with recorded responses). The default `AI_MODEL` is `gemini-2.5-flash`, matching the earlier smoke test; confirm the current model line-up when Phase 4 starts.
 
 **Alternatives.** Hard-wire Gemini: simplest, but it repeats the earlier Gemini ↔ Anthropic churn. LangChain as the abstraction: rejected; the project has already removed it once.
+
+**Amended 2026-10-29 (owner): Claude is the default; Gemini is optional.** The Claude API is available again and the platform uses it: `AI_PROVIDER=anthropic` by default with `AnthropicProvider` (the `anthropic` SDK). `GeminiProvider` stays as an optional adapter, used only when `AI_PROVIDER=gemini`; `google-genai` is an optional dependency, so the app installs and runs without it. The interface, the shared schema, the stored model name and the contract tests are unchanged. The default `AI_MODEL` is picked from the current Claude line-up when P4c starts.
 
 ---
 
@@ -204,6 +206,20 @@ There is also a **one-off backfill script**. It processes history one symbol at 
 
 ---
 
+## ADR-015 — First-party, pseudonymous usage analytics, separate from the audit log
+
+**Status:** Accepted (owner asked for it, 2026-10-29; the default and the privacy wording go to the D-06 review).
+
+**Context.** The owner wants to know the typical flow, the most used features and pages, and how people navigate (US-7.8). The audit log (US-7.7) is a security record: insert-only, 365 days, with IP addresses, as the privacy notice says. Page views are far more numerous and serve a different purpose. The CSP allows no third-party scripts.
+
+**Decision.** A small first-party tracker in the SPA batches page views (route templates, not URLs) and named feature events to `POST /events` (CSRF-protected; `fetch` with `keepalive` so a batch survives the tab closing). The server stores them in `app_events` with a random per-tab session ID and a keyed hash of the user ID (HMAC with a key derived from `SESSION_SECRET`), no IP and no user agent, with a 90-day TTL. Admins see aggregates only (`GET /admin/usage`). An account-level switch (`usage_analytics`, on by default for now) turns it off; the server drops events from anyone who has. Deleting an account deletes its events.
+
+**Consequences.** No vendor, no cookie banner for a third party, and the CSP stays strict. Rotating `SESSION_SECRET` resets the pseudonyms (unique-user counts start afresh; erasure covers at most the 90 days already bounded by the TTL). Unique users are counted per pseudonym, so one person on two devices is one user. Aggregations group in MongoDB before any sort (M0 limits), and the report is cached 5 minutes.
+
+**Alternatives.** Put page views in the audit log: rejected (bloats a security record, mixes purposes, keeps IPs). A hosted tool (Plausible, PostHog): more features, but a third-party script and data processor, and a CSP exception. Server-side request logs: no client navigation in an SPA.
+
+---
+
 ## Decisions log
 
 | ID | Question | Status | Outcome / recommendation | Needed by |
@@ -216,7 +232,7 @@ There is also a **one-off backfill script**. It processes history one symbol at 
 | **D-06** | AI wording & legal review | ✅ Wording decided 2026-10-26 | **"Signal interpretation"**, no BUY/SELL/HOLD (ADR-006). Legal review of the disclaimer still recommended before sign-ups open to the public | Before open sign-up |
 | **D-07** | `daily_bars` ownership | ✅ **Decided and built 2026-10-26** | **The ngxPro crawler writes it** (ADR-007; `crawler/daily_bars.py`, awaiting deploy + backfill run) | — |
 | **D-08** | Brand name styling | ✅ **Decided 2026-10-26** | **"EquityLensNG"** (joined, like MTNNG). Wordmark keeps `EquityLens` + `NG` tag. Revisit if expanding to other markets | — |
-| **D-09** | AI provider & model | ✅ **Decided 2026-10-26** | **Gemini via `google-genai`** while the Claude API is unavailable; provider-agnostic interface (ADR-012) | — |
+| **D-09** | AI provider & model | ✅ **Decided 2026-10-26, changed 2026-10-29** | **Claude (Anthropic SDK) by default; Gemini (`google-genai`) optional**; provider-agnostic interface (ADR-012) | — |
 | **D-10** | Atlas tier | Open | Move to a paid tier before open sign-up. Invite-only reduces the urgency at launch | Before open sign-up |
 | **D-11** | Are tests tracked in git? | ✅ **Decided 2026-10-26: no tests are tracked** | `.gitignore` covers Python and React test conventions. CI checks lint, types, and builds; tests run locally before merge (ADR-011) | — |
 | **D-12** | NGX All-Share Index (ASI) | ✅ **Decided 2026-10-26** | **Added later** via the crawler; launch without it, with the layout ready for it (US-2.8) | Post-launch |

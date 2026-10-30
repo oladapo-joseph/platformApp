@@ -177,7 +177,7 @@ function Stock({ symbol }: { symbol: string }) {
             note={barList ? shortHistory(v.range, start, barList) : null}
           />
           <Card className="p-4">
-            <Tabs label={`${symbol} details`} value={tab} onChange={v.setTab} tabs={tabs} />
+            <Tabs label={`${symbol} details`} track="stock.tab" value={tab} onChange={v.setTab} tabs={tabs} />
           </Card>
         </div>
         {wide && (

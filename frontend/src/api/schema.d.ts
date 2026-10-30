@@ -72,6 +72,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit log, newest first (read-only) */
+        get: operations["audit_log_api_v1_admin_audit_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/audit/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Export the filtered audit log as CSV (the export is logged) */
+        post: operations["export_audit_api_v1_admin_audit_export_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/data-health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Crawler freshness and data completeness */
+        get: operations["data_health_view_api_v1_admin_data_health_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/invites": {
         parameters: {
             query?: never;
@@ -118,6 +169,40 @@ export interface paths {
         put?: never;
         /** New link; the old one stops working */
         post: operations["resend_invite_api_v1_admin_invites__invite_id__resend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Counts for the admin nav badge */
+        get: operations["summary_api_v1_admin_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What people use and how they move through the app (US-7.8) */
+        get: operations["usage_api_v1_admin_usage_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -307,6 +392,23 @@ export interface paths {
         put?: never;
         /** Confirm an email address from its link */
         post: operations["verify_email_api_v1_auth_verify_email_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Usage events from the app (pseudonymous; none if turned off) */
+        post: operations["events_api_v1_events_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -799,6 +901,19 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** AdminSummary */
+        AdminSummary: {
+            /**
+             * Access Requests
+             * @description New access requests waiting for a decision
+             */
+            access_requests: number;
+            /**
+             * Suspicious
+             * @description Suspicious sign-in events in the last 7 days
+             */
+            suspicious: number;
+        };
         /** AdminUser */
         AdminUser: {
             /** Created At */
@@ -885,6 +1000,125 @@ export interface components {
             /** Url */
             url: string;
         };
+        /** AuditActor */
+        AuditActor: {
+            /** Email */
+            email: string | null;
+            /** Id */
+            id: string | null;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "user" | "admin" | "anonymous" | "system";
+            /** Name */
+            name: string | null;
+        };
+        /** AuditEntry */
+        AuditEntry: {
+            /**
+             * Action
+             * @description Stable code, e.g. access_request.approved
+             */
+            action: string;
+            actor: components["schemas"]["AuditActor"];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Category */
+            category: string;
+            /**
+             * Changes
+             * @description Before and after values; never passwords or tokens
+             */
+            changes: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Description
+             * @description The action in plain words, e.g. 'Approved access request'
+             */
+            description: string;
+            /**
+             * Flags
+             * @description 'suspicious': a burst of failed sign-ins for one account
+             */
+            flags: string[];
+            /** Id */
+            id: string;
+            /** Ip */
+            ip: string | null;
+            /**
+             * Outcome
+             * @enum {string}
+             */
+            outcome: "success" | "failure";
+            /** Request Id */
+            request_id: string | null;
+            target: components["schemas"]["AuditTarget"] | null;
+            /** User Agent */
+            user_agent: string | null;
+        };
+        /** AuditPage */
+        AuditPage: {
+            /** Items */
+            items: components["schemas"]["AuditEntry"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+        };
+        /**
+         * AuditQuery
+         * @description The audit viewer's filters (US-7.7); the CSV export takes the same.
+         */
+        AuditQuery: {
+            /**
+             * Actor
+             * @description Actor's email, exact
+             */
+            actor?: string | null;
+            /** Category */
+            category?: ("access" | "sign_in" | "account" | "admin") | null;
+            /** From */
+            from?: string | null;
+            /** Outcome */
+            outcome?: ("success" | "failure") | null;
+            /**
+             * Q
+             * @description Part of an actor's or target's email
+             */
+            q?: string | null;
+            /**
+             * Suspicious
+             * @default false
+             */
+            suspicious: boolean;
+            /**
+             * Target
+             * @description Target's email or label, exact
+             */
+            target?: string | null;
+            /**
+             * To
+             * @description Inclusive
+             */
+            to?: string | null;
+            /**
+             * User Id
+             * @description Events by or about this user ('View activity')
+             */
+            user_id?: string | null;
+        };
+        /** AuditTarget */
+        AuditTarget: {
+            /** Id */
+            id: string | null;
+            /** Label */
+            label: string | null;
+            /** Type */
+            type: string;
+        };
         /** Bar */
         Bar: {
             /** Change */
@@ -934,6 +1168,15 @@ export interface components {
             /** Unchanged */
             unchanged: number;
         };
+        /** Count */
+        Count: {
+            /** Count */
+            count: number;
+            /** Key */
+            key: string;
+            /** Users */
+            users: number;
+        };
         /** CreateInvites */
         CreateInvites: {
             /** Invites */
@@ -946,6 +1189,43 @@ export interface components {
              * @description Send back as the X-CSRF-Token header on every POST/PUT/PATCH/DELETE
              */
             csrf_token: string;
+        };
+        /** DataHealth */
+        DataHealth: {
+            /**
+             * Last Bars Update At
+             * @description Newest daily_bars write for the latest session
+             */
+            last_bars_update_at: string | null;
+            /**
+             * Last Fetch At
+             * @description Newest tradesData crawl (WAT)
+             */
+            last_fetch_at: string | null;
+            /** Latest Trade Date */
+            latest_trade_date: string | null;
+            /**
+             * Listed
+             * @description Stocks in the directory
+             */
+            listed: number;
+            /**
+             * Missing Sessions
+             * @description Weekdays in the last 30 days with no market data (public holidays show here too)
+             */
+            missing_sessions: string[];
+            /**
+             * Missing Symbols
+             * @description Listed stocks with no priced bar in the latest session
+             */
+            missing_symbols: string[];
+            /**
+             * Stale
+             * @description Trading hours and the newest crawl is more than 2 h old
+             */
+            stale: boolean;
+            /** Trading Hours */
+            trading_hours: boolean;
         };
         /** Decline */
         Decline: {
@@ -974,6 +1254,53 @@ export interface components {
             subsector: string;
             /** Symbol */
             symbol: string;
+        };
+        /** EventBatch */
+        EventBatch: {
+            /**
+             * Device
+             * @enum {string}
+             */
+            device: "mobile" | "tablet" | "desktop";
+            /** Events */
+            events: components["schemas"]["EventIn"][];
+            /**
+             * Session
+             * @description Random per browser tab session
+             */
+            session: string;
+        };
+        /** EventIn */
+        EventIn: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /**
+             * Name
+             * @description page_view, or a feature like watchlist.add
+             */
+            name: string;
+            /**
+             * Path
+             * @description Route template: /app/stocks/:symbol
+             */
+            path: string;
+            /**
+             * Prev
+             * @description page_view: the page before
+             */
+            prev?: string | null;
+            /**
+             * Prev Ms
+             * @description page_view: time spent on `prev`
+             */
+            prev_ms?: number | null;
+            /** Props */
+            props?: {
+                [key: string]: string | number | boolean;
+            };
         };
         /** FacetCount */
         FacetCount: {
@@ -1156,6 +1483,13 @@ export interface components {
              */
             status: "pending" | "accepted" | "expired" | "revoked";
         };
+        /** Journey */
+        Journey: {
+            /** Sessions */
+            sessions: number;
+            /** Steps */
+            steps: string[];
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -1287,6 +1621,12 @@ export interface components {
              */
             theme: "system" | "light" | "dark";
             /**
+             * Usage Analytics
+             * @description Shares pseudonymous usage events (US-7.8); off = none are kept
+             * @default true
+             */
+            usage_analytics: boolean;
+            /**
              * Username
              * @description Legacy Streamlit username, kept until cutover
              */
@@ -1342,6 +1682,20 @@ export interface components {
              * @description Articles matching every filter (first page only)
              */
             total?: number | null;
+        };
+        /** PageStat */
+        PageStat: {
+            /**
+             * Avg Seconds
+             * @description Mean time on the page, from the next page view
+             */
+            avg_seconds: number | null;
+            /** Path */
+            path: string;
+            /** Users */
+            users: number;
+            /** Views */
+            views: number;
         };
         /** PeerEntry */
         PeerEntry: {
@@ -1679,6 +2033,15 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** Transition */
+        Transition: {
+            /** Count */
+            count: number;
+            /** Source */
+            source: string;
+            /** Target */
+            target: string;
+        };
         /** UpdateMe */
         UpdateMe: {
             /**
@@ -1697,6 +2060,8 @@ export interface components {
             new_password?: string | null;
             /** Theme */
             theme?: ("system" | "light" | "dark") | null;
+            /** Usage Analytics */
+            usage_analytics?: boolean | null;
         };
         /** UpdateUser */
         UpdateUser: {
@@ -1704,6 +2069,59 @@ export interface components {
             is_active?: boolean | null;
             /** Role */
             role?: ("user" | "admin") | null;
+        };
+        /** Usage */
+        Usage: {
+            /** Daily */
+            daily: components["schemas"]["UsageDay"][];
+            /** Days */
+            days: number;
+            /** Devices */
+            devices: components["schemas"]["Count"][];
+            /**
+             * Entries
+             * @description First page of a session
+             */
+            entries: components["schemas"]["Count"][];
+            /**
+             * Features
+             * @description Feature events (everything but page views), most used first
+             */
+            features: components["schemas"]["Count"][];
+            /**
+             * Journeys
+             * @description Most common first three pages of a session
+             */
+            journeys: components["schemas"]["Journey"][];
+            /** Page Views */
+            page_views: number;
+            /** Pages */
+            pages: components["schemas"]["PageStat"][];
+            /** Pages Per Session */
+            pages_per_session: number | null;
+            /** Sessions */
+            sessions: number;
+            /**
+             * Transitions
+             * @description Most common page-to-page moves
+             */
+            transitions: components["schemas"]["Transition"][];
+            /** Users */
+            users: number;
+        };
+        /** UsageDay */
+        UsageDay: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Page Views */
+            page_views: number;
+            /** Sessions */
+            sessions: number;
+            /** Users */
+            users: number;
         };
         /** UserPage */
         UserPage: {
@@ -1950,6 +2368,105 @@ export interface operations {
             };
         };
     };
+    audit_log_api_v1_admin_audit_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string | null;
+                from?: string | null;
+                /** @description Inclusive */
+                to?: string | null;
+                category?: ("access" | "sign_in" | "account" | "admin") | null;
+                outcome?: ("success" | "failure") | null;
+                /** @description Actor's email, exact */
+                actor?: string | null;
+                /** @description Target's email or label, exact */
+                target?: string | null;
+                /** @description Part of an actor's or target's email */
+                q?: string | null;
+                /** @description Events by or about this user */
+                user_id?: string | null;
+                suspicious?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_audit_api_v1_admin_audit_export_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AuditQuery"];
+            };
+        };
+        responses: {
+            /** @description The filtered view as CSV */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    data_health_view_api_v1_admin_data_health_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DataHealth"];
+                };
+            };
+        };
+    };
     list_invites_api_v1_admin_invites_get: {
         parameters: {
             query?: {
@@ -2065,6 +2582,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["IssuedInvite"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    summary_api_v1_admin_summary_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSummary"];
+                };
+            };
+        };
+    };
+    usage_api_v1_admin_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Usage"];
                 };
             };
             /** @description Validation Error */
@@ -2439,6 +3007,37 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Me"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    events_api_v1_events_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventBatch"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

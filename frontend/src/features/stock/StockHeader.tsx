@@ -10,6 +10,7 @@ import { WatchStar } from "@/components/ui/WatchStar";
 import { money, price, volume } from "@/lib/format";
 import { sectorName } from "@/lib/sectors";
 import { yearRange } from "@/lib/stock";
+import { track } from "@/lib/analytics";
 
 async function share(symbol: string, company: string, toast: (m: string) => void) {
   const url = window.location.href;
@@ -69,7 +70,10 @@ export function StockHeader({
             variant="secondary"
             size="sm"
             icon={<Share2 aria-hidden className="size-4" />}
-            onClick={() => void share(profile.symbol, profile.company, toast)}
+            onClick={() => {
+              track("stock.share", { symbol: profile.symbol });
+              void share(profile.symbol, profile.company, toast);
+            }}
           >
             Share
           </Button>

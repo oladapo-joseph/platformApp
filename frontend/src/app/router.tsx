@@ -107,7 +107,21 @@ export const router = createBrowserRouter([
               { path: "account", lazy: page(() => import("@/features/account/AccountPage")) },
               {
                 element: <RequireAdmin />,
-                children: [{ path: "admin", lazy: page(() => import("@/features/admin/AdminPage")) }],
+                children: [
+                  {
+                    path: "admin",
+                    lazy: page(() => import("@/features/admin/AdminPage")),
+                    children: [
+                      { index: true, element: <Navigate to="requests" replace /> },
+                      { path: "requests", lazy: page(() => import("@/features/admin/RequestsPage")) },
+                      { path: "invites", lazy: page(() => import("@/features/admin/InvitesPage")) },
+                      { path: "users", lazy: page(() => import("@/features/admin/UsersPage")) },
+                      { path: "audit", lazy: page(() => import("@/features/admin/AuditPage")) },
+                      { path: "usage", lazy: page(() => import("@/features/admin/UsagePage")) },
+                      { path: "data", lazy: page(() => import("@/features/admin/DataHealthPage")) },
+                    ],
+                  },
+                ],
               },
               { path: "*", element: <NotFound /> },
             ],

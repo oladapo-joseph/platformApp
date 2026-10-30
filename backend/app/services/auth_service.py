@@ -27,6 +27,7 @@ from app.emails import verify_email as verify_mail
 from app.repositories import get_repos
 from app.repositories.users_repo import EmailTaken
 from app.services import audit_service as audit
+from app.services import usage_service
 from app.services.audit_service import RequestMeta
 from app.services.email import sender
 
@@ -99,6 +100,7 @@ def public_user(user: dict[str, Any]) -> dict[str, Any]:
         "role": user.get("role", "user"),
         "needs_email": not user.get("email_verified_at"),
         "theme": user.get("theme") if user.get("theme") in ("light", "dark") else "system",
+        "usage_analytics": user.get("usage_analytics", True) is not False,
         "created_at": user.get("created_at"),
         "last_login_at": user.get("last_login_at"),
     }
@@ -313,6 +315,7 @@ def update_me(
     current_password: str | None = None,
     new_password: str | None = None,
     theme: str | None = None,
+    usage_analytics: bool | None = None,
 ) -> dict[str, Any]:
     repos = get_repos()
     changes: dict[str, Any] = {}
@@ -339,6 +342,10 @@ def update_me(
 
     if theme is not None:  # a display preference: not audited
         user = repos.users.update(user["_id"], {"theme": theme}) or user
+
+    if usage_analytics is not None:  # a consent choice: audited with the profile changes below
+        user = repos.users.update(user["_id"], {"usage_analytics": usage_analytics}) or user
+        changes["usage_analytics"] = usage_analytics
 
     if new_password is not None:
         check_password(new_password, user.get("email"), user.get("display_name"), user.get("username"))
@@ -445,6 +452,7 @@ def delete_me(user: dict[str, Any], confirm: str, meta: RequestMeta) -> None:
     repos.sessions.delete_for_user(user["_id"])
     repos.email_tokens.delete_for_user(user["_id"])
     repos.watchlists.delete_for_user(user["_id"])
+    repos.events.delete_for_user(usage_service.pseudonym(user["_id"]))
     repos.users.delete(user["_id"])
 
 

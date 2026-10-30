@@ -20,12 +20,13 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.deps import CSRF_HEADER
-from app.api.v1 import admin, auth, health, invites, market, news, stocks, watchlist
+from app.api.v1 import admin, auth, events, health, invites, market, news, stocks, watchlist
 from app.core import errors, security
 from app.core import logging as app_logging
 from app.core.config import Settings, get_settings
 from app.db import mongo
 from app.repositories import ensure_indexes, init_repos
+from app.services import usage_service
 from app.services.email import build_sender, use_sender
 
 log = logging.getLogger("equitylens.api")
@@ -33,7 +34,7 @@ log = logging.getLogger("equitylens.api")
 API_PREFIX = "/api/v1"
 _NO_HTTP_CACHE = (f"{API_PREFIX}/healthz", f"{API_PREFIX}/readyz")
 # per-user or security-sensitive: never cached by the browser
-_PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "access-requests", "me"))
+_PRIVATE = tuple(f"{API_PREFIX}/{p}" for p in ("auth", "admin", "invites", "access-requests", "me", "events"))
 _UNSAFE = {"POST", "PUT", "PATCH", "DELETE"}
 _DOCS = f"{API_PREFIX}/docs"  # Swagger UI loads its scripts from a CDN
 # The React app (docs/12 §6, ASVS 3.4.3): scripts, fonts, images and API calls from this origin
@@ -82,6 +83,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.settings = settings
     app.state.spa_csp = SPA_CSP  # gains the theme script's hash when the build is mounted
     use_sender(build_sender(settings))
+    usage_service.use_key(settings.session_secret.get_secret_value())  # type: ignore[union-attr]
     errors.install(app)
 
     for router in (
@@ -93,6 +95,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         stocks.router,
         news.router,
         watchlist.router,
+        events.router,
     ):
         app.include_router(router, prefix=API_PREFIX)
 

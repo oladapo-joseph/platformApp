@@ -21,7 +21,7 @@ flowchart LR
         ID[("industry_data<br/>read-only to platform")]
         NA[("news_articles<br/>written by crawler — ADR-014")]
         DB[("daily_bars<br/>written by crawler — ADR-007")]
-        U[("app_users · invites · sessions ·<br/>app_watchlists · ai_insights · audit_log")]
+        U[("app_users · invites · sessions ·<br/>app_watchlists · ai_insights · audit_log · app_events")]
     end
 
     CRAWLER["ngxPro crawler<br/>(Azure Functions, every ~35 min)"]
@@ -153,9 +153,12 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /admin/users` · `PATCH /admin/users/{id}` | Search, role, activate/deactivate | admin | — |
 | `GET/POST /admin/invites` · `POST /admin/invites/{id}/resend` · `DELETE /admin/invites/{id}` | Send, list, resend, revoke invites | admin | — |
 | `GET /admin/access-requests` · `POST /admin/access-requests/{id}/approve` · `/decline` | Review "request an invite" submissions; approving sends an invite | admin | — |
-| `GET /admin/usage` | AI calls per day, sign-ups, active users | admin | — |
-| `GET /admin/audit-log?from=&to=&category=&actor=&target=&outcome=&q=&cursor=` | Filtered, cursor-paginated audit events (newest first) | admin | — |
-| `GET /admin/audit-log/{id}` · `GET /admin/audit-log/export.csv?…` | Event detail; CSV export of the current filter (the export is itself audited) | admin | — |
+| `GET /admin/summary` | Counts for the admin nav badge: new access requests, suspicious sign-ins in 7 days | admin | — |
+| `GET /admin/audit?from=&to=&category=&outcome=&actor=&target=&q=&user_id=&suspicious=&cursor=&limit=` | Filtered, cursor-paginated audit events, newest first, each with a plain-words `description`; read-only. As built in P4b the list carries every field, so there's no separate detail route | admin | — (`no-store`) |
+| `POST /admin/audit/export` (body: the same filters) | CSV of the filtered view (≤ 10,000 rows, formula-safe cells, UTF-8 BOM); the export is itself audited. POST so it's CSRF-protected | admin | — |
+| `GET /admin/data-health` | Last crawl, last `daily_bars` write, stale flag, stocks without a price in the latest session, weekdays without data in 30 days (US-7.6) | admin | 1 min |
+| `GET /admin/usage?days=` | Usage analytics (US-7.8, ADR-015): users, sessions, page views, daily actives, top pages and features, entries, page-to-page moves, journeys, devices. AI usage (US-7.5) joins it in P4c | admin | 5 min |
+| `POST /events` | Usage events from the app: a batch of ≤ 50 page views and feature events, pseudonymised on arrival; dropped for accounts that turned it off (ADR-015) | user | — |
 | `GET /healthz` · `GET /readyz` | Liveness; readiness (Mongo ping) | public | — |
 
 The response shapes are defined as pydantic models in `schemas/` and are reviewed in Phase 1 before frontend work starts.
@@ -172,6 +175,7 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | `app_watchlists` (D-19; `watchlists` is the Telegram bot's) | `user_id`, `symbols[]`, `updated_at` | unique `user_id` |
 | `ai_insights` | `cache_key`, `symbol`, `strategy`, `range`, `data_as_of`, `model`, `output` (structured), `tokens_in/out`, `created_at` | unique `cache_key`; TTL 7 days |
 | `ai_usage` | `user_id`, `date` (WAT), `count` | unique (`user_id`,`date`); TTL 90 days |
+| `app_events` (ADR-015) | `at`, `name` (`page_view` or a feature such as `watchlist.add`), `path` (route template), `prev`, `prev_ms`, `props` (≤ 8 small values), `session` (random, per tab), `device`, `user` (keyed hash; no IP, no user agent) | TTL 90 days on `at`; (`user`, `at`) for erasure |
 | `audit_log` (append-only) | `at`, `actor` {`id`, `email`, `kind`: user\|admin\|system\|anonymous}, `action` (e.g. `invite.sent`, `auth.login_failed`), `category`, `target` {`type`, `id`, `label`}, `outcome` (success\|failure), `ip`, `user_agent`, `request_id`, `changes` {before, after}, `flags` (e.g. `suspicious`) | `at` desc; (`actor.id`, `at`); (`target.id`, `at`); (`category`, `at`); TTL 365 days |
 | `daily_bars` (ADR-007, **written by the crawler**) | `symbol`, `trade_date` (NGX session, `YYYY-MM-DD`), `open`, `high`, `low`, `close`, `prev_close`, `change`, `pct_change`, `volume`, `value`, `trades`, `sector`, `updated_at` | unique (`symbol`,`trade_date`); `trade_date` |
 
@@ -248,7 +252,7 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | `/app/news` | News: filterable by stock, sector, topic, scope, regulator, source, date (US-9.8) | user |
 | `/app/watchlist` | Watchlist | user |
 | `/app/account` | Profile, password, theme, delete account | user |
-| `/app/admin` | Users, usage, data health | admin |
+| `/app/admin/{requests,invites,users,audit,usage,data}` | Access requests, invites, users, audit log, usage, data health | admin |
 
 ### 4.3 Frontend structure
 

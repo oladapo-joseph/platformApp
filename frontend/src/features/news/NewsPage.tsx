@@ -284,6 +284,7 @@ export default function NewsPage() {
             {!wide && <FilterSheet filters={filters} set={(f) => set(f)} />}
             <SegmentedControl
               label="Order"
+              track="news.sort"
               value={filters.sort}
               onChange={(sort) => set({ ...filters, sort })}
               options={SORTS}

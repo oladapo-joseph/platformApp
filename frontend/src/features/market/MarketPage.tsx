@@ -16,6 +16,7 @@ import { money, volume } from "@/lib/format";
 import { useAfterPaint } from "@/lib/hooks";
 import { fromQuotes, fromRange, marketTitle, movers, periodLabel, standfirst, totals, type Totals } from "@/lib/market";
 import { sectorName } from "@/lib/sectors";
+import { track } from "@/lib/analytics";
 
 import { BreadthRing } from "./BreadthRing";
 import { Movers } from "./Movers";
@@ -108,7 +109,10 @@ export default function MarketPage() {
                   <Sectors
                     sectors={source.data.summary.sectors}
                     selected={p.sector}
-                    onSelect={(sector) => p.update({ sector })}
+                    onSelect={(sector) => {
+                      if (sector) track("market.sector", { sector });
+                      p.update({ sector });
+                    }}
                   />
                 </div>
                 <TopStories sector={p.sector} />

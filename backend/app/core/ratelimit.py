@@ -97,9 +97,10 @@ signups = FixedWindow(limit=3, seconds=3600)  # per IP (SIGNUP_MODE=open)
 password_resets = FixedWindow(limit=5, seconds=60)  # per IP + email
 invite_lookups = FixedWindow(limit=30, seconds=60)  # per IP: token guessing
 login_ip_failures = FixedWindow(limit=100, seconds=15 * 60)  # failed sign-ins per IP, any account
+usage_batches = FixedWindow(limit=120, seconds=60)  # usage-event batches per user (US-7.8)
 
 
 def clear_all() -> None:
     login_guard.clear()
-    for w in (access_requests, signups, password_resets, invite_lookups, login_ip_failures):
+    for w in (access_requests, signups, password_resets, invite_lookups, login_ip_failures, usage_batches):
         w.clear()

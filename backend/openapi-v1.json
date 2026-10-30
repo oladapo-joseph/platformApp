@@ -200,6 +200,26 @@
         "title": "AccessRequestPage",
         "type": "object"
       },
+      "AdminSummary": {
+        "properties": {
+          "access_requests": {
+            "description": "New access requests waiting for a decision",
+            "title": "Access Requests",
+            "type": "integer"
+          },
+          "suspicious": {
+            "description": "Suspicious sign-in events in the last 7 days",
+            "title": "Suspicious",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "access_requests",
+          "suspicious"
+        ],
+        "title": "AdminSummary",
+        "type": "object"
+      },
       "AdminUser": {
         "properties": {
           "created_at": {
@@ -480,6 +500,365 @@
         "title": "Article",
         "type": "object"
       },
+      "AuditActor": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "kind": {
+            "enum": [
+              "user",
+              "admin",
+              "anonymous",
+              "system"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "email",
+          "name"
+        ],
+        "title": "AuditActor",
+        "type": "object"
+      },
+      "AuditEntry": {
+        "properties": {
+          "action": {
+            "description": "Stable code, e.g. access_request.approved",
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/AuditActor"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "changes": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Before and after values; never passwords or tokens",
+            "title": "Changes"
+          },
+          "description": {
+            "description": "The action in plain words, e.g. 'Approved access request'",
+            "title": "Description",
+            "type": "string"
+          },
+          "flags": {
+            "description": "'suspicious': a burst of failed sign-ins for one account",
+            "items": {
+              "type": "string"
+            },
+            "title": "Flags",
+            "type": "array"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ip": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip"
+          },
+          "outcome": {
+            "enum": [
+              "success",
+              "failure"
+            ],
+            "title": "Outcome",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Request Id"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuditTarget"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "user_agent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Agent"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "action",
+          "description",
+          "category",
+          "actor",
+          "target",
+          "outcome",
+          "ip",
+          "user_agent",
+          "request_id",
+          "changes",
+          "flags"
+        ],
+        "title": "AuditEntry",
+        "type": "object"
+      },
+      "AuditPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditEntry"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "AuditPage",
+        "type": "object"
+      },
+      "AuditQuery": {
+        "description": "The audit viewer's filters (US-7.7); the CSV export takes the same.",
+        "properties": {
+          "actor": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Actor's email, exact",
+            "title": "Actor"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "enum": [
+                  "access",
+                  "sign_in",
+                  "account",
+                  "admin"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From"
+          },
+          "outcome": {
+            "anyOf": [
+              {
+                "enum": [
+                  "success",
+                  "failure"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Outcome"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Part of an actor's or target's email",
+            "title": "Q"
+          },
+          "suspicious": {
+            "default": false,
+            "title": "Suspicious",
+            "type": "boolean"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "maxLength": 254,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target's email or label, exact",
+            "title": "Target"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Inclusive",
+            "title": "To"
+          },
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Events by or about this user ('View activity')",
+            "title": "User Id"
+          }
+        },
+        "title": "AuditQuery",
+        "type": "object"
+      },
+      "AuditTarget": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "label"
+        ],
+        "title": "AuditTarget",
+        "type": "object"
+      },
       "Bar": {
         "properties": {
           "change": {
@@ -695,6 +1074,29 @@
         "title": "Breadth",
         "type": "object"
       },
+      "Count": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "users": {
+            "title": "Users",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "key",
+          "count",
+          "users"
+        ],
+        "title": "Count",
+        "type": "object"
+      },
       "CreateInvites": {
         "properties": {
           "invites": {
@@ -725,6 +1127,91 @@
           "csrf_token"
         ],
         "title": "CsrfToken",
+        "type": "object"
+      },
+      "DataHealth": {
+        "properties": {
+          "last_bars_update_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Newest daily_bars write for the latest session",
+            "title": "Last Bars Update At"
+          },
+          "last_fetch_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Newest tradesData crawl (WAT)",
+            "title": "Last Fetch At"
+          },
+          "latest_trade_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Trade Date"
+          },
+          "listed": {
+            "description": "Stocks in the directory",
+            "title": "Listed",
+            "type": "integer"
+          },
+          "missing_sessions": {
+            "description": "Weekdays in the last 30 days with no market data (public holidays show here too)",
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Missing Sessions",
+            "type": "array"
+          },
+          "missing_symbols": {
+            "description": "Listed stocks with no priced bar in the latest session",
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Symbols",
+            "type": "array"
+          },
+          "stale": {
+            "description": "Trading hours and the newest crawl is more than 2 h old",
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "trading_hours": {
+            "title": "Trading Hours",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "last_fetch_at",
+          "last_bars_update_at",
+          "latest_trade_date",
+          "trading_hours",
+          "stale",
+          "listed",
+          "missing_symbols",
+          "missing_sessions"
+        ],
+        "title": "DataHealth",
         "type": "object"
       },
       "Decline": {
@@ -781,6 +1268,119 @@
           "subsector"
         ],
         "title": "DirectoryEntry",
+        "type": "object"
+      },
+      "EventBatch": {
+        "properties": {
+          "device": {
+            "enum": [
+              "mobile",
+              "tablet",
+              "desktop"
+            ],
+            "title": "Device",
+            "type": "string"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/EventIn"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Events",
+            "type": "array"
+          },
+          "session": {
+            "description": "Random per browser tab session",
+            "pattern": "^[A-Za-z0-9_-]{8,40}$",
+            "title": "Session",
+            "type": "string"
+          }
+        },
+        "required": [
+          "session",
+          "device",
+          "events"
+        ],
+        "title": "EventBatch",
+        "type": "object"
+      },
+      "EventIn": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "name": {
+            "description": "page_view, or a feature like watchlist.add",
+            "pattern": "^[a-z][a-z0-9_.]{1,47}$",
+            "title": "Name",
+            "type": "string"
+          },
+          "path": {
+            "description": "Route template: /app/stocks/:symbol",
+            "maxLength": 120,
+            "pattern": "^/[A-Za-z0-9/:_\\-]*$",
+            "title": "Path",
+            "type": "string"
+          },
+          "prev": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "pattern": "^/[A-Za-z0-9/:_\\-]*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "page_view: the page before",
+            "title": "Prev"
+          },
+          "prev_ms": {
+            "anyOf": [
+              {
+                "maximum": 21600000.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "page_view: time spent on `prev`",
+            "title": "Prev Ms"
+          },
+          "props": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "maxProperties": 8,
+            "title": "Props",
+            "type": "object"
+          }
+        },
+        "required": [
+          "name",
+          "path",
+          "at"
+        ],
+        "title": "EventIn",
         "type": "object"
       },
       "FacetCount": {
@@ -1272,6 +1872,27 @@
         "title": "IssuedInvite",
         "type": "object"
       },
+      "Journey": {
+        "properties": {
+          "sessions": {
+            "title": "Sessions",
+            "type": "integer"
+          },
+          "steps": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Steps",
+            "type": "array"
+          }
+        },
+        "required": [
+          "steps",
+          "sessions"
+        ],
+        "title": "Journey",
+        "type": "object"
+      },
       "LoginRequest": {
         "properties": {
           "identifier": {
@@ -1607,6 +2228,12 @@
             "title": "Theme",
             "type": "string"
           },
+          "usage_analytics": {
+            "default": true,
+            "description": "Shares pseudonymous usage events (US-7.8); off = none are kept",
+            "title": "Usage Analytics",
+            "type": "boolean"
+          },
           "username": {
             "anyOf": [
               {
@@ -1777,6 +2404,42 @@
           "facets"
         ],
         "title": "NewsPage",
+        "type": "object"
+      },
+      "PageStat": {
+        "properties": {
+          "avg_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mean time on the page, from the next page view",
+            "title": "Avg Seconds"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "users": {
+            "title": "Users",
+            "type": "integer"
+          },
+          "views": {
+            "title": "Views",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "views",
+          "users",
+          "avg_seconds"
+        ],
+        "title": "PageStat",
         "type": "object"
       },
       "PeerEntry": {
@@ -2850,6 +3513,29 @@
         "title": "TokenRequest",
         "type": "object"
       },
+      "Transition": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source",
+          "target",
+          "count"
+        ],
+        "title": "Transition",
+        "type": "object"
+      },
       "UpdateMe": {
         "properties": {
           "current_password": {
@@ -2917,6 +3603,17 @@
               }
             ],
             "title": "Theme"
+          },
+          "usage_analytics": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usage Analytics"
           }
         },
         "title": "UpdateMe",
@@ -2952,6 +3649,135 @@
           }
         },
         "title": "UpdateUser",
+        "type": "object"
+      },
+      "Usage": {
+        "properties": {
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/UsageDay"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "Devices",
+            "type": "array"
+          },
+          "entries": {
+            "description": "First page of a session",
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "features": {
+            "description": "Feature events (everything but page views), most used first",
+            "items": {
+              "$ref": "#/components/schemas/Count"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "journeys": {
+            "description": "Most common first three pages of a session",
+            "items": {
+              "$ref": "#/components/schemas/Journey"
+            },
+            "title": "Journeys",
+            "type": "array"
+          },
+          "page_views": {
+            "title": "Page Views",
+            "type": "integer"
+          },
+          "pages": {
+            "items": {
+              "$ref": "#/components/schemas/PageStat"
+            },
+            "title": "Pages",
+            "type": "array"
+          },
+          "pages_per_session": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pages Per Session"
+          },
+          "sessions": {
+            "title": "Sessions",
+            "type": "integer"
+          },
+          "transitions": {
+            "description": "Most common page-to-page moves",
+            "items": {
+              "$ref": "#/components/schemas/Transition"
+            },
+            "title": "Transitions",
+            "type": "array"
+          },
+          "users": {
+            "title": "Users",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "days",
+          "users",
+          "sessions",
+          "page_views",
+          "pages_per_session",
+          "daily",
+          "pages",
+          "features",
+          "entries",
+          "transitions",
+          "journeys",
+          "devices"
+        ],
+        "title": "Usage",
+        "type": "object"
+      },
+      "UsageDay": {
+        "properties": {
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "page_views": {
+            "title": "Page Views",
+            "type": "integer"
+          },
+          "sessions": {
+            "title": "Sessions",
+            "type": "integer"
+          },
+          "users": {
+            "title": "Users",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "users",
+          "sessions",
+          "page_views"
+        ],
+        "title": "UsageDay",
         "type": "object"
       },
       "UserPage": {
@@ -3480,6 +4306,288 @@
         ]
       }
     },
+    "/api/v1/admin/audit": {
+      "get": {
+        "operationId": "audit_log_api_v1_admin_audit_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "description": "Inclusive",
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Inclusive",
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "access",
+                    "sign_in",
+                    "account",
+                    "admin"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "in": "query",
+            "name": "outcome",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "success",
+                    "failure"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Outcome"
+            }
+          },
+          {
+            "description": "Actor's email, exact",
+            "in": "query",
+            "name": "actor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 254,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Actor's email, exact",
+              "title": "Actor"
+            }
+          },
+          {
+            "description": "Target's email or label, exact",
+            "in": "query",
+            "name": "target",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 254,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Target's email or label, exact",
+              "title": "Target"
+            }
+          },
+          {
+            "description": "Part of an actor's or target's email",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 254,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Part of an actor's or target's email",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Events by or about this user",
+            "in": "query",
+            "name": "user_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Events by or about this user",
+              "title": "User Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "suspicious",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Suspicious",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Audit log, newest first (read-only)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/audit/export": {
+      "post": {
+        "operationId": "export_audit_api_v1_admin_audit_export_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuditQuery"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {}
+            },
+            "description": "The filtered view as CSV"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export the filtered audit log as CSV (the export is logged)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/data-health": {
+      "get": {
+        "operationId": "data_health_view_api_v1_admin_data_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataHealth"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Crawler freshness and data completeness",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/invites": {
       "get": {
         "operationId": "list_invites_api_v1_admin_invites_get",
@@ -3677,6 +4785,72 @@
           }
         },
         "summary": "New link; the old one stops working",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/summary": {
+      "get": {
+        "operationId": "summary_api_v1_admin_summary_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Counts for the admin nav badge",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/usage": {
+      "get": {
+        "operationId": "usage_api_v1_admin_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Usage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "What people use and how they move through the app (US-7.8)",
         "tags": [
           "admin"
         ]
@@ -4151,6 +5325,40 @@
         "summary": "Confirm an email address from its link",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/v1/events": {
+      "post": {
+        "operationId": "events_api_v1_events_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventBatch"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Usage events from the app (pseudonymous; none if turned off)",
+        "tags": [
+          "usage"
         ]
       }
     },

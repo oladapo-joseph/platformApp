@@ -25,6 +25,7 @@ class Me(BaseModel):
     role: Literal["user", "admin"]
     needs_email: bool = Field(description="Show the 'Add your email' banner (US-1.7)")
     theme: Theme = Field("system", description="Light, dark, or follow the device (US-6.2)")
+    usage_analytics: bool = Field(True, description="Shares pseudonymous usage events (US-7.8); off = none are kept")
     created_at: datetime | None
     last_login_at: datetime | None
 
@@ -60,6 +61,7 @@ class UpdateMe(BaseModel):
     )
     new_password: str | None = Field(None, max_length=256)
     theme: Theme | None = None
+    usage_analytics: bool | None = None
 
 
 class DeleteMe(BaseModel):

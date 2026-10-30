@@ -6,8 +6,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { CandlestickChart, Newspaper, Shield, Star, UserRound, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router";
+import { Link, NavLink, Outlet, useLocation, useMatches, useNavigate } from "react-router";
 
+import { useAdminSummary } from "@/api/admin";
 import { meKey, useMe } from "@/api/auth";
 import { onSessionEnded } from "@/api/client";
 import { useMarketStatus } from "@/api/market";
@@ -16,6 +17,7 @@ import { Banner } from "@/components/ui/feedback";
 import { Logo } from "@/components/ui/Logo";
 import { FreshnessStamp } from "@/components/ui/market";
 import { Toaster } from "@/components/ui/Toaster";
+import { pageView, routeTemplate, startTracking } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 import { applyTheme, savedTheme, type ThemeChoice } from "@/lib/theme";
 
@@ -26,6 +28,10 @@ interface NavItem {
   label: string;
   icon: LucideIcon;
   adminOnly?: boolean;
+  /** Things waiting for a decision (the Admin item: new requests and suspicious sign-ins) */
+  badge?: number;
+  /** The badge is red only for something that may be wrong (suspicious sign-ins); new requests are brand */
+  alarm?: boolean;
 }
 
 const NAV: NavItem[] = [
@@ -66,7 +72,7 @@ function SideNav({ items }: { items: NavItem[] }) {
           <Logo />
         </span>
       </Link>
-      {items.map(({ to, label, icon: Icon }) => (
+      {items.map(({ to, label, icon: Icon, badge, alarm }) => (
         <NavLink
           key={to}
           to={to}
@@ -80,8 +86,30 @@ function SideNav({ items }: { items: NavItem[] }) {
             )
           }
         >
-          <Icon aria-hidden className="size-5 shrink-0" />
+          <span className="relative">
+            <Icon aria-hidden className="size-5 shrink-0" />
+            {!!badge && (
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute -top-1 -right-1 size-2 rounded-full lg:hidden",
+                  alarm ? "bg-danger" : "bg-brand",
+                )}
+              />
+            )}
+          </span>
           <span className="sr-only lg:not-sr-only">{label}</span>
+          {!!badge && (
+            <span
+              className={cn(
+                "num ml-auto rounded-full px-1.5 text-xs font-semibold max-lg:sr-only",
+                alarm ? "bg-danger-subtle text-danger" : "bg-brand-subtle text-brand",
+              )}
+            >
+              {badge}
+              <span className="sr-only"> waiting</span>
+            </span>
+          )}
         </NavLink>
       ))}
       <MarketPulse />
@@ -205,6 +233,18 @@ function AddEmailBanner() {
   );
 }
 
+/** Usage analytics (US-7.8): on while signed in unless the account turned it off; a page view per screen. */
+function useUsageTracking(user: string | undefined, allowed: boolean | undefined) {
+  const matches = useMatches();
+  const last = matches[matches.length - 1];
+  const path = last ? routeTemplate(last.pathname, last.params) : null;
+  const symbol = last?.params.symbol?.toUpperCase();
+  useEffect(() => (user ? startTracking(user, allowed !== false) : undefined), [user, allowed]);
+  useEffect(() => {
+    if (user && path) pageView(path, symbol ? { symbol } : {});
+  }, [user, allowed, path, symbol]);
+}
+
 /** The account's theme wins over this browser's, so a choice made on another device follows (US-6.2). */
 function useAccountTheme(theme: ThemeChoice | undefined) {
   useEffect(() => {
@@ -216,7 +256,14 @@ export function AppShell() {
   const { data: me } = useMe();
   useSessionEndedRedirect();
   useAccountTheme(me?.theme);
-  const items = NAV.filter((i) => !i.adminOnly || me?.role === "admin");
+  useUsageTracking(me?.id, me?.usage_analytics);
+  const isAdmin = me?.role === "admin";
+  const { data: summary } = useAdminSummary(isAdmin);
+  const waiting = (summary?.access_requests ?? 0) + (summary?.suspicious ?? 0);
+  const alarm = (summary?.suspicious ?? 0) > 0;
+  const items = NAV.filter((i) => !i.adminOnly || isAdmin).map((i) =>
+    i.adminOnly ? { ...i, badge: waiting, alarm } : i,
+  );
   return (
     <div className="flex min-h-dvh">
       <a

@@ -42,6 +42,12 @@ export default function TermsPage() {
           365 days. If you request an invite, we keep your request so the team can review it.
         </p>
         <p className="mt-2 text-fg-2">
+          To learn which parts of the app help people most, we count the pages you open and the features you use (for
+          example, starring a stock or changing a chart's range). These usage statistics carry no name, email or IP
+          address, never include what you type, and are kept for 90 days. You can turn them off at any time under
+          Account → Privacy.
+        </p>
+        <p className="mt-2 text-fg-2">
           We don't sell your data or show ads. Email goes through our email provider only to send you account messages.
           You can delete your account at any time from the Account page; that removes your account, watchlist and usage,
           while the security record stays until its 365 days are up.

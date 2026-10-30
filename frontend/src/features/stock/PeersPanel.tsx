@@ -59,7 +59,14 @@ export function PeersPanel({ symbol, start, end }: { symbol: string; start: stri
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedControl label="Sort peers" size="sm" value={sort} onChange={setSort} options={SORTS} />
+        <SegmentedControl
+          label="Sort peers"
+          track="stock.peers_sort"
+          size="sm"
+          value={sort}
+          onChange={setSort}
+          options={SORTS}
+        />
         <p className="text-xs text-fg-muted">Based on industry, size, and trading activity over the selected period.</p>
       </div>
       {isPending ? (

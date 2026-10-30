@@ -9,6 +9,7 @@ deletes their account, whose events keep their email (D-18). Retention is a
 from datetime import datetime
 from typing import Any
 
+from bson import ObjectId
 from pymongo.database import Database
 
 RETENTION_SECONDS = 365 * 24 * 3600
@@ -30,3 +31,16 @@ class AuditRepo:
 
     def count(self, action: str, target_label: str, since: datetime) -> int:
         return self.col.count_documents({"action": action, "target.label": target_label, "at": {"$gte": since}})
+
+    def search(
+        self, match: dict[str, Any], limit: int, after: tuple[datetime, ObjectId] | None = None
+    ) -> list[dict[str, Any]]:
+        """Newest first, `limit` at most, after the cursor position."""
+        if after is not None:
+            at, oid = after
+            page = {"$or": [{"at": {"$lt": at}}, {"at": at, "_id": {"$lt": oid}}]}
+            match = {"$and": [match, page]} if match else page
+        return list(self.col.find(match).sort([("at", -1), ("_id", -1)]).limit(limit))
+
+    def count_flagged(self, since: datetime) -> int:
+        return self.col.count_documents({"flags": "suspicious", "at": {"$gte": since}})

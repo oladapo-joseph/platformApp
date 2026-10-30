@@ -188,11 +188,11 @@ Cutover therefore waits on P4 (admin screens, AI); the price-change scatter and 
 | Slice | Scope | Status |
 |---|---|---|
 | P4a | Watchlist: API (`/me/watchlist` CRUD, overview, news; `watchlist=` on `/news`), ☆ toggle on stock pages, price list, movers and peers, the watchlist page with period, sort, signals and a News tab, "Your stocks" on Market, the empty state, the News "My watchlist" filter, account deletion clears it | 🟡 Built, in review. 9 backend tests (order, idempotence, the 50 limit enforced atomically, per-user isolation, CSRF, overview figures matching the snapshot, news, deletion), news-filter unit tests, journey J5 |
-| P4b | Admin console: users, roles, deactivate, access-request queue, invites, data freshness, audit-log viewer (filters, detail, CSV export, suspicious-activity flag) | Not started |
-| P4c | AI insights: provider interface, Gemini adapter (Anthropic ready), schema-validated output, shared cache, quota, AI card with disclaimer, headlines used (US-9.5) | Not started |
+| P4b | Admin console: users, roles, deactivate, access-request queue, invites, data health, audit-log viewer (filters, detail, CSV export, suspicious-activity flag), and usage analytics (US-7.8, added by the owner; ADR-015) | 🟡 Built, in review. 37 backend tests (one per audit event type, exactly once; viewer filters and paging; export filtered, formula-safe and logged; no edit or delete path; admin-only; data health; usage events pseudonymous, opt-out honoured, erased with the account; the usage report), analytics unit tests, journey J8, admin routes in the axe sweep. AI usage (US-7.5) moves to P4c; 'admin settings changed' events wait for a settings screen (there is none yet) |
+| P4c | AI insights: provider interface, Anthropic adapter (default; Gemini optional), schema-validated output, shared cache, quota, AI card with disclaimer, headlines used (US-9.5) | Not started |
 | P4d | Journeys J4, J5, J8, J10; criterion checks | Not started |
 
-**Scope.** Insight service behind the provider interface: Gemini adapter as default, Anthropic adapter ready (ADR-012). Bounded input, structured output, shared cache, per-user quota, timeout/retry. AI card UI with disclaimer; watchlist (API + star toggle + page); admin console (users search, role, deactivate, access-request queue, invites, AI usage, data freshness, and the **audit log viewer** with filters, detail drawer, CSV export, and the suspicious-activity flag, per US-7.7).
+**Scope.** Insight service behind the provider interface: Anthropic (Claude) adapter as default, Gemini adapter optional (ADR-012, amended 2026-10-29). Bounded input, structured output, shared cache, per-user quota, timeout/retry. AI card UI with disclaimer; watchlist (API + star toggle + page); admin console (users search, role, deactivate, access-request queue, invites, AI usage, data freshness, and the **audit log viewer** with filters, detail drawer, CSV export, and the suspicious-activity flag, per US-7.7).
 
 **Acceptance criteria:**
 
@@ -239,7 +239,7 @@ Cutover therefore waits on P4 (admin screens, AI); the price-change scatter and 
 | R8 | **Parity gaps** discovered late | M | M | Parity checklist in the P3 exit criteria; Streamlit stays live until cutover | P3, P5 |
 | R9 | **Legacy-user migration** friction | L | M | Username login keeps working, email prompt is non-blocking, admin can resend invites | P2 |
 | R10 | Third-party licence terms (TradingView attribution, fonts) | L | L | Attribution link in the chart footer; Plex is OFL | P3 |
-| R11 | **AI provider availability**: Claude unavailable now; Gemini quality or model changes | M | M | Provider interface (ADR-012), schema validation, contract tests, model name stored per insight, feature degrades gracefully ("AI unavailable") | P4 |
+| R11 | **AI provider availability**: Claude outages or model changes (Gemini as the fallback adapter) | M | M | Provider interface (ADR-012), schema validation, contract tests, model name stored per insight, feature degrades gracefully ("AI unavailable") | P4 |
 | R12 | **Crawler change** (ADR-007) breaks the production crawl | L | H | A separate small deploy, the `daily_bars` write wrapped so a failure is logged and never blocks the `tradesData` write or alerts, and a rollback by reverting one function | P1 |
 | R13 | **Hosting setup pending** (Azure Container Apps chosen, not provisioned) delays staging | M | M | A portable container; local dev covers P1–P3; provision ACA, Key Vault, and App Insights before the P3 e2e runs on staging | P1–P3 |
 | R14 | **Irrelevant or mis-dated news** next to a stock erodes trust (substring tagging, estimated dates) | H (until D-15) | M | D-15 crawler fixes, the "Mentions" vs "Sector news" split, the "Found {date}" label, user reports (US-9.7) | P1, P3 |
@@ -256,7 +256,7 @@ L = likelihood, I = impact (L/M/H).
 | --- | --- | --- |
 | MongoDB Atlas cluster + a read-only DB user for `tradesData`/`industry_data` and a read-write user for platform collections | P1 | Cluster exists; users to create |
 | ngxPro crawler running on schedule | All | In production |
-| Gemini API key (`google-genai`), separate for the platform | P4 | Interim provider (ADR-012) |
+| Anthropic API key, separate for the platform (a Gemini key only if `AI_PROVIDER=gemini`) | P4 | Default provider (ADR-012) |
 | Anthropic API key | Later | Unavailable for now |
 | ngxPro crawler deploy access (for the `daily_bars` change and D-15 news fixes) | P1 | Owner |
 | Crawler news pipeline keeps running (Tavily key, HF token for embeddings) | P3 onward | In production |

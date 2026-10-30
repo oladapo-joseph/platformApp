@@ -1,5 +1,6 @@
 import { keepPreviousData, queryOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { track } from "@/lib/analytics";
 import { notify } from "@/lib/notify";
 
 import { ApiError, api } from "./client";
@@ -64,6 +65,7 @@ export function useSetWatched() {
         keepalive: true,
       }),
     onMutate: async ({ symbol, on }) => {
+      track(on ? "watchlist.add" : "watchlist.remove", { symbol });
       await qc.cancelQueries({ queryKey: watchlistKey, exact: true });
       const before = qc.getQueryData<Watchlist>(watchlistKey);
       if (before) {

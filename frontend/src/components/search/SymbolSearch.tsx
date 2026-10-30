@@ -13,6 +13,7 @@ import { useDirectory } from "@/api/market";
 import type { DirectoryEntry, Snapshot } from "@/api/types";
 import { cn } from "@/lib/cn";
 import { OPEN_SEARCH_EVENT, POPULAR_FALLBACK, rankStocks, recentStocks, rememberStock, splitMatch } from "@/lib/search";
+import { track } from "@/lib/analytics";
 
 function isTyping(target: EventTarget | null): boolean {
   const el = target as HTMLElement | null;
@@ -51,7 +52,13 @@ export function SymbolSearch() {
   }, []);
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(o) => {
+        if (o && !open) track("search.open");
+        setOpen(o);
+      }}
+    >
       <Dialog.Trigger
         className="touch-target flex h-10 items-center gap-2 rounded-xl border border-line bg-surface px-3 text-sm text-fg-muted shadow-elev-1 hover:border-line-input max-md:w-10 max-md:justify-center max-md:px-0 md:w-80"
         aria-keyshortcuts="/ Control+K Meta+K"
@@ -120,6 +127,7 @@ function Palette({ onClose }: { onClose: () => void }) {
   const go = (entry: DirectoryEntry | undefined) => {
     if (!entry) return;
     rememberStock(entry.symbol);
+    track("search.pick", { symbol: entry.symbol });
     onClose();
     void navigate(`/app/stocks/${entry.symbol}`);
   };

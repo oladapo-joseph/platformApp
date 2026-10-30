@@ -2,6 +2,7 @@
 import { Tabs as RadixTabs, ToggleGroup } from "radix-ui";
 import type { ReactNode } from "react";
 
+import { track as record } from "@/lib/analytics";
 import { cn } from "@/lib/cn";
 
 export interface Segment<T extends string> {
@@ -19,6 +20,7 @@ export function SegmentedControl<T extends string>({
   label,
   size = "md",
   className,
+  track,
 }: {
   value: T | null;
   onChange: (value: T) => void;
@@ -26,12 +28,18 @@ export function SegmentedControl<T extends string>({
   label: string;
   size?: "sm" | "md";
   className?: string;
+  /** Usage event name for a change (US-7.8), e.g. "stock.range" */
+  track?: string;
 }) {
   return (
     <ToggleGroup.Root
       type="single"
       value={value ?? ""}
-      onValueChange={(v) => v && onChange(v as T)}
+      onValueChange={(v) => {
+        if (!v) return;
+        if (track && v !== value) record(track, { value: v });
+        onChange(v as T);
+      }}
       aria-label={label}
       className={cn("inline-flex rounded-md border border-line bg-sunken p-0.5", className)}
     >
@@ -59,15 +67,25 @@ export function Tabs<T extends string>({
   tabs,
   label,
   className,
+  track,
 }: {
   value: T;
   onChange: (value: T) => void;
   tabs: { value: T; label: ReactNode; content: ReactNode }[];
   label: string;
   className?: string;
+  /** Usage event name for a change (US-7.8) */
+  track?: string;
 }) {
   return (
-    <RadixTabs.Root value={value} onValueChange={(v) => onChange(v as T)} className={className}>
+    <RadixTabs.Root
+      value={value}
+      onValueChange={(v) => {
+        if (track && v !== value) record(track, { value: v });
+        onChange(v as T);
+      }}
+      className={className}
+    >
       <RadixTabs.List aria-label={label} className="flex gap-1 border-b border-line-subtle">
         {tabs.map((t) => (
           <RadixTabs.Trigger

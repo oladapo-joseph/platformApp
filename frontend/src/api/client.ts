@@ -145,6 +145,18 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
   return body as T;
 }
 
+/** Fetch the CSRF token ahead of time, so a write sent as the page unloads (usage events) needn't wait for it. */
+export function warmCsrf(): void {
+  void csrf().catch(() => undefined);
+}
+
+/** For a body that isn't JSON (the audit CSV): the same CSRF and errors as `api`, the Response as is. */
+export async function apiResponse(path: string, opts: RequestOptions = {}): Promise<Response> {
+  const res = await send(path, opts);
+  if (!res.ok) throw new ApiError(res.status, (await res.json().catch(() => ({}))) as Record<string, unknown>);
+  return res;
+}
+
 /** Start with a fresh CSRF token after signing out. */
 export function resetCsrf(): void {
   csrfToken = null;

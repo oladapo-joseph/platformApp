@@ -102,6 +102,7 @@ export function ChartCard({
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <SegmentedControl
           label="Chart range"
+          track="stock.range"
           size="sm"
           value={v.range}
           onChange={v.setRange}
@@ -109,6 +110,7 @@ export function ChartCard({
         />
         <SegmentedControl
           label="Chart type"
+          track="stock.chart"
           size="sm"
           value={v.type}
           onChange={v.setType}

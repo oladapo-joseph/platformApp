@@ -23,6 +23,7 @@ export function PeriodControls({ p, latest }: { p: MarketParams; latest: string 
     <div className="flex flex-wrap items-center gap-2">
       <SegmentedControl
         label="Market view"
+        track="market.view"
         value={p.period ? "period" : "session"}
         onChange={(v) => (v === "session" ? p.update({ start: null, end: null }) : pick("1M"))}
         options={[
@@ -34,6 +35,7 @@ export function PeriodControls({ p, latest }: { p: MarketParams; latest: string 
         <>
           <SegmentedControl<Choice>
             label="Period"
+            track="market.period"
             value={preset}
             onChange={pick}
             options={[...PRESETS.map((v) => ({ value: v, label: v })), { value: "custom" as const, label: "Custom" }]}
