@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     # ── AI signal interpretation (ADR-006, ADR-012, D-05, D-09) ────────────────
     # anthropic (Claude, the default) or gemini (optional: `uv sync --extra gemini`); off hides the feature.
     ai_provider: Literal["anthropic", "gemini", "off"] = "anthropic"
-    ai_model: str | None = None  # unset: claude-opus-5-5 (anthropic) or gemini-2.5-flash (gemini)
+    ai_model: str | None = None  # unset: claude-haiku-5-5 (anthropic) or gemini-2.5-flash (gemini)
     anthropic_api_key: SecretStr | None = None
     gemini_api_key: SecretStr | None = None
     ai_daily_quota: int = 5  # new readings per user per WAT day; cached readings are free
@@ -89,7 +89,7 @@ class Settings(BaseSettings):
 
     @property
     def ai_model_id(self) -> str:
-        return self.ai_model or ("gemini-2.5-flash" if self.ai_provider == "gemini" else "claude-opus-5-5")
+        return self.ai_model or ("gemini-2.5-flash" if self.ai_provider == "gemini" else "claude-haiku-5-5")
 
     @model_validator(mode="after")
     def _check(self) -> "Settings":

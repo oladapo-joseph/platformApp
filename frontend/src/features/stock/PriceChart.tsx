@@ -22,11 +22,13 @@ import {
 } from "lightweight-charts";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import type { Bar, IndicatorsResponse, SignalEvent } from "@/api/types";
+import type { Bar, IndicatorsResponse, NewsDay, SignalEvent } from "@/api/types";
 import { day } from "@/lib/dates";
 import { change, percent, price, volume } from "@/lib/format";
 import { useCssVars } from "@/lib/hooks";
 import { barSentence, INDICATORS, type Overlay, type Pane } from "@/lib/stock";
+
+import { NewsStrip, type Headline, type NewsPick, type NewsSpot } from "./NewsStrip";
 
 const TOKENS = [
   "--chart-bg",
@@ -81,16 +83,41 @@ export interface PriceChartProps {
   onSelectSignal: (date: string) => void;
   summary: string;
   height: number;
+  /** Days with news (US-9.2); undefined hides the markers */
+  news?: NewsDay[];
+  newsPick?: NewsPick;
+}
+
+const MIN_GAP = 28; // px between news markers; closer days share one (24 px targets, WCAG 2.5.8)
+const MAX_HEADLINES = 5;
+
+/** News days moved onto the trading day they belong to (weekend news → the next session). */
+function newsByBar(news: NewsDay[] | undefined, bars: Bar[]) {
+  const out = new Map<string, { count: number; headlines: Headline[] }>();
+  const last = bars.at(-1)?.date;
+  if (!news?.length || !last) return out;
+  for (const d of news) {
+    const target = bars.find((b) => b.date >= d.date)?.date ?? (d.date > last ? last : undefined);
+    if (!target) continue;
+    const slot = out.get(target) ?? { count: 0, headlines: [] };
+    slot.count += d.count;
+    slot.headlines.push(...d.headlines);
+    out.set(target, slot);
+  }
+  return out;
 }
 
 export default function PriceChart(props: PriceChartProps) {
   const { bars, indicators, type, overlays, panes, signals, selectedSignal, onSelectSignal, summary, height } = props;
+  const { news, newsPick } = props;
   const box = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const mainRef = useRef<ISeriesApi<"Candlestick" | "Line"> | null>(null);
   const colors = useCssVars(TOKENS) as Colors;
   const [hover, setHover] = useState<number | null>(null); // index into bars
   const [announce, setAnnounce] = useState("");
+  const [spots, setSpots] = useState<NewsSpot[]>([]);
+  const newsDays = useMemo(() => newsByBar(news, bars), [news, bars]);
   const index = useMemo(() => new Map(bars.map((b, i) => [b.date, i])), [bars]);
   const selectRef = useRef(onSelectSignal);
   useEffect(() => {
@@ -270,6 +297,38 @@ export default function PriceChart(props: PriceChartProps) {
     };
   }, [signals, selectedSignal, colors, index, bars, type, overlays, panes, indicators]);
 
+  // news markers follow the chart as it pans, zooms and resizes (US-9.2)
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const scale = chart.timeScale();
+    const place = () => {
+      const width = scale.width();
+      const placed: NewsSpot[] = [];
+      for (const [date, { count, headlines }] of [...newsDays].sort(([a], [b]) => a.localeCompare(b))) {
+        const x = scale.timeToCoordinate(date as Time);
+        if (x === null || x < 0 || x > width) continue;
+        const prev = placed.at(-1);
+        if (prev && x - prev.x < MIN_GAP) {
+          prev.dates.push(date);
+          prev.count += count;
+          prev.headlines = [...prev.headlines, ...headlines].slice(0, MAX_HEADLINES);
+        } else {
+          placed.push({ key: date, x, dates: [date], count, headlines: headlines.slice(0, MAX_HEADLINES) });
+        }
+      }
+      setSpots(placed);
+    };
+    place();
+    scale.subscribeVisibleLogicalRangeChange(place);
+    scale.subscribeSizeChange(place);
+    return () => {
+      if (chartRef.current !== chart) return; // rebuilt: the old chart is gone with its listeners
+      scale.unsubscribeVisibleLogicalRangeChange(place);
+      scale.unsubscribeSizeChange(place);
+    };
+  }, [newsDays, bars, type, overlays, panes, indicators, colors, index]);
+
   // a selected signal row moves the crosshair to its day (US-3.5)
   useEffect(() => {
     const i = selectedSignal ? index.get(selectedSignal) : undefined;
@@ -317,6 +376,7 @@ export default function PriceChart(props: PriceChartProps) {
           className="pointer-events-none absolute inset-0 rounded-md"
         />
       </div>
+      {news && newsPick && <NewsStrip spots={spots} pick={newsPick} />}
       <p aria-live="polite" className="sr-only">
         {announce}
       </p>

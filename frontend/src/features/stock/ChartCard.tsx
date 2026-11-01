@@ -6,7 +6,9 @@ import { RotateCcw, SlidersHorizontal, Table2 } from "lucide-react";
 import { Popover } from "radix-ui";
 import { lazy, Suspense, useState } from "react";
 
-import type { Bar, IndicatorsResponse, SignalEvent } from "@/api/types";
+import { subDays } from "date-fns";
+
+import type { Bar, IndicatorsResponse, NewsDay, SignalEvent } from "@/api/types";
 import { Button } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/controls";
 import { Card, ErrorState, Skeleton } from "@/components/ui/feedback";
@@ -14,6 +16,7 @@ import { useMediaQuery } from "@/lib/hooks";
 import { INDICATORS, OVERLAYS, PANES, RANGES, type Overlay, type Pane } from "@/lib/stock";
 
 import { DataPanel } from "./DataPanel";
+import type { NewsPick } from "./NewsStrip";
 import type { StockViewState } from "./useStockView";
 
 const PriceChart = lazy(() => import("./PriceChart"));
@@ -61,6 +64,23 @@ function IndicatorPicker({ v }: { v: StockViewState }) {
         >
           {group("Trend (on price)", OVERLAYS, v.overlays, v.setOverlays)}
           {group("Momentum (below price)", PANES, v.panes, v.setPanes)}
+          <fieldset className="flex flex-col gap-2">
+            <legend className="eyebrow mb-1 text-fg-muted">Events</legend>
+            <label className="flex cursor-pointer items-start gap-3 rounded-md p-1.5 hover:bg-hover">
+              <input
+                type="checkbox"
+                checked={v.news}
+                onChange={() => v.setNews(!v.news)}
+                className="mt-0.5 size-4 shrink-0 accent-(--color-brand)"
+              />
+              <span>
+                <span className="block text-sm text-fg">News</span>
+                <span className="block text-xs text-fg-muted">
+                  Days with news about the stock, marked under the chart (last 90 days)
+                </span>
+              </span>
+            </label>
+          </fieldset>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -79,6 +99,8 @@ export function ChartCard({
   onSelectSignal,
   summary,
   note,
+  news,
+  newsPick,
 }: {
   v: StockViewState;
   symbol: string;
@@ -91,11 +113,17 @@ export function ChartCard({
   onSelectSignal: (date: string) => void;
   summary: string;
   note: string | null;
+  news: NewsDay[] | undefined;
+  newsPick: NewsPick;
 }) {
   const wide = useMediaQuery("(min-width: 768px)");
   const [resetKey, setResetKey] = useState(0);
   const lowerPanes = v.panes.length;
   const height = (wide ? 380 : Math.round(window.innerHeight * 0.45)) + lowerPanes * (wide ? 110 : 90);
+  // news is kept 90 days (ADR-014): say so when the range reaches further back
+  const first = bars?.[0]?.date;
+  const last = bars?.at(-1)?.date;
+  const olderThanNews = v.news && !!first && !!last && first < subDays(new Date(last), 90).toISOString().slice(0, 10);
 
   return (
     <Card className="p-4">
@@ -143,6 +171,7 @@ export function ChartCard({
         </div>
       </div>
       {note && <p className="mb-2 text-xs text-fg-muted">{note}</p>}
+      {olderThanNews && !v.table && <p className="mb-2 text-xs text-fg-muted">News available for the last 90 days.</p>}
       {barsError && !bars ? (
         <ErrorState error={barsError} onRetry={onRetry} title="Prices didn't load" />
       ) : !bars ? (
@@ -174,6 +203,8 @@ export function ChartCard({
               onSelectSignal={onSelectSignal}
               summary={summary}
               height={height}
+              news={v.news ? (news ?? []) : undefined}
+              newsPick={newsPick}
             />
           </div>
         </Suspense>

@@ -5,6 +5,7 @@ import { api } from "./client";
 import type {
   BarsResponse,
   IndicatorsResponse,
+  NewsMarkers,
   SignalsResponse,
   SimilarResponse,
   StockNews,
@@ -80,6 +81,17 @@ export function useStockNews(symbol: string, sort: "recent" | "importance") {
       api<StockNews>(`/stocks/${encodeURIComponent(symbol)}/news`, { query: { days: 30, limit: 5, sort }, signal }),
     staleTime: 5 * 60_000,
     placeholderData: keepPreviousData,
+  });
+}
+
+/** Days with news about the stock in [start, end], for the chart's markers (US-9.2). */
+export function useNewsMarkers(symbol: string, start: string | null, end: string | null, enabled = true) {
+  return useQuery({
+    queryKey: ["stock", symbol, "news-markers", start, end],
+    queryFn: ({ signal }) =>
+      api<NewsMarkers>(`/stocks/${encodeURIComponent(symbol)}/news/markers`, { query: { start, end }, signal }),
+    enabled: enabled && !!start && !!end,
+    staleTime: 10 * 60_000,
   });
 }
 

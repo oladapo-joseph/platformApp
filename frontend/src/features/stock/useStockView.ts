@@ -36,6 +36,7 @@ export function useStockView() {
     setPanes: (p: Pane[]) => set({ panes: p.length === 1 && p[0] === "volume" ? null : writeList(p) }),
     setStrategy: (strategy: string) => set({ strategy }),
     setTable: (on: boolean) => set({ view: on ? "table" : null }),
+    setNews: (on: boolean) => set({ news: on ? null : "off" }),
     setTab: (tab: string) => set({ tab }, true),
   };
 }

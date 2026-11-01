@@ -112,6 +112,8 @@ export interface StockView {
   panes: Pane[];
   strategy: string;
   table: boolean;
+  /** News markers under the chart (US-9.2); on unless the URL says news=off */
+  news: boolean;
 }
 
 /** Reads the URL. Defaults: 6M candles with the volume pane, MACD crossover (US-3.3, US-3.4). */
@@ -125,6 +127,7 @@ export function parseView(params: URLSearchParams): StockView {
     panes: parseList(params.get("panes"), PANES, ["volume"]),
     strategy: STRATEGY_ALIASES[strategy] ?? strategy,
     table: params.get("view") === "table",
+    news: params.get("news") !== "off",
   };
 }
 

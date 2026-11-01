@@ -6,7 +6,8 @@ import anthropic
 
 from app.services.ai import Completion, ProviderError
 
-# Models that take the server-side refusal fallback (`fallbacks: "default"`); others answer alone.
+# Models that take the server-side refusal fallback (`fallbacks: "default"`); others (Haiku) answer alone,
+# and a refusal there is a failed attempt like any other.
 _FALLBACK_MODELS = {"claude-opus-5-5", "claude-opus-5", "claude-fable-5-1", "claude-sonnet-5-5"}
 
 

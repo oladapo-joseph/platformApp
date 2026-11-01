@@ -7,7 +7,16 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 
 import { ApiError } from "@/api/client";
-import { useBars, useIndicators, useProfile, useSignals, useStrategies, useYearBars } from "@/api/stock";
+import {
+  useBars,
+  useIndicators,
+  useNewsMarkers,
+  useProfile,
+  useSignals,
+  useStockNews,
+  useStrategies,
+  useYearBars,
+} from "@/api/stock";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Tabs } from "@/components/ui/controls";
@@ -19,6 +28,7 @@ import { chartSummary, indicatorSet, rangeStart, shortHistory } from "@/lib/stoc
 
 import { AiInsightCard } from "./AiInsightCard";
 import { ChartCard } from "./ChartCard";
+import type { Headline, NewsPick } from "./NewsStrip";
 import { DataPanel } from "./DataPanel";
 import { NewsPanel } from "./NewsPanel";
 import { PeersPanel } from "./PeersPanel";
@@ -76,6 +86,33 @@ function Stock({ symbol }: { symbol: string }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [toast, showToast] = useToast();
   const wide = useMediaQuery("(min-width: 1024px)");
+  const firstBar = bars.data?.bars[0]?.date ?? null;
+  const newsMarkers = useNewsMarkers(symbol, firstBar, latest, v.news && !v.table);
+  const reduced = useMediaQuery("(prefers-reduced-motion: reduce)");
+
+  // a headline picked from a chart marker is shown in the News panel when it's there (US-9.2); the
+  // panel's default list is this same cached query, so it's known before the panel renders
+  const panelNews = useStockNews(symbol, "recent");
+  const panelIds = new Set([...(panelNews.data?.mentions ?? []), ...(panelNews.data?.sector ?? [])].map((a) => a.id));
+  const newsPick: NewsPick = {
+    inPanel: (id) => panelIds.has(id),
+    show: (h: Headline) => {
+      if (!wide) v.setTab("news");
+      let tries = 0;
+      const find = () => {
+        const el = document.getElementById(`news-${h.id}`);
+        if (!el) {
+          if (++tries < 20) window.setTimeout(find, 100); // the phone's News tab is still rendering
+          return;
+        }
+        el.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+        el.setAttribute("data-flash", "");
+        el.querySelector("a")?.focus({ preventScroll: true });
+        window.setTimeout(() => el.removeAttribute("data-flash"), 2500);
+      };
+      window.setTimeout(find, 0);
+    },
+  };
 
   useEffect(() => {
     if (profile.data) rememberStock(profile.data.symbol);
@@ -199,6 +236,8 @@ function Stock({ symbol }: { symbol: string }) {
             }}
             summary={summary}
             note={barList ? shortHistory(v.range, start, barList) : null}
+            news={newsMarkers.data?.days}
+            newsPick={newsPick}
           />
           <Card className="p-4">
             <Tabs label={`${symbol} details`} track="stock.tab" value={tab} onChange={v.setTab} tabs={tabs} />

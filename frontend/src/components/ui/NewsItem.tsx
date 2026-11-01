@@ -43,7 +43,10 @@ export function NewsItem({
       ? day(article.published_at)
       : formatDistanceToNowStrict(published, { addSuffix: true });
   return (
-    <article className="flex flex-col gap-1.5 py-3">
+    <article
+      id={`news-${article.id}`}
+      className="flex scroll-mt-24 flex-col gap-1.5 rounded-sm py-3 transition-[background-color,box-shadow] duration-(--duration-slow) data-flash:bg-selected data-flash:shadow-[0_0_0_8px_var(--color-selected)]"
+    >
       <a
         href={article.url}
         onClick={() => track("news.open", { source: article.source })}

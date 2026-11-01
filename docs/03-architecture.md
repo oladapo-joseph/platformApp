@@ -205,14 +205,14 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 
 ### 3.7 AI insight service (ADR-006, ADR-012)
 
-- **Provider-agnostic**: one `Provider` interface (`complete(system, prompt, schema, max_tokens)`) with `AnthropicProvider` (the default; structured outputs via `output_config.format`, low effort, the server-side refusal fallback) and `GeminiProvider` (optional; `response_json_schema`). Adapters return JSON text and token counts; `insight_service` validates it, so both produce the same schema.
+- **Provider-agnostic**: one `Provider` interface (`complete(system, prompt, schema, max_tokens)`) with `AnthropicProvider` (the default; structured outputs via `output_config.format`, low effort, and the server-side refusal fallback on the models that offer it) and `GeminiProvider` (optional; `response_json_schema`). Adapters return JSON text and token counts; `insight_service` validates it, so both produce the same schema.
 
 - **Input is bounded**: symbol profile, the last N (≤ 10) signals with dates and prices, an indicator snapshot (RSI, MACD vs signal, price vs SMA50/200, 20-day volatility), the period return, and up to 5 recent headlines that mention the stock (title, source, date; no article text). No raw DataFrames.
 - **News grounding (US-9.5)**: the output adds `news_context` and `sources[]`. Every cited source must be one of the headlines sent, otherwise the output is rejected and retried once. The prompt tells the model that headlines are context, not proven causes.
 - **Output is structured JSON** (validated with pydantic): `stance` (`bullish`/`bearish`/`neutral`), `summary` (≤ 60 words, plain English), `drivers[]`, `key_levels{support,resistance}`, `confidence` (`low`/`medium`/`high`), `caveats[]`.
 - **Framing**: a signal *interpretation* for education, never personalised advice. The UI always shows the disclaimer, `generated_at` (WAT), model name, and the data date.
 - **Cost controls**: shared cache, a per-user daily quota, `max_tokens` cap, and a timeout with one retry on a 5xx.
-- Provider and model live in config (`AI_PROVIDER=anthropic`, `AI_MODEL` unset = `claude-opus-5-5`; `gemini-2.5-flash` for Gemini). The model that actually answered is stored with every cached insight.
+- Provider and model live in config (`AI_PROVIDER=anthropic`, `AI_MODEL` unset = `claude-haiku-5-5`; `gemini-2.5-flash` for Gemini). The model that actually answered is stored with every cached insight.
 - **Validation** (the same for every provider): the pydantic schema; summary ≤ 60 words; 2–4 drivers, 1–3 caveats; positive key levels with support below resistance; cited sources only from the headlines sent; and no advice wording ("buy", "sell", "you should", "recommend"). Anything else is retried once, then the person sees "AI readings are unavailable right now. Charts and signals still work." and keeps their allowance.
 - **Allowance** (D-05): 5 new readings a day for users, 25 for admins (`AI_DAILY_QUOTA`, `AI_ADMIN_DAILY_QUOTA`), counted per WAT day in `ai_quota`. Two people asking the same question at once wait on one call.
 

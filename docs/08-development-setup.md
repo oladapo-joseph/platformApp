@@ -89,7 +89,7 @@ Added in Phase 4:
 | `AI_PROVIDER` | `anthropic` | `anthropic` (default), `gemini`, or `off` to hide AI readings (ADR-012) |
 | `ANTHROPIC_API_KEY` | `sk-ant-…` | A separate key for the platform (cost attribution). Required outside local unless `AI_PROVIDER` is `off` or `gemini`; locally, without it AI is simply off |
 | `GEMINI_API_KEY` | | Only when `AI_PROVIDER=gemini`; install the extra with `uv sync --extra gemini` |
-| `AI_MODEL` | `claude-opus-5-5` | Unset: `claude-opus-5-5` (anthropic) or `gemini-2.5-flash` (gemini). A cheaper Claude (`claude-sonnet-5-5`, `claude-haiku-5-5`) is a config change |
+| `AI_MODEL` | `claude-haiku-5-5` | Unset: `claude-haiku-5-5` (anthropic, the cheapest Claude) or `gemini-2.5-flash` (gemini). `claude-sonnet-5-5` or `claude-opus-5-5` for deeper readings at more cost |
 | `AI_DAILY_QUOTA` | `5` | New readings per user per WAT day (D-05); cached readings are free |
 | `AI_ADMIN_DAILY_QUOTA` | `25` | The same for admins (US-4.4) |
 | `AI_TIMEOUT_SECONDS` | `30` | Per provider call; the SDK retries once on a timeout, 429 or 5xx |

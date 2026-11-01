@@ -190,7 +190,7 @@ Cutover therefore waits on P4 (admin screens, AI); the price-change scatter and 
 | P4a | Watchlist: API (`/me/watchlist` CRUD, overview, news; `watchlist=` on `/news`), ☆ toggle on stock pages, price list, movers and peers, the watchlist page with period, sort, signals and a News tab, "Your stocks" on Market, the empty state, the News "My watchlist" filter, account deletion clears it | 🟡 Built, in review. 9 backend tests (order, idempotence, the 50 limit enforced atomically, per-user isolation, CSRF, overview figures matching the snapshot, news, deletion), news-filter unit tests, journey J5 |
 | P4b | Admin console: users, roles, deactivate, access-request queue, invites, data health, audit-log viewer (filters, detail, CSV export, suspicious-activity flag), and usage analytics (US-7.8, added by the owner; ADR-015) | 🟡 Built, in review. 37 backend tests (one per audit event type, exactly once; viewer filters and paging; export filtered, formula-safe and logged; no edit or delete path; admin-only; data health; usage events pseudonymous, opt-out honoured, erased with the account; the usage report), analytics unit tests, journey J8, admin routes in the axe sweep. AI usage (US-7.5) moves to P4c; 'admin settings changed' events wait for a settings screen (there is none yet) |
 | P4c | AI insights: provider interface, Anthropic adapter (default; Gemini optional), schema-validated output, shared cache, quota, AI card with disclaimer, headlines used (US-9.5), and AI usage for admins (US-7.5) | 🟡 Built, in review. 21 backend tests (status and allowance; AI off hides it; the reading, its labels and bounded input; cache shared across people with no API call and no allowance; allowance runs out with 429 and reset time; one retry, then a friendly 503 that keeps the allowance, for timeouts, bad JSON, advice wording, uncited sources, word and list limits, bad key levels; admin AI usage; account deletion erases AI records; **contract tests with recorded Claude and Gemini responses**; provider switch is config only), journey J4 (stand-in provider) and the AI card in the axe sweep. US-4.6 ratings stay in v1.1 |
-| P4d | Journeys J4, J5, J8, J10; criterion checks | Not started |
+| P4d | Journeys J4, J5, J8, J10; criterion checks | 🟡 Done, in review (2026-11-01). Chart news markers (US-9.2) were missing and are now built; J10 added; full local e2e suite: 94 passed, 2 skipped (phone-only skips of the keyboard-focus check). Criteria reviewed below |
 
 **Scope.** Insight service behind the provider interface: Anthropic (Claude) adapter as default, Gemini adapter optional (ADR-012, amended 2026-10-29). Bounded input, structured output, shared cache, per-user quota, timeout/retry. AI card UI with disclaimer; watchlist (API + star toggle + page); admin console (users search, role, deactivate, access-request queue, invites, AI usage, data freshness, and the **audit log viewer** with filters, detail drawer, CSV export, and the suspicious-activity flag, per US-7.7).
 
@@ -205,6 +205,22 @@ Cutover therefore waits on P4 (admin screens, AI); the price-change scatter and 
 6a. No access request becomes an account without an explicit admin approval; there's no auto-approval code path (D-13).
 7. Journeys J4, J5, J8, J10 pass e2e.
 8. **News in P4**: the **News page with filters and facet counts** (US-9.8; all filters in the URL), chart news markers (US-9.2), top stories (US-9.3), watchlist news (US-9.4). AI readings list the headlines considered, and every cited source is one of the headlines sent (US-9.5, verified by a contract test).
+
+**Criteria check (P4d, 2026-11-01).**
+
+| # | Result | Evidence |
+|---|---|---|
+| 1 | ✅ | Contract tests run recorded Claude and Gemini responses through each adapter and the shared validation; bad output gets one retry, then the fixed "unavailable" message (9 failure cases tested); `AI_PROVIDER` picks the adapter with no code change (tested) |
+| 2 | ✅ | A second ask, from the same or another person, is served from `ai_insights` with no provider call (fake provider's call count) and the allowance unchanged |
+| 3 | ✅ | 429 `ai-quota` with `Retry-After` to midnight WAT and "They reset at midnight WAT"; the card shows the message and still offers saved readings |
+| 4 | ✅ with a note | The AI card always shows the disclaimer, model, generated time and data date (J4); readings are rejected if they say "buy", "sell", "you should" or "recommend". **Owner's call:** the signals table labels events "▲ Buy" / "▼ Sell" and the watchlist says "Buy signal" (nouns naming the event, with the wording "MACD crossed above its signal line" and "Signals… are not recommendations to buy or sell" beside them). If that reads as an imperative, rename to "Bullish" / "Bearish" |
+| 5 | ✅ | J5: optimistic star, survives reload; the watchlist page shows day and period change |
+| 6 | ✅ backend · 🧑 production | One test per audit event type; filters, details and export in J8; no update or delete route; non-admins get 403 and no admin UI (J8). The insert/find-only Atlas role is an owner action (PENDING-ACTIONS) |
+| 6a | ✅ | Approval is an explicit admin action per request (J8, tests); there's no auto-approval path |
+| 7 | ✅ | J4, J5, J8 and J10 pass on Chromium and WebKit, desktop and phone (94 passed, 2 skipped (phone-only skips of the keyboard-focus check)) |
+| 8 | ✅ | News page filters and facets (P3d, J10), chart news markers (built in P4d, J10), top stories (J2), watchlist news (J5), AI headlines and cited sources (J4, contract test) |
+
+**Not in P4's scope but in the v1.0 story map (slice 3):** US-1.8 onboarding picks, US-3.6 strategy explainers and US-6.5 help and glossary are `Should` stories that aren't built. They need a decision: a short P4e before P5, or deferred.
 
 ---
 
