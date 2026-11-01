@@ -9,6 +9,7 @@ from app.repositories.audit_repo import AuditRepo
 from app.repositories.bars_repo import BarsRepo
 from app.repositories.events_repo import EventsRepo
 from app.repositories.industry_repo import IndustryRepo
+from app.repositories.insights_repo import AiQuotaRepo, AiUsageRepo, InsightsRepo
 from app.repositories.invites_repo import AccessRequestsRepo, InvitesRepo
 from app.repositories.news_repo import NewsRepo
 from app.repositories.sessions_repo import EmailTokensRepo, SessionsRepo
@@ -29,6 +30,9 @@ class Repos:
     audit: AuditRepo
     watchlists: WatchlistRepo
     events: EventsRepo
+    insights: InsightsRepo
+    ai_quota: AiQuotaRepo
+    ai_usage: AiUsageRepo
 
 
 _repos: Repos | None = None
@@ -48,6 +52,9 @@ def init_repos(db: Database, settings: Settings) -> Repos:
         audit=AuditRepo(db),
         watchlists=WatchlistRepo(db),
         events=EventsRepo(db),
+        insights=InsightsRepo(db),
+        ai_quota=AiQuotaRepo(db),
+        ai_usage=AiUsageRepo(db),
     )
     return _repos
 
@@ -63,6 +70,9 @@ def ensure_indexes(repos: Repos) -> None:
         repos.audit,
         repos.watchlists,
         repos.events,
+        repos.insights,
+        repos.ai_quota,
+        repos.ai_usage,
     ):
         repo.ensure_indexes()
 

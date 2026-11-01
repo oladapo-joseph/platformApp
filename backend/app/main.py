@@ -20,13 +20,13 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.deps import CSRF_HEADER
-from app.api.v1 import admin, auth, events, health, invites, market, news, stocks, watchlist
+from app.api.v1 import admin, ai, auth, events, health, invites, market, news, stocks, watchlist
 from app.core import errors, security
 from app.core import logging as app_logging
 from app.core.config import Settings, get_settings
 from app.db import mongo
 from app.repositories import ensure_indexes, init_repos
-from app.services import usage_service
+from app.services import insight_service, usage_service
 from app.services.email import build_sender, use_sender
 
 log = logging.getLogger("equitylens.api")
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     mongo.connect(settings)
     ensure_indexes(init_repos(mongo.get_db(), settings))
-    log.info("started (env=%s, bars_source=%s)", settings.env, settings.bars_source)
+    log.info("started (env=%s, bars_source=%s, ai=%s)", settings.env, settings.bars_source, settings.ai_provider)
     yield
     mongo.close()
 
@@ -84,6 +84,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.state.spa_csp = SPA_CSP  # gains the theme script's hash when the build is mounted
     use_sender(build_sender(settings))
     usage_service.use_key(settings.session_secret.get_secret_value())  # type: ignore[union-attr]
+    insight_service.configure(settings)
     errors.install(app)
 
     for router in (
@@ -96,6 +97,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         news.router,
         watchlist.router,
         events.router,
+        ai.router,
     ):
         app.include_router(router, prefix=API_PREFIX)
 

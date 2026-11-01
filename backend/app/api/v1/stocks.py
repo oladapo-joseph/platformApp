@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query
 
 from app.api.deps import require_user, symbol_path
 from app.domain.signals import DEFAULT_STRATEGY, STRATEGIES
+from app.schemas.insights import Insight, InsightRequest
 from app.schemas.news import NewsMarkers, StockNews
 from app.schemas.stocks import (
     BarsResponse,
@@ -15,7 +16,7 @@ from app.schemas.stocks import (
     StockProfile,
     StrategyInfo,
 )
-from app.services import news_service, stock_service
+from app.services import insight_service, news_service, stock_service
 
 router = APIRouter(tags=["stocks"], dependencies=[Depends(require_user)])
 
@@ -82,6 +83,19 @@ def similar(
     limit: int = Query(8, ge=1, le=25),
 ) -> dict:
     return stock_service.similar(symbol, start, end, sort, limit)
+
+
+@router.post(
+    "/stocks/{symbol}/insights",
+    response_model=Insight,
+    summary="AI signal interpretation (shared cache; a new reading uses one of today's allowance)",
+    responses={
+        429: {"description": "Today's allowance is used up (`ai-quota`)"},
+        503: {"description": "AI is off (`ai-off`) or the provider failed (`ai-unavailable`)"},
+    },
+)
+def insights(body: InsightRequest, symbol: str = Depends(symbol_path), user: dict = Depends(require_user)) -> dict:
+    return insight_service.explain(user, symbol, body)
 
 
 @router.get("/stocks/{symbol}/news", response_model=StockNews, summary="Recent news mentioning the stock")

@@ -7,6 +7,7 @@ import type {
   AccessRequestPage,
   AdminSummary,
   AdminUser,
+  AiUsage,
   Approval,
   AuditPage,
   AuditQuery,
@@ -156,6 +157,15 @@ export function useUsage(days: number) {
   return useQuery({
     queryKey: admin("usage", days),
     queryFn: ({ signal }) => api<Usage>("/admin/usage", { query: { days }, signal }),
+    staleTime: 5 * MIN,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useAiUsage(days: number) {
+  return useQuery({
+    queryKey: admin("ai-usage", days),
+    queryFn: ({ signal }) => api<AiUsage>("/admin/ai-usage", { query: { days }, signal }),
     staleTime: 5 * MIN,
     placeholderData: keepPreviousData,
   });

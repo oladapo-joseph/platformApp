@@ -10,7 +10,7 @@
 | [uv](https://docs.astral.sh/uv/) | 0.8+ | Backend dependency management (installs Python 3.12 for the backend) |
 | Node.js | 22 LTS or newer (24 tested) | Frontend **(planned)** |
 | Git | any recent | Repo `oladapo-joseph/platformApp` |
-| Access | MongoDB Atlas URI, Gemini API key (Anthropic key optional, for when Claude is available) | Data and AI |
+| Access | MongoDB Atlas URI, Anthropic API key (a Gemini key only if you switch provider) | Data and AI |
 
 ## Repository map
 
@@ -86,11 +86,15 @@ Added in Phase 4:
 
 | Variable | Example | Notes |
 | --- | --- | --- |
-| `AI_PROVIDER` | `gemini` | `gemini` (default) or `anthropic` (ADR-012) |
-| `GEMINI_API_KEY` | | Separate key for the platform (cost attribution) |
-| `ANTHROPIC_API_KEY` | `sk-ant-…` | Only when `AI_PROVIDER=anthropic` |
-| `AI_MODEL` | `gemini-2.5-flash` | Confirm the current line-up at Phase 4 (D-09) |
-| `AI_DAILY_QUOTA` | `5` | Per user per day (D-05) |
+| `AI_PROVIDER` | `anthropic` | `anthropic` (default), `gemini`, or `off` to hide AI readings (ADR-012) |
+| `ANTHROPIC_API_KEY` | `sk-ant-…` | A separate key for the platform (cost attribution). Required outside local unless `AI_PROVIDER` is `off` or `gemini`; locally, without it AI is simply off |
+| `GEMINI_API_KEY` | | Only when `AI_PROVIDER=gemini`; install the extra with `uv sync --extra gemini` |
+| `AI_MODEL` | `claude-opus-5-5` | Unset: `claude-opus-5-5` (anthropic) or `gemini-2.5-flash` (gemini). A cheaper Claude (`claude-sonnet-5-5`, `claude-haiku-5-5`) is a config change |
+| `AI_DAILY_QUOTA` | `5` | New readings per user per WAT day (D-05); cached readings are free |
+| `AI_ADMIN_DAILY_QUOTA` | `25` | The same for admins (US-4.4) |
+| `AI_TIMEOUT_SECONDS` | `30` | Per provider call; the SDK retries once on a timeout, 429 or 5xx |
+
+Tests never call a real AI API: the test client sets `AI_PROVIDER=off` and AI tests install a fake provider; the e2e server (`e2e/serve.py`) answers with a stand-in.
 
 **Accounts.** Create the first admin (it prompts for a password; there are no default credentials):
 

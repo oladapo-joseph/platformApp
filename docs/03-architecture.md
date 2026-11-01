@@ -21,11 +21,11 @@ flowchart LR
         ID[("industry_data<br/>read-only to platform")]
         NA[("news_articles<br/>written by crawler — ADR-014")]
         DB[("daily_bars<br/>written by crawler — ADR-007")]
-        U[("app_users · invites · sessions ·<br/>app_watchlists · ai_insights · audit_log · app_events")]
+        U[("app_users · invites · sessions ·<br/>app_watchlists · ai_insights · ai_quota · ai_usage ·<br/>audit_log · app_events")]
     end
 
     CRAWLER["ngxPro crawler<br/>(Azure Functions, every ~35 min)"]
-    AI["AI provider — ADR-012<br/>Gemini (google-genai), default<br/>Claude (anthropic), optional"]
+    AI["AI provider — ADR-012<br/>Claude (anthropic), default<br/>Gemini (google-genai), optional"]
     MAIL["Email provider (D-04, TBD)<br/>via EmailSender interface"]
 
     SPA -- "HTTPS, cookie session" --> API
@@ -97,7 +97,7 @@ backend/
 │   │   ├── market_service.py · stock_service.py · news_service.py · insight_service.py
 │   │   ├── auth_service.py · invite_service.py · audit_service.py
 │   │   ├── email/            EmailSender interface + resend.py (default) · acs.py (planned) · console.py (dev) (D-04)
-│   │   └── ai/               provider interface + gemini.py, anthropic.py adapters (ADR-012)
+│   │   └── ai/               provider interface + anthropic_provider.py, gemini_provider.py (ADR-012)
 │   ├── api/v1/               routers (HTTP only, no business logic)
 │   │   ├── auth.py · invites.py · market.py · stocks.py · news.py · insights.py · watchlist.py · admin.py · health.py
 │   └── schemas/              pydantic request/response models
@@ -141,7 +141,8 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /stocks/{symbol}/indicators?start=&end=&set=sma50,ema12,rsi14,macd,bb20` | Series computed on **full history**, then sliced | user | 5 min |
 | `GET /stocks/{symbol}/signals?strategy=&start=&end=` | Buy/sell events (computed on full history, sliced) | user | 5 min |
 | `GET /stocks/{symbol}/similar?start=&end=&sort=` | Peer list with component scores | user | 10 min |
-| `POST /stocks/{symbol}/insights` `{strategy,start,end}` | AI signal interpretation (quota-checked; may include ≤ 5 headlines, US-9.5) | user | shared, per (symbol, strategy, range, data-date, newest-headline-id) |
+| `POST /stocks/{symbol}/insights` `{strategy,start,end}` | AI signal interpretation (US-4.1 – 4.5, US-9.5): the reading, the headlines it was given, model, `generated_at`, `data_as_of`, `cached`, and my allowance. A new reading uses one of today's; a cached one is free. 429 `ai-quota` (with `Retry-After` to midnight WAT), 503 `ai-unavailable` (after one retry; nothing used) or `ai-off` | user | shared, per (symbol, strategy, range, data-date, newest-headline-id); 7 days |
+| `GET /me/ai` | Whether AI is on, the provider and model, and my readings left today (US-4.4) | user | — (`no-store`) |
 | `GET /stocks/{symbol}/news?days=30&limit=5&sort=recent\|importance` | `{mentions: [...], sector: [...]}`: headline, source, published_at, `published_at_estimated`, snippet (≤ 200 chars, plain text), url | user | 10 min |
 | `GET /stocks/{symbol}/news/markers?start=&end=` | Per-day article counts and headlines for chart markers (US-9.2) | user | 10 min |
 | `GET /news/top?hours=48&limit=5&sector=` | Top stories by importance, with tagged symbols (US-9.3) | user | 10 min |
@@ -158,6 +159,7 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `POST /admin/audit/export` (body: the same filters) | CSV of the filtered view (≤ 10,000 rows, formula-safe cells, UTF-8 BOM); the export is itself audited. POST so it's CSRF-protected | admin | — |
 | `GET /admin/data-health` | Last crawl, last `daily_bars` write, stale flag, stocks without a price in the latest session, weekdays without data in 30 days (US-7.6) | admin | 1 min |
 | `GET /admin/usage?days=` | Usage analytics (US-7.8, ADR-015): users, sessions, page views, daily actives, top pages and features, entries, page-to-page moves, journeys, devices. AI usage (US-7.5) joins it in P4c | admin | 5 min |
+| `GET /admin/ai-usage?days=` | AI usage (US-7.5): new and cached readings per day, failures, allowance hits, cache hit rate, top users, tokens and an estimated cost per provider and model | admin | 5 min |
 | `POST /events` | Usage events from the app: a batch of ≤ 50 page views and feature events, pseudonymised on arrival; dropped for accounts that turned it off (ADR-015) | user | — |
 | `GET /healthz` · `GET /readyz` | Liveness; readiness (Mongo ping) | public | — |
 
@@ -173,8 +175,9 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | `invites` | `email`, `token_hash`, `role`, `invited_by`, `status` (pending\|accepted\|revoked\|expired), `expires_at` (7 days), `accepted_at`, `resend_count` | unique `token_hash`; `email`; `status` |
 | `access_requests` | `email`, `name`, `note`, `status` (new\|approved\|declined), `created_at`, `reviewed_by` | unique `email` (pending only); `status` |
 | `app_watchlists` (D-19; `watchlists` is the Telegram bot's) | `user_id`, `symbols[]`, `updated_at` | unique `user_id` |
-| `ai_insights` | `cache_key`, `symbol`, `strategy`, `range`, `data_as_of`, `model`, `output` (structured), `tokens_in/out`, `created_at` | unique `cache_key`; TTL 7 days |
-| `ai_usage` | `user_id`, `date` (WAT), `count` | unique (`user_id`,`date`); TTL 90 days |
+| `ai_insights` | `cache_key`, `symbol`, `strategy`, `start`, `end`, `data_as_of`, `newest_headline_id`, `provider`, `model`, `reading` (structured), `headlines`, `tokens_in/out`, `generated_at`, `created_at` | unique `cache_key`; TTL 7 days on `created_at` |
+| `ai_quota` | `_id` = `user_id:day` (WAT), `user_id`, `day`, `used`, `expires_at`; reserved atomically, refunded when a reading fails | TTL on `expires_at`; `user_id` for erasure |
+| `ai_usage` | `at`, `user_id`, `symbol`, `strategy`, `outcome` (`generated`, `cache`, `failed`, `quota`), `provider`, `model`, `tokens_in/out` | TTL 90 days on `at`; (`user_id`, `at`) for erasure |
 | `app_events` (ADR-015) | `at`, `name` (`page_view` or a feature such as `watchlist.add`), `path` (route template), `prev`, `prev_ms`, `props` (≤ 8 small values), `session` (random, per tab), `device`, `user` (keyed hash; no IP, no user agent) | TTL 90 days on `at`; (`user`, `at`) for erasure |
 | `audit_log` (append-only) | `at`, `actor` {`id`, `email`, `kind`: user\|admin\|system\|anonymous}, `action` (e.g. `invite.sent`, `auth.login_failed`), `category`, `target` {`type`, `id`, `label`}, `outcome` (success\|failure), `ip`, `user_agent`, `request_id`, `changes` {before, after}, `flags` (e.g. `suspicious`) | `at` desc; (`actor.id`, `at`); (`target.id`, `at`); (`category`, `at`); TTL 365 days |
 | `daily_bars` (ADR-007, **written by the crawler**) | `symbol`, `trade_date` (NGX session, `YYYY-MM-DD`), `open`, `high`, `low`, `close`, `prev_close`, `change`, `pct_change`, `volume`, `value`, `trades`, `sector`, `updated_at` | unique (`symbol`,`trade_date`); `trade_date` |
@@ -202,14 +205,16 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 
 ### 3.7 AI insight service (ADR-006, ADR-012)
 
-- **Provider-agnostic**: `InsightProvider` interface with a `GeminiProvider` (`google-genai`, default while the Claude API is unavailable) and an `AnthropicProvider`. Both return the same validated schema.
+- **Provider-agnostic**: one `Provider` interface (`complete(system, prompt, schema, max_tokens)`) with `AnthropicProvider` (the default; structured outputs via `output_config.format`, low effort, the server-side refusal fallback) and `GeminiProvider` (optional; `response_json_schema`). Adapters return JSON text and token counts; `insight_service` validates it, so both produce the same schema.
 
 - **Input is bounded**: symbol profile, the last N (≤ 10) signals with dates and prices, an indicator snapshot (RSI, MACD vs signal, price vs SMA50/200, 20-day volatility), the period return, and up to 5 recent headlines that mention the stock (title, source, date; no article text). No raw DataFrames.
 - **News grounding (US-9.5)**: the output adds `news_context` and `sources[]`. Every cited source must be one of the headlines sent, otherwise the output is rejected and retried once. The prompt tells the model that headlines are context, not proven causes.
 - **Output is structured JSON** (validated with pydantic): `stance` (`bullish`/`bearish`/`neutral`), `summary` (≤ 60 words, plain English), `drivers[]`, `key_levels{support,resistance}`, `confidence` (`low`/`medium`/`high`), `caveats[]`.
 - **Framing**: a signal *interpretation* for education, never personalised advice. The UI always shows the disclaimer, `generated_at` (WAT), model name, and the data date.
 - **Cost controls**: shared cache, a per-user daily quota, `max_tokens` cap, and a timeout with one retry on a 5xx.
-- Provider and model live in config (`AI_PROVIDER=gemini`, `AI_MODEL=gemini-2.5-flash` by default). The model id is stored with every cached insight.
+- Provider and model live in config (`AI_PROVIDER=anthropic`, `AI_MODEL` unset = `claude-opus-5-5`; `gemini-2.5-flash` for Gemini). The model that actually answered is stored with every cached insight.
+- **Validation** (the same for every provider): the pydantic schema; summary ≤ 60 words; 2–4 drivers, 1–3 caveats; positive key levels with support below resistance; cited sources only from the headlines sent; and no advice wording ("buy", "sell", "you should", "recommend"). Anything else is retried once, then the person sees "AI readings are unavailable right now. Charts and signals still work." and keeps their allowance.
+- **Allowance** (D-05): 5 new readings a day for users, 25 for admins (`AI_DAILY_QUOTA`, `AI_ADMIN_DAILY_QUOTA`), counted per WAT day in `ai_quota`. Two people asking the same question at once wait on one call.
 
 ### 3.8 Observability
 

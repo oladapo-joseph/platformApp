@@ -453,6 +453,8 @@ def delete_me(user: dict[str, Any], confirm: str, meta: RequestMeta) -> None:
     repos.email_tokens.delete_for_user(user["_id"])
     repos.watchlists.delete_for_user(user["_id"])
     repos.events.delete_for_user(usage_service.pseudonym(user["_id"]))
+    repos.ai_usage.delete_for_user(user["_id"])
+    repos.ai_quota.delete_for_user(user["_id"])
     repos.users.delete(user["_id"])
 
 

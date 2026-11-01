@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/ai-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** AI readings per day, cache hits, top users, tokens (US-7.5) */
+        get: operations["ai_usage_api_v1_admin_ai_usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit": {
         parameters: {
             query?: never;
@@ -551,6 +568,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/ai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** AI on or off, the model, and my readings left today */
+        get: operations["status_api_v1_me_ai_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/watchlist": {
         parameters: {
             query?: never;
@@ -733,6 +767,23 @@ export interface paths {
         get: operations["indicators_api_v1_stocks__symbol__indicators_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/stocks/{symbol}/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** AI signal interpretation (shared cache; a new reading uses one of today's allowance) */
+        post: operations["insights_api_v1_stocks__symbol__insights_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -940,6 +991,109 @@ export interface components {
             role: "user" | "admin";
             /** Username */
             username: string | null;
+        };
+        /** AiDay */
+        AiDay: {
+            /** Cached */
+            cached: number;
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Failed */
+            failed: number;
+            /** Generated */
+            generated: number;
+        };
+        /** AiModelUse */
+        AiModelUse: {
+            /**
+             * Est Cost Usd
+             * @description From list prices; null for a model without a known price
+             */
+            est_cost_usd: number | null;
+            /** Model */
+            model: string;
+            /** Provider */
+            provider: string;
+            /** Readings */
+            readings: number;
+            /** Tokens In */
+            tokens_in: number;
+            /** Tokens Out */
+            tokens_out: number;
+        };
+        /** AiQuota */
+        AiQuota: {
+            /** Limit */
+            limit: number;
+            /** Remaining */
+            remaining: number;
+            /**
+             * Resets At
+             * Format: date-time
+             * @description Next midnight WAT
+             */
+            resets_at: string;
+            /** Used */
+            used: number;
+        };
+        /** AiStatus */
+        AiStatus: {
+            /** Enabled */
+            enabled: boolean;
+            /** Model */
+            model: string | null;
+            /** Provider */
+            provider: string | null;
+            quota: components["schemas"]["AiQuota"] | null;
+        };
+        /** AiUsage */
+        AiUsage: {
+            /** Cached */
+            cached: number;
+            /** Daily */
+            daily: components["schemas"]["AiDay"][];
+            /** Days */
+            days: number;
+            /** Enabled */
+            enabled: boolean;
+            /** Failed */
+            failed: number;
+            /** Generated */
+            generated: number;
+            /**
+             * Hit Rate
+             * @description Share of readings served from the cache, 0–1
+             */
+            hit_rate: number | null;
+            /** Model */
+            model: string | null;
+            /** Models */
+            models: components["schemas"]["AiModelUse"][];
+            /** Provider */
+            provider: string | null;
+            /**
+             * Quota Hits
+             * @description Requests refused because the person had used today's allowance
+             */
+            quota_hits: number;
+            /** Top Users */
+            top_users: components["schemas"]["AiUser"][];
+        };
+        /** AiUser */
+        AiUser: {
+            /** Cached */
+            cached: number;
+            /** Email */
+            email: string | null;
+            /** Generated */
+            generated: number;
+            /** Name */
+            name: string | null;
+            /** User Id */
+            user_id: string;
         };
         /** Approval */
         Approval: {
@@ -1319,6 +1473,19 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** Headline */
+        Headline: {
+            /** Id */
+            id: string;
+            /** Published At */
+            published_at: string | null;
+            /** Source */
+            source: string;
+            /** Title */
+            title: string;
+            /** Url */
+            url: string;
+        };
         /** IndicatorSeries */
         IndicatorSeries: {
             /**
@@ -1355,6 +1522,106 @@ export interface components {
             start: string | null;
             /** Symbol */
             symbol: string;
+        };
+        /** Insight */
+        Insight: {
+            /**
+             * Cached
+             * @description Served from the shared cache (didn't use a reading from the allowance)
+             */
+            cached: boolean;
+            /**
+             * Data As Of
+             * Format: date
+             * @description The last trading day the reading is based on
+             */
+            data_as_of: string;
+            /** End */
+            end: string | null;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /**
+             * Headlines
+             * @description Headlines the model was given (≤ 5)
+             */
+            headlines: components["schemas"]["Headline"][];
+            /** Model */
+            model: string;
+            /** Provider */
+            provider: string;
+            quota: components["schemas"]["AiQuota"];
+            reading: components["schemas"]["InsightBody"];
+            /** Start */
+            start: string | null;
+            /** Strategy */
+            strategy: string;
+            /** Strategy Label */
+            strategy_label: string;
+            /** Symbol */
+            symbol: string;
+        };
+        /**
+         * InsightBody
+         * @description What the model writes, validated (insight_service checks the limits and the cited sources).
+         */
+        InsightBody: {
+            /**
+             * Caveats
+             * @description 1–3 short points
+             */
+            caveats: string[];
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /**
+             * Drivers
+             * @description 2–4 short points
+             */
+            drivers: string[];
+            key_levels: components["schemas"]["KeyLevels"];
+            /**
+             * News Context
+             * @description One sentence on the headlines; empty when there were none
+             */
+            news_context: string;
+            /**
+             * Sources
+             * @description IDs of the headlines the reading leans on, from `headlines`
+             */
+            sources: string[];
+            /**
+             * Stance
+             * @enum {string}
+             */
+            stance: "bullish" | "bearish" | "neutral";
+            /**
+             * Summary
+             * @description Plain English, at most 60 words
+             */
+            summary: string;
+        };
+        /** InsightRequest */
+        InsightRequest: {
+            /**
+             * End
+             * @description Last trade date of the range; omit for the latest
+             */
+            end?: string | null;
+            /**
+             * Start
+             * @description First trade date of the range; omit for full history
+             */
+            start?: string | null;
+            /**
+             * Strategy
+             * @description Signal strategy slug (GET /strategies)
+             */
+            strategy: string;
         };
         /** Invite */
         Invite: {
@@ -1489,6 +1756,13 @@ export interface components {
             sessions: number;
             /** Steps */
             steps: string[];
+        };
+        /** KeyLevels */
+        KeyLevels: {
+            /** Resistance */
+            resistance: number | null;
+            /** Support */
+            support: number | null;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -2355,6 +2629,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccessRequest"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ai_usage_api_v1_admin_ai_usage_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiUsage"];
                 };
             };
             /** @description Validation Error */
@@ -3287,6 +3592,26 @@ export interface operations {
             };
         };
     };
+    status_api_v1_me_ai_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiStatus"];
+                };
+            };
+        };
+    };
     get_api_v1_me_watchlist_get: {
         parameters: {
             query?: never;
@@ -3667,6 +3992,56 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
                 };
+            };
+        };
+    };
+    insights_api_v1_stocks__symbol__insights_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description NGX ticker, e.g. MTNN */
+                symbol: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InsightRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Insight"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Today's allowance is used up (`ai-quota`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description AI is off (`ai-off`) or the provider failed (`ai-unavailable`) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

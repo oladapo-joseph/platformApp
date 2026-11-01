@@ -315,6 +315,306 @@
         "title": "AdminUser",
         "type": "object"
       },
+      "AiDay": {
+        "properties": {
+          "cached": {
+            "title": "Cached",
+            "type": "integer"
+          },
+          "day": {
+            "format": "date",
+            "title": "Day",
+            "type": "string"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "generated": {
+            "title": "Generated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "day",
+          "generated",
+          "cached",
+          "failed"
+        ],
+        "title": "AiDay",
+        "type": "object"
+      },
+      "AiModelUse": {
+        "properties": {
+          "est_cost_usd": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "From list prices; null for a model without a known price",
+            "title": "Est Cost Usd"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "readings": {
+            "title": "Readings",
+            "type": "integer"
+          },
+          "tokens_in": {
+            "title": "Tokens In",
+            "type": "integer"
+          },
+          "tokens_out": {
+            "title": "Tokens Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "readings",
+          "tokens_in",
+          "tokens_out",
+          "est_cost_usd"
+        ],
+        "title": "AiModelUse",
+        "type": "object"
+      },
+      "AiQuota": {
+        "properties": {
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "remaining": {
+            "title": "Remaining",
+            "type": "integer"
+          },
+          "resets_at": {
+            "description": "Next midnight WAT",
+            "format": "date-time",
+            "title": "Resets At",
+            "type": "string"
+          },
+          "used": {
+            "title": "Used",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "limit",
+          "used",
+          "remaining",
+          "resets_at"
+        ],
+        "title": "AiQuota",
+        "type": "object"
+      },
+      "AiStatus": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "quota": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AiQuota"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "enabled",
+          "provider",
+          "model",
+          "quota"
+        ],
+        "title": "AiStatus",
+        "type": "object"
+      },
+      "AiUsage": {
+        "properties": {
+          "cached": {
+            "title": "Cached",
+            "type": "integer"
+          },
+          "daily": {
+            "items": {
+              "$ref": "#/components/schemas/AiDay"
+            },
+            "title": "Daily",
+            "type": "array"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "failed": {
+            "title": "Failed",
+            "type": "integer"
+          },
+          "generated": {
+            "title": "Generated",
+            "type": "integer"
+          },
+          "hit_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Share of readings served from the cache, 0\u20131",
+            "title": "Hit Rate"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "models": {
+            "items": {
+              "$ref": "#/components/schemas/AiModelUse"
+            },
+            "title": "Models",
+            "type": "array"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "quota_hits": {
+            "description": "Requests refused because the person had used today's allowance",
+            "title": "Quota Hits",
+            "type": "integer"
+          },
+          "top_users": {
+            "items": {
+              "$ref": "#/components/schemas/AiUser"
+            },
+            "title": "Top Users",
+            "type": "array"
+          }
+        },
+        "required": [
+          "days",
+          "enabled",
+          "provider",
+          "model",
+          "generated",
+          "cached",
+          "failed",
+          "quota_hits",
+          "hit_rate",
+          "daily",
+          "top_users",
+          "models"
+        ],
+        "title": "AiUsage",
+        "type": "object"
+      },
+      "AiUser": {
+        "properties": {
+          "cached": {
+            "title": "Cached",
+            "type": "integer"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "generated": {
+            "title": "Generated",
+            "type": "integer"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "email",
+          "generated",
+          "cached"
+        ],
+        "title": "AiUser",
+        "type": "object"
+      },
       "Approval": {
         "properties": {
           "invite": {
@@ -1429,6 +1729,47 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "Headline": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "source",
+          "url",
+          "published_at"
+        ],
+        "title": "Headline",
+        "type": "object"
+      },
       "IndicatorSeries": {
         "properties": {
           "key": {
@@ -1544,6 +1885,214 @@
           "indicators"
         ],
         "title": "IndicatorsResponse",
+        "type": "object"
+      },
+      "Insight": {
+        "properties": {
+          "cached": {
+            "description": "Served from the shared cache (didn't use a reading from the allowance)",
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "data_as_of": {
+            "description": "The last trading day the reading is based on",
+            "format": "date",
+            "title": "Data As Of",
+            "type": "string"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "headlines": {
+            "description": "Headlines the model was given (\u2264 5)",
+            "items": {
+              "$ref": "#/components/schemas/Headline"
+            },
+            "title": "Headlines",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "quota": {
+            "$ref": "#/components/schemas/AiQuota"
+          },
+          "reading": {
+            "$ref": "#/components/schemas/InsightBody"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "strategy": {
+            "title": "Strategy",
+            "type": "string"
+          },
+          "strategy_label": {
+            "title": "Strategy Label",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "strategy",
+          "strategy_label",
+          "start",
+          "end",
+          "data_as_of",
+          "provider",
+          "model",
+          "generated_at",
+          "cached",
+          "reading",
+          "headlines",
+          "quota"
+        ],
+        "title": "Insight",
+        "type": "object"
+      },
+      "InsightBody": {
+        "description": "What the model writes, validated (insight_service checks the limits and the cited sources).",
+        "properties": {
+          "caveats": {
+            "description": "1\u20133 short points",
+            "items": {
+              "type": "string"
+            },
+            "title": "Caveats",
+            "type": "array"
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Confidence",
+            "type": "string"
+          },
+          "drivers": {
+            "description": "2\u20134 short points",
+            "items": {
+              "type": "string"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "key_levels": {
+            "$ref": "#/components/schemas/KeyLevels"
+          },
+          "news_context": {
+            "description": "One sentence on the headlines; empty when there were none",
+            "title": "News Context",
+            "type": "string"
+          },
+          "sources": {
+            "description": "IDs of the headlines the reading leans on, from `headlines`",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "stance": {
+            "enum": [
+              "bullish",
+              "bearish",
+              "neutral"
+            ],
+            "title": "Stance",
+            "type": "string"
+          },
+          "summary": {
+            "description": "Plain English, at most 60 words",
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "stance",
+          "summary",
+          "drivers",
+          "key_levels",
+          "confidence",
+          "caveats",
+          "news_context",
+          "sources"
+        ],
+        "title": "InsightBody",
+        "type": "object"
+      },
+      "InsightRequest": {
+        "properties": {
+          "end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Last trade date of the range; omit for the latest",
+            "title": "End"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "First trade date of the range; omit for full history",
+            "title": "Start"
+          },
+          "strategy": {
+            "description": "Signal strategy slug (GET /strategies)",
+            "maxLength": 40,
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "strategy"
+        ],
+        "title": "InsightRequest",
         "type": "object"
       },
       "Invite": {
@@ -1891,6 +2440,38 @@
           "sessions"
         ],
         "title": "Journey",
+        "type": "object"
+      },
+      "KeyLevels": {
+        "properties": {
+          "resistance": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resistance"
+          },
+          "support": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support"
+          }
+        },
+        "required": [
+          "support",
+          "resistance"
+        ],
+        "title": "KeyLevels",
         "type": "object"
       },
       "LoginRequest": {
@@ -4306,6 +4887,51 @@
         ]
       }
     },
+    "/api/v1/admin/ai-usage": {
+      "get": {
+        "operationId": "ai_usage_api_v1_admin_ai_usage_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 30,
+              "maximum": 90,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiUsage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "AI readings per day, cache hits, top users, tokens (US-7.5)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/admin/audit": {
       "get": {
         "operationId": "audit_log_api_v1_admin_audit_get",
@@ -5726,6 +6352,27 @@
         ]
       }
     },
+    "/api/v1/me/ai": {
+      "get": {
+        "operationId": "status_api_v1_me_ai_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "AI on or off, the model, and my readings left today",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/me/watchlist": {
       "get": {
         "operationId": "get_api_v1_me_watchlist_get",
@@ -6612,6 +7259,69 @@
           }
         },
         "summary": "Indicator series computed on full history, sliced to the range",
+        "tags": [
+          "stocks"
+        ]
+      }
+    },
+    "/api/v1/stocks/{symbol}/insights": {
+      "post": {
+        "operationId": "insights_api_v1_stocks__symbol__insights_post",
+        "parameters": [
+          {
+            "description": "NGX ticker, e.g. MTNN",
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "description": "NGX ticker, e.g. MTNN",
+              "examples": [
+                "MTNN"
+              ],
+              "title": "Symbol",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InsightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Insight"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Today's allowance is used up (`ai-quota`)"
+          },
+          "503": {
+            "description": "AI is off (`ai-off`) or the provider failed (`ai-unavailable`)"
+          }
+        },
+        "summary": "AI signal interpretation (shared cache; a new reading uses one of today's allowance)",
         "tags": [
           "stocks"
         ]

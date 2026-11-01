@@ -48,6 +48,16 @@ class Settings(BaseSettings):
     # (https); locally the name is shown as text, since mail clients can't fetch from localhost.
     email_logo_url: str | None = None
 
+    # ── AI signal interpretation (ADR-006, ADR-012, D-05, D-09) ────────────────
+    # anthropic (Claude, the default) or gemini (optional: `uv sync --extra gemini`); off hides the feature.
+    ai_provider: Literal["anthropic", "gemini", "off"] = "anthropic"
+    ai_model: str | None = None  # unset: claude-opus-5-5 (anthropic) or gemini-2.5-flash (gemini)
+    anthropic_api_key: SecretStr | None = None
+    gemini_api_key: SecretStr | None = None
+    ai_daily_quota: int = 5  # new readings per user per WAT day; cached readings are free
+    ai_admin_daily_quota: int = 25
+    ai_timeout_seconds: float = 30.0
+
     # Built SPA (frontend/dist) to serve at "/"; skipped when the folder is missing.
     frontend_dist: Path = Field(default=BACKEND_DIR.parent / "frontend" / "dist")
 
@@ -73,6 +83,14 @@ class Settings(BaseSettings):
             return f"{self.public_base_url.rstrip('/')}/email-assets/equitylens-logo-horizontal-light@2x.png"
         return None
 
+    @property
+    def ai_key(self) -> SecretStr | None:
+        return {"anthropic": self.anthropic_api_key, "gemini": self.gemini_api_key}.get(self.ai_provider)
+
+    @property
+    def ai_model_id(self) -> str:
+        return self.ai_model or ("gemini-2.5-flash" if self.ai_provider == "gemini" else "claude-opus-5-5")
+
     @model_validator(mode="after")
     def _check(self) -> "Settings":
         if self.session_secret is None:
@@ -88,6 +106,11 @@ class Settings(BaseSettings):
             raise ValueError("RESEND_API_KEY is required when EMAIL_PROVIDER=resend")
         if self.env != "local" and self.email_provider == "console":
             raise ValueError("EMAIL_PROVIDER=console only works on ENV=local")
+        if self.ai_provider != "off" and self.ai_key is None:
+            if self.env != "local":
+                name = "ANTHROPIC_API_KEY" if self.ai_provider == "anthropic" else "GEMINI_API_KEY"
+                raise ValueError(f"{name} is required when AI_PROVIDER={self.ai_provider} (or set AI_PROVIDER=off)")
+            logging.getLogger(__name__).warning("AI_PROVIDER=%s has no API key: AI readings are off", self.ai_provider)
         return self
 
 

@@ -81,7 +81,7 @@ The project rebuilds the internal Streamlit dashboard as a **FastAPI backend + R
 
 - **Data** comes from the shared MongoDB Atlas cluster that the ngxPro crawler writes. The platform reads `tradesData`, `daily_bars`, `industry_data` and `news_articles` and **never writes to them**.
 - **Timezone**: all market dates and times are WAT (Africa/Lagos). The API returns ISO-8601 with `+01:00`.
-- **AI**: direct SDKs behind a provider interface. **Gemini (`google-genai`) for now**, because the Claude API is unavailable; `anthropic` when it is. No LangChain (ADR-012).
+- **AI**: direct SDKs behind a provider interface. **Claude (`anthropic`) by default; Gemini (`google-genai`) optional** (owner, 2026-10-29). No LangChain (ADR-012).
 - **Indicators**: RSI uses `ewm(com=window-1, adjust=False)` and EMA uses `ewm(span=window, adjust=False)` (project rule; enforced by tests).
 - **Small team**: choose boring, well-documented technology over novel stacks.
 - The Streamlit app **stays in production** until the cutover in Phase 5.
@@ -100,7 +100,7 @@ Full log with reasoning: [`04-technical-decisions.md`](04-technical-decisions.md
 | D-06 | AI wording | ✅ "Signal interpretation"; legal review before open sign-up |
 | D-07 | `daily_bars` owner | ✅ The ngxPro crawler |
 | D-08 | Name styling | ✅ EquityLensNG |
-| D-09 | AI provider | ✅ Gemini (`google-genai`) for now; provider-agnostic |
+| D-09 | AI provider | ✅ Claude (Anthropic SDK) by default, Gemini optional; provider-agnostic (changed 2026-10-29) |
 | D-10 | Atlas tier | Open (before open sign-up) |
 | D-11 | Tests in git | ✅ Not tracked at all; run locally before merge |
 | D-12 | All-Share Index | ✅ Added later via the crawler |

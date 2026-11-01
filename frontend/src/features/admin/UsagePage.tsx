@@ -13,6 +13,7 @@ import { StatTile } from "@/components/ui/StatTile";
 import { day, isoDay } from "@/lib/dates";
 import { featureName, pageName } from "@/lib/analytics-names";
 
+import { AiUsageSection } from "./AiUsageSection";
 import { Section } from "./shared";
 
 const PERIODS: { value: "7" | "30" | "90"; label: string }[] = [
@@ -160,12 +161,15 @@ export default function UsagePage() {
   }
   if (!u.page_views && !u.features.length) {
     return (
-      <>
-        {header}
-        <EmptyState icon={BarChart3} title="No usage recorded yet">
-          Events appear here as people use the app.
-        </EmptyState>
-      </>
+      <div className="flex flex-col gap-6">
+        <div>
+          {header}
+          <EmptyState icon={BarChart3} title="No usage recorded yet">
+            Events appear here as people use the app.
+          </EmptyState>
+        </div>
+        <AiUsageSection days={Number(days)} />
+      </div>
     );
   }
   return (
@@ -246,6 +250,7 @@ export default function UsagePage() {
           <p className="text-sm text-fg-muted">Nothing yet.</p>
         )}
       </Section>
+      <AiUsageSection days={Number(days)} />
     </div>
   );
 }

@@ -17,6 +17,7 @@ import { useMediaQuery } from "@/lib/hooks";
 import { openSearch, POPULAR_FALLBACK, rememberStock } from "@/lib/search";
 import { chartSummary, indicatorSet, rangeStart, shortHistory } from "@/lib/stock";
 
+import { AiInsightCard } from "./AiInsightCard";
 import { ChartCard } from "./ChartCard";
 import { DataPanel } from "./DataPanel";
 import { NewsPanel } from "./NewsPanel";
@@ -136,6 +137,20 @@ function Stock({ symbol }: { symbol: string }) {
       symbol={symbol}
     />
   );
+  const strategyLabel = strategies.data?.find((s) => s.slug === v.strategy)?.label ?? signals.data?.strategy.label;
+  const aiCard = (
+    <AiInsightCard
+      key={`${v.strategy}-${v.range}`}
+      symbol={symbol}
+      strategy={v.strategy}
+      strategyLabel={strategyLabel ?? v.strategy}
+      range={v.range}
+      start={start}
+      end={latest}
+      latest={latest}
+      className={wide ? undefined : "mt-4"}
+    />
+  );
   const peers = <PeersPanel symbol={symbol} start={barList?.[0]?.date ?? start} end={latest} />;
   const data = barList ? <DataPanel symbol={symbol} bars={barList} maxHeight={520} /> : <Skeleton className="h-48" />;
   const news = <NewsPanel symbol={symbol} sector={p.sector} heading={wide} />;
@@ -146,7 +161,16 @@ function Stock({ symbol }: { symbol: string }) {
         { value: "data", label: "Data", content: data },
       ]
     : [
-        { value: "signals", label: "Signals", content: signalsPanel },
+        {
+          value: "signals",
+          label: "Signals",
+          content: (
+            <>
+              {signalsPanel}
+              {aiCard}
+            </>
+          ),
+        },
         { value: "news", label: "News", content: news },
         { value: "peers", label: "Peers", content: peers },
         { value: "data", label: "Data", content: data },
@@ -181,7 +205,8 @@ function Stock({ symbol }: { symbol: string }) {
           </Card>
         </div>
         {wide && (
-          <aside aria-label={`${symbol} news`}>
+          <aside aria-label={`${symbol} AI reading and news`} className="flex flex-col gap-6">
+            {aiCard}
             <Card className="sticky top-[calc(var(--layout-topbar-h)+16px)] p-4">{news}</Card>
           </aside>
         )}

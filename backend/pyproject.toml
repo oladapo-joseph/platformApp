@@ -15,6 +15,12 @@ dependencies = [
     "pwdlib[argon2]>=0.2",
     "httpx>=0.28",
     "email-validator>=2.2",
+    "anthropic>=1.0",
+]
+
+[project.optional-dependencies]
+gemini = [
+    "google-genai>=2.34.0",
 ]
 
 [dependency-groups]

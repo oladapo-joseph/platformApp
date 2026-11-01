@@ -1,4 +1,4 @@
-"""Admin console API: invites, access requests, users, audit log, data health (US-7.1–7.4, 7.6, 7.7)."""
+"""Admin console API: invites, access requests, users, audit log, usage, data health (US-7.1–7.8)."""
 
 from datetime import date, datetime
 from typing import Any, Literal
@@ -29,7 +29,8 @@ from app.schemas.admin import (
     UserPage,
 )
 from app.schemas.events import Usage
-from app.services import audit_viewer, data_health, invite_service, usage_service
+from app.schemas.insights import AiUsage
+from app.services import audit_viewer, data_health, insight_service, invite_service, usage_service
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -178,3 +179,8 @@ def data_health_view(admin: dict = Depends(require_admin)) -> dict[str, Any]:
 @router.get("/usage", response_model=Usage, summary="What people use and how they move through the app (US-7.8)")
 def usage(days: int = Query(30, ge=1, le=90), admin: dict = Depends(require_admin)) -> dict[str, Any]:
     return usage_service.usage(days)
+
+
+@router.get("/ai-usage", response_model=AiUsage, summary="AI readings per day, cache hits, top users, tokens (US-7.5)")
+def ai_usage(days: int = Query(30, ge=1, le=90), admin: dict = Depends(require_admin)) -> dict[str, Any]:
+    return insight_service.usage(days)

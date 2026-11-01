@@ -35,6 +35,7 @@ export const FEATURES: Record<string, string> = {
   "stock.tab": "Switched stock panel",
   "stock.news_sort": "Sorted a stock's news",
   "stock.peers_sort": "Sorted peers",
+  "ai.explain": "Asked for an AI reading",
   "news.filter": "Filtered news",
   "news.sort": "Sorted news",
   "news.open": "Opened a news story",

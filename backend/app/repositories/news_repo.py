@@ -148,6 +148,12 @@ class NewsRepo:
         }
         return list(self.col.find(q, _PROJECTION).sort([("importance_score", -1), ("_id", -1)]).limit(limit))
 
+    def headlines_for_symbol(self, symbol: str, start: datetime, end: datetime, limit: int) -> list[dict[str, Any]]:
+        """The newest articles mentioning the stock published in [start, end), for AI readings (US-9.5)."""
+        q = {"symbols": symbol, "published_at": {"$gte": start, "$lt": end}}
+        projection = {"title": 1, "source": 1, "url": 1, "published_at": 1}
+        return list(self.col.find(q, projection).sort([("published_at", -1), ("_id", -1)]).limit(limit))
+
     def dated_for_symbol(self, symbol: str, start: datetime, end: datetime) -> list[dict[str, Any]]:
         """Articles with a real (not estimated) date in [start, end), for chart markers."""
         q = {"symbols": symbol, "published_at": {"$gte": start, "$lt": end}, "published_at_estimated": {"$ne": True}}
