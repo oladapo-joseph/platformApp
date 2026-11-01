@@ -5,6 +5,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — local launcher (2026-11-01)
+- `app.py` is now a one-command local test run of the new app: `python app.py` installs the frontend's packages if missing, rebuilds the React app when its sources changed, and serves it with the API on synthetic data at http://localhost:8000, printing the test logins. The legacy Streamlit entry point moved to `streamlit_app.py`; under Streamlit, `app.py` hands over to it, so the live app keeps working from either name.
+
+### Removed — clean-up (2026-11-01)
+- `streamlitApp/` (the frozen copy of the legacy app, identical to the root files) moved out of the project to `StocksRelated/archive/streamlitApp/`, with its tests, old `.env` and SQLite file. The backend's legacy parity tests now import the live root files, and skip once those are removed at cutover.
+- `images/` (old Streamlit README screenshots), `docs/06-design-system.pdf` (an outdated export of doc 06), `test_gemini.py` and the root `tests/` copy.
+- `backend/app/emails/registry.json` stays git-ignored (owner decision); docs now say to keep a private backup of it.
+
 ### Added — Phase 0: foundations for the FastAPI + React platform (2026-10-25 → 26)
 - `streamlitApp/`: frozen copy of the legacy Streamlit app (reference and rollback). The root-level originals are unchanged until cutover.
 - `docs/01-current-state-assessment.md`: feature inventory and findings (correctness, security, AI, quality, UX, brand), each with a severity.

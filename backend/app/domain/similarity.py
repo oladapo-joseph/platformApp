@@ -1,5 +1,5 @@
 """
-Peer similarity: pure scoring (ported from streamlitApp/views/deep_dive.py::_find_similar).
+Peer similarity: pure scoring (ported from the Streamlit app's views/deep_dive.py::_find_similar).
 
 score = 0.35·industry + 0.30·market cap + 0.20·traded value + 0.15·volume, where
 industry comes from the reference stock's `similarsector` map (sector → 0–1)

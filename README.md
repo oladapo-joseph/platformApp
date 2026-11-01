@@ -14,10 +14,10 @@
 | [`docs/`](docs/) | Project documentation (start here) |
 | [`design/`](design/) | Design tokens (`tokens.css`), live visual reference (`preview.html`), palette/type decision record (`options.html`) |
 | [`brand/`](brand/) | Logo v2: SVG + PNG assets and generator |
-| [`streamlitApp/`](streamlitApp/) | Frozen copy of the current Streamlit app ([its README](streamlitApp/README.md)) |
 | `backend/` | New FastAPI service: market, stock and news APIs (P1) and invite-only accounts (P2). Setup in [doc 08, section 3](docs/08-development-setup.md) |
 | `frontend/` | New React app (from Phase 3) |
-| root `app.py`, `views/`, … | The live Streamlit app, kept in place until cutover (Phase 5) |
+| root `app.py` | Local test launcher for the new app: `python app.py` (under Streamlit it runs the legacy app instead) |
+| root `streamlit_app.py`, `views/`, … | The live Streamlit app, kept in place until cutover (Phase 5) |
 | [`CHANGELOG.md`](CHANGELOG.md) | Change history |
 
 ## Documentation
@@ -37,13 +37,15 @@
 
 ## Target stack
 
-FastAPI · PyMongo · pandas · Gemini via `google-genai` (interim; provider-agnostic, Claude-ready) · MongoDB Atlas (shared with the ngxPro crawler) | React 19 · Vite · TypeScript · TanStack Query · Tailwind CSS v4 · Radix UI · TradingView Lightweight Charts · Apache ECharts | Docker · Azure Container Apps (planned) · Resend (email) · GitHub Actions
+FastAPI · PyMongo · pandas · Claude via the Anthropic SDK (Gemini optional, behind one interface) · MongoDB Atlas (shared with the ngxPro crawler) | React 19 · Vite · TypeScript · TanStack Query · Tailwind CSS v4 · Radix UI · TradingView Lightweight Charts · Apache ECharts | Docker · Azure Container Apps (planned) · Resend (email) · GitHub Actions
 
-## Run the current app
+## Try it locally
 
 ```bash
-cd streamlitApp && pip install -r requirements.txt && streamlit run app.py
+python app.py   # from platformApp/: builds the React app if needed, starts it on synthetic data at http://localhost:8000
 ```
+
+The legacy Streamlit app: `pip install -r requirements.txt && streamlit run streamlit_app.py` (`streamlit run app.py` still works).
 
 Details are in [docs/08-development-setup.md](docs/08-development-setup.md).
 

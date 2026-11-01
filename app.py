@@ -1,214 +1,185 @@
-# app.py — entry point and page router
+"""
+Run EquityLensNG on your machine for testing: python app.py
 
-import streamlit as st
-from PIL import Image
+Installs what's missing, builds the React app when its sources changed, and starts the API
+with the built app on http://localhost:8000 over the local test server (frontend/e2e/serve.py):
+a throwaway in-memory database with synthetic NGX data, never Atlas. Ctrl+C stops it.
+backend/ and frontend/ stay the deployable build; this file is for local testing only.
+
+Under Streamlit (streamlit run app.py, or a host still pointed at app.py) it runs the legacy
+Streamlit app in streamlit_app.py instead, so the live app keeps working until cutover.
+
+    python app.py              # build if needed, start, open the browser
+    python app.py --port 8001  # when something already listens on :8000
+    python app.py --no-open    # don't open the browser
+    python app.py --rebuild    # build the React app even if it looks current
+"""
+
+import argparse
 import os
+import runpy
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import urllib.request
+import webbrowser
+from pathlib import Path
 
-_logo = Image.open(os.path.join(os.path.dirname(__file__), "static", "logo.png"))
+ROOT = Path(__file__).resolve().parent
+BACKEND = ROOT / "backend"
+FRONTEND = ROOT / "frontend"
+SERVER = FRONTEND / "e2e" / "serve.py"
+OUTBOX = FRONTEND / "e2e" / ".outbox.jsonl"
+DIST = FRONTEND / "dist" / "index.html"
+# the build's inputs: a change in any of these means dist/ is out of date
+SOURCES = [FRONTEND / "src", FRONTEND / "public", FRONTEND / "index.html", FRONTEND / "package.json",
+           FRONTEND / "vite.config.ts", ROOT / "design", ROOT / "brand"]
+# copies made by npm run sync:tokens, which every build rewrites, so they never count as changes
+COPIES = {FRONTEND / "src" / "styles" / "tokens.css", FRONTEND / "public" / "brand",
+          FRONTEND / "public" / "favicon.svg"}
+# seeded by backend/tests/conftest.py
+LOGINS = [("Admin", "admin@example.com", "Lens-admin-pass-2026"), ("User", "ada@example.com", "Ada-reads-charts-daily")]
 
-st.set_page_config(
-    page_title="EquityLens NG",
-    page_icon=_logo,
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
 
-from config import ACCENT, MUTED, CARD_BG, BORDER, TEXT, BG, RED
-from utility.auth import init_users_collection
-from views.login import render as login_page
-from views.deep_dive import render as deep_dive_page
-from views.market_overview import render as market_overview_page
-from views.admin import render as admin_page
+def _under_streamlit() -> bool:
+    try:
+        from streamlit import runtime
+    except ImportError:
+        return False
+    return runtime.exists()
 
-# Ensure users table + default admin exist
-init_users_collection()
 
-# ── Global CSS ────────────────────────────────────────────────────────────────
-st.markdown(f"""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;700&display=swap');
+def _fail(message: str) -> None:
+    print(f"\n[x] {message}", file=sys.stderr)
+    sys.exit(1)
 
-html, body, [class*="css"] {{
-    font-family: 'IBM Plex Mono', monospace !important;
-    background: {BG} !important;
-}}
 
-/* ── Sidebar shell ── */
-section[data-testid="stSidebar"] {{
-    background: {CARD_BG} !important;
-    border-right: 1px solid {BORDER} !important;
-    min-width: 210px !important;
-    max-width: 210px !important;
-}}
+def _tool(name: str, hint: str) -> str:
+    path = shutil.which(name)
+    if not path:
+        _fail(f"{name} isn't installed or isn't on PATH. {hint}")
+    return path
 
-section[data-testid="stSidebar"] > div:first-child {{
-    padding: 0 !important;
-}}
 
-/* ── Radio widget container ── */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] {{
-    width: 100%;
-}}
+def _run(cmd: list[str], cwd: Path, env: dict[str, str]) -> None:
+    print(f"    $ {Path(cmd[0]).stem} {' '.join(cmd[1:])}  (in {cwd.name}/)")
+    if subprocess.call(cmd, cwd=cwd, env=env) != 0:
+        _fail("That step failed; the output above says why.")
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] > div {{
-    gap: 0 !important;
-    flex-direction: column !important;
-}}
 
-/* ── Each nav item ── */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] label {{
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    padding: 11px 20px !important;
-    margin: 0 !important;
-    cursor: pointer !important;
-    border-left: 3px solid transparent !important;
-    border-radius: 0 !important;
-    color: {MUTED} !important;
-    font-size: 12px !important;
-    letter-spacing: 0.5px !important;
-    transition: color 0.15s, background 0.15s, border-color 0.15s !important;
-    width: 100% !important;
-}}
+def _newest(paths: list[Path]) -> float:
+    newest = 0.0
+    for p in paths:
+        if p in COPIES or not p.exists():
+            continue
+        if p.is_file():
+            newest = max(newest, p.stat().st_mtime)
+            continue
+        for dirpath, dirnames, filenames in os.walk(p):
+            d = Path(dirpath)
+            dirnames[:] = [n for n in dirnames if d / n not in COPIES]
+            for n in filenames:
+                if d / n not in COPIES:
+                    newest = max(newest, (d / n).stat().st_mtime)
+    return newest
 
-section[data-testid="stSidebar"] div[data-testid="stRadio"] label:hover {{
-    color: {TEXT} !important;
-    background: {BORDER}70 !important;
-    border-left-color: {BORDER} !important;
-}}
 
-/* Hide radio circles */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] label > div:first-child {{
-    display: none !important;
-}}
+def _port_busy(port: int) -> bool:
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex(("127.0.0.1", port)) == 0
 
-/* Active nav item */
-section[data-testid="stSidebar"] div[data-testid="stRadio"] label:has(input:checked) {{
-    color: {ACCENT} !important;
-    background: {ACCENT}14 !important;
-    border-left-color: {ACCENT} !important;
-    font-weight: 500 !important;
-}}
 
-/* ── Hide collapse button ── */
-button[data-testid="collapsedControl"] {{
-    display: none;
-}}
+def _wait_ready(url: str, proc: subprocess.Popen, timeout: float = 240) -> bool:
+    end = time.monotonic() + timeout
+    while time.monotonic() < end:
+        if proc.poll() is not None:
+            return False
+        try:
+            with urllib.request.urlopen(url, timeout=2) as r:
+                if r.status == 200:
+                    return True
+        except OSError:
+            pass
+        time.sleep(1)
+    return False
 
-/* ── Sidebar scrollbar ── */
-section[data-testid="stSidebar"] ::-webkit-scrollbar {{ width: 3px; }}
-section[data-testid="stSidebar"] ::-webkit-scrollbar-track {{ background: transparent; }}
-section[data-testid="stSidebar"] ::-webkit-scrollbar-thumb {{
-    background: {BORDER};
-    border-radius: 2px;
-}}
 
-/* ── Main content padding ── */
-.main .block-container {{
-    padding-top: 1rem !important;
-    padding-bottom: 1rem !important;
-    max-width: 100% !important;
-}}
+def _stop(proc: subprocess.Popen, grace: float) -> None:
+    """Stop uv, the API and its in-memory mongod, giving them `grace` seconds to exit on their own."""
+    try:
+        proc.wait(timeout=grace)
+        return
+    except subprocess.TimeoutExpired:
+        pass
+    if os.name == "nt":  # terminate() would stop uv alone and leave the API and mongod running
+        subprocess.call(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    else:
+        proc.terminate()
+    proc.wait()
 
-/* ── Sign out button ── */
-button[data-testid="baseButton-secondary"][kind="secondary"]#logout,
-section[data-testid="stSidebar"] button[key="logout"],
-section[data-testid="stSidebar"] div[data-testid="stButton"]:last-of-type > button {{
-    background: {RED}18 !important;
-    border: 1px solid {RED}55 !important;
-    color: {RED} !important;
-    font-family: 'IBM Plex Mono', monospace !important;
-    font-size: 10px !important;
-    letter-spacing: 1.5px !important;
-    border-radius: 4px !important;
-    padding: 7px 12px !important;
-    width: 100% !important;
-    transition: background 0.15s, border-color 0.15s !important;
-}}
-section[data-testid="stSidebar"] div[data-testid="stButton"]:last-of-type > button:hover {{
-    background: {RED}30 !important;
-    border-color: {RED} !important;
-}}
-</style>
-""", unsafe_allow_html=True)
 
-# ── Auth gate ─────────────────────────────────────────────────────────────────
-if "auth_user" not in st.session_state:
-    login_page()
-    st.stop()
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Run EquityLensNG locally on synthetic data.")
+    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--no-open", action="store_true", help="don't open the browser")
+    parser.add_argument("--rebuild", action="store_true", help="build the React app even if it looks current")
+    args = parser.parse_args()
+    sys.stdout.reconfigure(line_buffering=True)  # progress shows at once, also when piped to a file
 
-user     = st.session_state.auth_user
-is_admin = user["role"] == "admin"
+    uv = _tool("uv", "Install it from https://docs.astral.sh/uv/ and run this again.")
+    npm = _tool("npm", "Install Node.js 22 or newer from https://nodejs.org and run this again.")
+    if not SERVER.exists():
+        _fail(f"{SERVER.relative_to(ROOT)} is missing. It's the local test server, which is never committed (D-11); "
+              "restore frontend/e2e/ and backend/tests/ from your private backup.")
+    if _port_busy(args.port):
+        _fail(f"Something already listens on port {args.port}. Stop it, or run: python app.py --port {args.port + 1}")
 
-# ── Build page list based on role ─────────────────────────────────────────────
-PAGES = {
-    "Market Overview": ("🌍", market_overview_page),
-    "Stock Deep Dive":  ("📈", deep_dive_page),
-}
-if is_admin:
-    PAGES["Admin Panel"] = ("⚙️", admin_page)
+    # uv warns when another virtualenv (e.g. stock_env) is active; the backend uses its own .venv
+    env = {k: v for k, v in os.environ.items() if k != "VIRTUAL_ENV"}
 
-# ── Sidebar ───────────────────────────────────────────────────────────────────
-with st.sidebar:
-    # Branding
-    st.markdown(f"""
-        <div style='padding:0px 20px 16px 0px'>
-            <div style='color:{ACCENT};font-weight:800;font-size:22px;
-                        letter-spacing:3px;line-height:1'>EquityLens</div>
-            <div style='color:{MUTED};font-size:8px;letter-spacing:5px;
-                        margin-top:3px;font-weight:500;font-size:12px'>NG</div>
-        </div>
-        <div style='height:1px;background:{BORDER};margin:0 0 8px 0'></div>
-        <div style='color:{MUTED};font-size:8px;letter-spacing:2.5px;
-                    padding:6px 20px 4px 20px'>NAVIGATION</div>
-    """, unsafe_allow_html=True)
+    print("EquityLensNG, local test run\n")
+    lock, installed = FRONTEND / "package-lock.json", FRONTEND / "node_modules" / ".package-lock.json"
+    if not installed.exists() or lock.stat().st_mtime > installed.stat().st_mtime:
+        print("[1/3] Installing the React app's packages")
+        _run([npm, "ci"], FRONTEND, env)
+    else:
+        print("[1/3] React app's packages are installed")
 
-    selected = st.radio(
-        "nav",
-        list(PAGES.keys()),
-        format_func=lambda x: f"{PAGES[x][0]}  {x}",
-        label_visibility="hidden",
-    )
+    if args.rebuild or not DIST.exists() or _newest(SOURCES) > DIST.stat().st_mtime:
+        print("[2/3] Building the React app")
+        _run([npm, "run", "build"], FRONTEND, env)
+    else:
+        print("[2/3] React build is up to date")
 
-    st.markdown("<div style='height:200px'></div>", unsafe_allow_html=True)
+    print("[3/3] Starting the API on synthetic data (installs the backend's packages on first run)")
+    url = f"http://localhost:{args.port}"
+    proc = subprocess.Popen([uv, "run", "python", str(SERVER)], cwd=BACKEND, env={**env, "E2E_PORT": str(args.port)})
+    try:
+        if not _wait_ready(f"http://127.0.0.1:{args.port}/api/v1/readyz", proc):
+            _stop(proc, grace=0)
+            _fail("The API didn't start; the output above says why.")
+        print(f"\nReady: {url}\n")
+        for role, email, password in LOGINS:
+            print(f"    {role:<6} {email}  /  {password}")
+        print("\n    Data is synthetic and resets when you stop. AI readings are canned test text.")
+        print(f"    Invite and reset emails aren't sent: their links are in {OUTBOX.relative_to(ROOT)}")
+        print("    Ctrl+C to stop.\n")
+        if not args.no_open:
+            webbrowser.open(url)
+        while proc.poll() is None:  # short waits, so Ctrl+C gets through on Windows
+            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("\nStopping...")
+    finally:
+        _stop(proc, grace=10)  # Ctrl+C reaches the API too, which shuts down by itself
 
-    # ── User card ─────────────────────────────────────────────────────────────
-    role_color    = ACCENT if is_admin else MUTED
-    role_label    = "ADMIN" if is_admin else "USER"
-    avatar_letter = user["username"][0].upper()
 
-    st.markdown(f"""
-        <div style='border-top:1px solid {BORDER};padding:14px 16px 10px 16px'>
-            <div style='display:flex;align-items:center;gap:10px'>
-                <div style='width:30px;height:30px;border-radius:50%;flex-shrink:0;
-                            background:{ACCENT}22;border:1px solid {ACCENT}55;
-                            display:flex;align-items:center;justify-content:center;
-                            color:{ACCENT};font-size:12px;font-weight:700'>
-                    {avatar_letter}
-                </div>
-                <div>
-                    <div style='color:{TEXT};font-size:12px;font-weight:500'>
-                        {user["username"]}
-                    </div>
-                    <div style='display:flex;align-items:center;gap:5px;margin-top:2px'>
-                        <div style='width:5px;height:5px;border-radius:50%;
-                                    background:{ACCENT};
-                                    box-shadow:0 0 5px {ACCENT}99'></div>
-                        <span style='color:{role_color};font-size:9px;
-                                     letter-spacing:1.5px'>{role_label}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # ── Sign out ──────────────────────────────────────────────────────────────
-    st.markdown("<div style='padding:0 16px 16px 16px'>", unsafe_allow_html=True)
-    if st.button("⏻  SIGN OUT", key="logout", use_container_width=True):
-        del st.session_state.auth_user
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# ── Render page ───────────────────────────────────────────────────────────────
-PAGES[selected][1]()
+if _under_streamlit():
+    # the legacy app; Streamlit reruns this file on every interaction, and each rerun hands over again
+    runpy.run_path(str(ROOT / "streamlit_app.py"), run_name="__main__")
+elif __name__ == "__main__":
+    main()

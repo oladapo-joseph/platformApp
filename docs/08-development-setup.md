@@ -16,29 +16,39 @@
 
 ```text
 platformApp/
-├── streamlitApp/   legacy app snapshot (runs today)
-├── backend/        FastAPI (P1: market, stock, news read APIs)
-├── frontend/       React (planned, P3)
+├── app.py          local test launcher for the new app (python app.py)
+├── streamlit_app.py, views/, data/, analysis/, charts/, utility/, static/   the live Streamlit app, until cutover
+├── backend/        FastAPI API
+├── frontend/       React app
 ├── design/         tokens.css, preview.html, options.html
 ├── brand/          logo SVGs, PNGs, generate_logo.py
-└── docs/           01–08 project docs
+└── docs/           01–12 project docs
 ```
+
+## Quick start: try the new app locally
+
+```bash
+cd platformApp
+python app.py                # or --port 8001 if :8000 is taken; --no-open; --rebuild
+```
+
+It needs uv and Node.js 22+, plus the local test server (`frontend/e2e/serve.py` and `backend/tests/`, never committed, D-11). It installs the frontend's packages if they're missing, rebuilds the React app when anything in `frontend/src`, `frontend/public`, `design/` or `brand/` is newer than `frontend/dist`, then starts the API with the built app on http://localhost:8000 over an in-memory database with synthetic NGX data (never Atlas). It prints the test logins; invite and reset links land in `frontend/e2e/.outbox.jsonl`; AI readings are canned. Ctrl+C stops it and the data resets. Sections 3 and 4 below cover running the backend and frontend separately.
 
 ## 1. Run the legacy Streamlit app (today)
 
 ```bash
-cd platformApp/streamlitApp
+cd platformApp
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (macOS/Linux: source .venv/bin/activate)
 pip install -r requirements-dev.txt   # runtime deps + pytest (use requirements.txt for runtime only)
-streamlit run app.py            # http://localhost:8501
+streamlit run streamlit_app.py   # http://localhost:8501 (streamlit run app.py hands over to it too)
 ```
 
-`streamlitApp/.env` was copied from the original app (it's git-ignored). Required keys: `MONGODB_URI`, `MONGODB_DB`, `COLLECTION_NAME`, `ANTHROPIC_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`. `DB_PATH` and `NGX_ENDPOINT` are unused. `GEMINI_API_KEY` is unused by the current code but kept, because Gemini is the interim AI provider.
+`platformApp/.env` is git-ignored. Required keys: `MONGODB_URI`, `MONGODB_DB`, `COLLECTION_NAME`, `ANTHROPIC_API_KEY`, `ADMIN_USERNAME`, `ADMIN_PASSWORD`. `DB_PATH` and `NGX_ENDPOINT` are unused. `GEMINI_API_KEY` is unused by the current code but kept, because Gemini is the interim AI provider.
 
-Tests: `python -m pytest -q --ignore=tests/test_recommender.py`. As of 2026-10-25 that's 75 passed and 1 failed (the failure is an outdated RSI warm-up test). `test_recommender.py` needs rewriting for the Anthropic SDK. See [assessment Q2](01-current-state-assessment.md).
+Tests: the legacy tests are archived with the old copy in `StocksRelated/archive/streamlitApp/tests/` (run them there: `python -m pytest -q --ignore=tests/test_recommender.py`). As of 2026-10-25 that's 75 passed and 1 failed (the failure is an outdated RSI warm-up test). `test_recommender.py` needs rewriting for the Anthropic SDK. See [assessment Q2](01-current-state-assessment.md).
 
-> The original files at the `platformApp/` root are identical and still run (`streamlit run app.py` from `platformApp/`). Keep them until cutover in case production deploys from that path.
+> These root files are what production runs. Keep them until cutover; the backend's legacy parity tests also import them.
 
 ## 2. Preview the design system (today)
 

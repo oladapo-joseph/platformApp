@@ -33,7 +33,6 @@ e2e/
 # email template previews (python -m app.cli email-templates render)
 email-previews/
 *.sqlite3
-streamlitApp/
 
 registry.json
 # frontend: copies of /design and /brand made by `npm run sync:tokens` (edit the originals)

@@ -8,7 +8,7 @@ Every email EquityLensNG sends: one module per type, built from the email design
 | `layout.py` | The design system: tokens, blocks (Heading, Paragraph, Details, Button, Callout, Divider), the layout |
 | `__init__.py` | `TemplateSpec`, `Var`, `OutgoingEmail`, `make()` (cleans values), `all_specs()` |
 | `sync.py` | Creates, updates and publishes templates in Resend; reads and writes the registry |
-| `registry.json` | **Every template created in Resend** (alias, id, version, fingerprint, timestamps). Committed; written only by `sync` |
+| `registry.json` | **Every template created in Resend** (alias, id, version, fingerprint, timestamps). Git-ignored (owner decision), so it lives only on your machine: keep a private backup. Written only by `sync` |
 | `preview.py` | Renders all templates with sample values for review |
 
 ```bash
@@ -18,4 +18,4 @@ uv run python -m app.cli email-templates status
 uv run python -m app.cli send-test-email --to you@example.com
 ```
 
-Add a module, register it in `all_specs()`, render and review it, sync, and commit the module together with `registry.json`.
+Add a module, register it in `all_specs()`, render and review it, sync, and commit the module (`registry.json` stays local).

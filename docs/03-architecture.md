@@ -58,12 +58,11 @@ platformApp/
 ├── design/                   Design tokens (tokens.css) + visual reference (preview.html)
 ├── brand/                    Logo SVGs + PNG exports
 ├── docs/                     This documentation set
-├── streamlitApp/             Frozen copy of the legacy Streamlit app (reference + rollback)
 ├── CHANGELOG.md
 └── README.md
 ```
 
-The legacy files at the `platformApp/` root (`app.py`, `views/`, …) stay in place until cutover (Phase 5), because production may deploy from that path. They are removed in Phase 5 once `streamlitApp/` (or the new app) is the deployed target.
+The legacy files at the `platformApp/` root (`streamlit_app.py`, `views/`, …) stay in place until cutover (Phase 5), because production may deploy from that path. They are removed in Phase 5 once the new app is the deployed target; git history keeps them for reference and rollback. (The frozen copy that was in `streamlitApp/` moved out of the project on 2026-11-01, to `StocksRelated/archive/streamlitApp/`.)
 
 ---
 

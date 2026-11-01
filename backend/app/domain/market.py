@@ -1,6 +1,6 @@
 """
 Market and period summaries: pure functions over per-symbol rows
-(ported from streamlitApp/views/market_overview.py and deep_dive.py::_meta_bar).
+(ported from the Streamlit app's views/market_overview.py and deep_dive.py::_meta_bar).
 """
 
 from collections import defaultdict

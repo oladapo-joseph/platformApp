@@ -94,7 +94,7 @@ Security notices are best-effort: if the email fails, the password change still 
 
 ## 7. Tracking: the registry
 
-[`backend/app/emails/registry.json`](../backend/app/emails/registry.json) is **committed** and records every template created in Resend: alias, Resend ID, version, content fingerprint, status, subject, trigger, variables, and when it was created, updated and published. Only `email-templates sync` writes it, after each template, so an interrupted sync still leaves an accurate record. `email-templates status` compares the registry and the specs with what's live in Resend, and flags drift: unpublished edits made in the dashboard, templates missing from Resend, or `el-*` templates that no spec owns.
+`backend/app/emails/registry.json` is **git-ignored** (owner decision), so it exists only on the machine that runs `sync`; keep a private backup. It records every template created in Resend: alias, Resend ID, version, content fingerprint, status, subject, trigger, variables, and when it was created, updated and published. Only `email-templates sync` writes it, after each template, so an interrupted sync still leaves an accurate record. `email-templates status` compares the registry and the specs with what's live in Resend, and flags drift: unpublished edits made in the dashboard, templates missing from Resend, or `el-*` templates that no spec owns.
 
 **Aliases never change:** they're how the app sends. To retire an email, remove its module, then archive the template in Resend by hand.
 
@@ -109,7 +109,7 @@ uv run python -m app.cli email-templates status            # registry vs Resend
 uv run python -m app.cli send-test-email --to you@example.com [--template el-invite]   # real send, "[Test]" subject
 ```
 
-**Adding an email:** create `app/emails/<name>.py` with a `SPEC` (alias `el-<name>`) and a `build(...)`, add it to `all_specs()`, render and review it in light and dark, sync, then commit the module and the updated `registry.json` together.
+**Adding an email:** create `app/emails/<name>.py` with a `SPEC` (alias `el-<name>`) and a `build(...)`, add it to `all_specs()`, render and review it in light and dark, sync, then commit the module (`registry.json` stays local).
 
 **Changing an email:** edit the module, render, then sync. The fingerprint changes, so sync updates and republishes it in Resend and bumps its version.
 

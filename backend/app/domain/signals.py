@@ -1,5 +1,5 @@
 """
-Buy/sell signal strategies: pure pandas (ported from streamlitApp/analysis/signals.py).
+Buy/sell signal strategies: pure pandas (ported from the Streamlit app's analysis/signals.py).
 
 Each strategy takes the full close-price history (DatetimeIndex) and returns
 crossover events. The caller slices to the requested range afterwards, so a

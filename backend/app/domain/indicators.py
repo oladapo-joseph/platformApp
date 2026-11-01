@@ -1,5 +1,5 @@
 """
-Technical indicators: pure pandas, no I/O (ported from streamlitApp/data/indicators.py).
+Technical indicators: pure pandas, no I/O (ported from the Streamlit app's data/indicators.py).
 
 Project rules (never change):
   EMA: ewm(span=window, adjust=False)
