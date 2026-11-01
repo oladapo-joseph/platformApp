@@ -21,6 +21,8 @@ const ROUTE_CHUNKS = {
   "/app/news": "src/features/news/NewsPage.tsx",
   "/app/watchlist": "src/features/watchlist/WatchlistPage.tsx",
   "/app/account": "src/features/account/AccountPage.tsx",
+  "/app/help": "src/features/help/HelpPage.tsx",
+  "/app/welcome": "src/features/onboarding/WelcomePage.tsx",
 };
 
 /** Writes each screen's chunk files (minus what the entry already loads) into index.html. */

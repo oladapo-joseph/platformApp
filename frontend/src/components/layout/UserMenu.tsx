@@ -1,4 +1,4 @@
-import { Check, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
+import { Check, CircleHelp, LogOut, Monitor, Moon, Sun, UserRound } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import { useNavigate } from "react-router";
 
@@ -57,6 +57,9 @@ export function UserMenu() {
           <DropdownMenu.Separator className="my-1 h-px bg-line-subtle" />
           <DropdownMenu.Item className={item} onSelect={() => void navigate("/app/account")}>
             <UserRound aria-hidden className="size-4 text-fg-muted" /> Account
+          </DropdownMenu.Item>
+          <DropdownMenu.Item className={item} onSelect={() => void navigate("/app/help")}>
+            <CircleHelp aria-hidden className="size-4 text-fg-muted" /> Help and glossary
           </DropdownMenu.Item>
           <DropdownMenu.Separator className="my-1 h-px bg-line-subtle" />
           <DropdownMenu.Label className="eyebrow px-3 py-1.5 text-fg-muted">Theme</DropdownMenu.Label>

@@ -5,6 +5,7 @@
 import { RotateCcw, SlidersHorizontal, Table2 } from "lucide-react";
 import { Popover } from "radix-ui";
 import { lazy, Suspense, useState } from "react";
+import { Link } from "react-router";
 
 import { subDays } from "date-fns";
 
@@ -81,6 +82,9 @@ function IndicatorPicker({ v }: { v: StockViewState }) {
               </span>
             </label>
           </fieldset>
+          <Link to="/app/help#sma" className="text-sm font-medium text-brand underline underline-offset-2">
+            What these mean: the glossary
+          </Link>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

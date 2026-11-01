@@ -8,6 +8,8 @@ const PAGES: Record<string, string> = {
   "/app/news": "News",
   "/app/watchlist": "Watchlist",
   "/app/account": "Account",
+  "/app/help": "Help",
+  "/app/welcome": "Welcome (first stocks)",
   "/app/admin": "Admin",
 };
 
@@ -36,6 +38,8 @@ export const FEATURES: Record<string, string> = {
   "stock.news_sort": "Sorted a stock's news",
   "stock.peers_sort": "Sorted peers",
   "ai.explain": "Asked for an AI reading",
+  "onboarding.picked": "Picked first stocks",
+  "onboarding.skipped": "Skipped picking first stocks",
   "news.filter": "Filtered news",
   "news.sort": "Sorted news",
   "news.open": "Opened a news story",

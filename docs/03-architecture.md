@@ -257,6 +257,8 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | `/app/news` | News: filterable by stock, sector, topic, scope, regulator, source, date (US-9.8) | user |
 | `/app/watchlist` | Watchlist | user |
 | `/app/account` | Profile, password, theme, delete account | user |
+| `/app/help` | How it works, data and freshness, a searchable glossary (each term an anchor, `#rsi`), the fine print (US-6.5) | user |
+| `/app/welcome` | "Which stocks do you follow?": up to 10 picks for the watchlist, or skip; reached only from accepting an invite (US-1.8) | user |
 | `/app/admin/{requests,invites,users,audit,usage,data}` | Access requests, invites, users, audit log, usage, data health | admin |
 
 ### 4.3 Frontend structure

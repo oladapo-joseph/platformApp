@@ -104,7 +104,7 @@ export default function InvitePage() {
     accept.mutate(
       { token, display_name, password, accept_terms: true },
       {
-        onSuccess: () => void navigate("/app/market", { replace: true }),
+        onSuccess: () => void navigate("/app/welcome", { replace: true }), // US-1.8: pick a few stocks first
         onError: (error) => {
           if (error instanceof ApiError && error.slug === "invalid-invite") return setGone(true);
           setFormError(applyServerError(error, setError, ["display_name", "password"]));

@@ -10,6 +10,8 @@ import { day } from "@/lib/dates";
 import { price } from "@/lib/format";
 import { signalSummary, signalWording, sinceSignal, type ChartRange } from "@/lib/stock";
 
+import { StrategyExplainer } from "./StrategyExplainer";
+
 const SHORT: Record<string, string> = {
   macd_crossover: "MACD",
   rsi_reversal: "RSI",
@@ -62,6 +64,7 @@ export function SignalsPanel({
         />
         {info && <p className="text-xs text-fg-muted">{info.description}</p>}
       </div>
+      {info && <StrategyExplainer key={info.slug} slug={info.slug} label={info.label} />}
       {error && !data ? (
         <ErrorState error={error} onRetry={onRetry} title="Signals didn't load" />
       ) : !data ? (

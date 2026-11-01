@@ -105,6 +105,8 @@ export const router = createBrowserRouter([
                 ...prefetch(watchlist),
               },
               { path: "account", lazy: page(() => import("@/features/account/AccountPage")) },
+              { path: "help", lazy: page(() => import("@/features/help/HelpPage")) },
+              { path: "welcome", lazy: page(() => import("@/features/onboarding/WelcomePage")) },
               {
                 element: <RequireAdmin />,
                 children: [
