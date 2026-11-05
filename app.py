@@ -170,9 +170,14 @@ def main() -> None:
     server_env = {**env, "E2E_PORT": str(args.port), "E2E_LIVE": "1" if args.live else "0"}
     proc = subprocess.Popen([uv, "run", "python", str(SERVER)], cwd=BACKEND, env=server_env)
     try:
-        if not _wait_ready(f"http://127.0.0.1:{args.port}/api/v1/readyz", proc):
+        # the live copy runs at the speed of your connection to Atlas: give it longer
+        if not _wait_ready(f"http://127.0.0.1:{args.port}/api/v1/readyz", proc, timeout=900 if args.live else 240):
+            stopped = proc.poll() is not None
             _stop(proc, grace=0)
-            _fail("The API didn't start; the output above says why.")
+            if stopped:
+                _fail("The API didn't start; the output above says why.")
+            _fail("The API didn't start in time." + (" Copying from Atlas is slow on this connection; "
+                  "run it again (daily bars are cached) or try another network." if args.live else ""))
         print(f"\nReady: {url}\n")
         for role, email, password in LOGINS:
             print(f"    {role:<6} {email}  /  {password}")
