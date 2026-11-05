@@ -2603,7 +2603,7 @@
             "title": "Data As Of"
           },
           "is_trading_hours": {
-            "description": "Mon\u2013Fri 10:00\u201314:30 WAT (public holidays not known)",
+            "description": "Mon\u2013Fri 09:30\u201315:55 WAT (public holidays not known)",
             "title": "Is Trading Hours",
             "type": "boolean"
           },

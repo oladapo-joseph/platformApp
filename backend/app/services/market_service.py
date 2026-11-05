@@ -11,7 +11,7 @@ from app.domain.market import SymbolRow, resolve_pct, summarize
 from app.repositories import get_repos
 from app.services.stock_service import company_names
 
-NGX_OPEN, NGX_CLOSE = time(10, 0), time(14, 30)
+NGX_OPEN, NGX_CLOSE = time(9, 30), time(15, 55)
 MAX_RANGE_DAYS = 3 * 366
 
 

@@ -18,7 +18,7 @@ export default function DataHealthPage() {
     ["Last crawl (tradesData)", <When key="f" value={h.last_fetch_at} />],
     ["Last daily_bars update", <When key="b" value={h.last_bars_update_at} />],
     ["Latest session", h.latest_trade_date ? day(h.latest_trade_date) : "—"],
-    ["Market now", h.trading_hours ? "Open (10:00–14:30 WAT)" : "Closed"],
+    ["Market now", h.trading_hours ? "Open (09:30–15:55 WAT)" : "Closed"],
   ];
   return (
     <div className="flex flex-col gap-6">

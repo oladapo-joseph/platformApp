@@ -9,7 +9,7 @@ class MarketStatus(BaseModel):
     latest_trade_date: date | None
     data_as_of: datetime | None = Field(description="When the newest data was crawled (WAT)")
     data_age_minutes: int | None
-    is_trading_hours: bool = Field(description="Mon–Fri 10:00–14:30 WAT (public holidays not known)")
+    is_trading_hours: bool = Field(description="Mon–Fri 09:30–15:55 WAT (public holidays not known)")
     timezone: str = "Africa/Lagos"
 
 

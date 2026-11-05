@@ -13,7 +13,7 @@ export function freshness(status: MarketStatus, now: Date = new Date()) {
     return { text: `Markets closed · showing ${weekday(latest)}`, stale: false };
   }
   const minutes = watMinutes(asOf) ?? 0;
-  const closing = minutes >= 14 * 60 + 30;
+  const closing = minutes >= 15 * 60 + 55; // NGX closes at 15:55 WAT
   return {
     text: `${closing ? "Closing data" : "Data as of"} ${stamp(asOf)}`,
     stale: status.is_trading_hours && age > 120,

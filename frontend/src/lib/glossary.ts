@@ -80,7 +80,7 @@ export const GLOSSARY: Term[] = [
     term: "Trading session",
     aka: ["trade date"],
     group: "Market",
-    body: "One trading day on NGX, Monday to Friday, 10:00 to 14:30 WAT, except public holidays. Prices are grouped by the session NGX reports them for, not by when we collected them.",
+    body: "One trading day on NGX, Monday to Friday, 09:30 to 15:55 WAT, except public holidays. Prices are grouped by the session NGX reports them for, not by when we collected them.",
   },
   {
     id: "market-cap",

@@ -1825,7 +1825,7 @@ export interface components {
             data_as_of: string | null;
             /**
              * Is Trading Hours
-             * @description Mon–Fri 10:00–14:30 WAT (public holidays not known)
+             * @description Mon–Fri 09:30–15:55 WAT (public holidays not known)
              */
             is_trading_hours: boolean;
             /** Latest Trade Date */

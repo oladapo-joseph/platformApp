@@ -238,7 +238,7 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 
 - Every data screen shows a freshness stamp: "Data as of 14:35 WAT · 26 Oct".
 - Given the market is open and the data is more than 2 h old, then the stamp turns to the warning style with "Data may be delayed".
-- Given it's after the close (14:30 WAT), then the label reads "Closing data". On weekends and holidays: "Markets closed · showing Fri 24 Oct".
+- Given it's after the close (15:55 WAT), then the label reads "Closing data". On weekends and holidays: "Markets closed · showing Fri 24 Oct".
 - Given new data arrives while the page is open, then views refresh in the background without losing scroll position or filters. A subtle "Updated 14:35" appears.
 
 **UX notes:** The stamp sits in the page header on mobile and top-right on desktop. Never use the word "live" or "real-time".

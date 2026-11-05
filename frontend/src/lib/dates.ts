@@ -47,7 +47,7 @@ export function isoDay(value: When): string | null {
   return d ? format(d, "yyyy-MM-dd") : null;
 }
 
-/** Minutes past midnight in WAT, for "closing data after 14:30" */
+/** Minutes past midnight in WAT, for "closing data after 15:55" */
 export function watMinutes(value: When): number | null {
   const d = toWat(value);
   return d ? d.getHours() * 60 + d.getMinutes() : null;

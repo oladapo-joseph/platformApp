@@ -95,8 +95,8 @@ export default function HelpPage() {
               minutes from 09:00 to 16:40 WAT on weekdays. The time in the top bar says how fresh they are.
             </li>
             <li>
-              Each session's close is the last price NGX reports for that trading day. On weekends and public holidays
-              you see the last session.
+              NGX trades from 09:30 to 15:55 WAT on weekdays. Each session's close is the last price NGX reports for
+              that trading day. On weekends and public holidays you see the last session.
             </li>
             <li>
               <strong className="text-fg">News</strong> is collected automatically about every 4 hours and kept for 90

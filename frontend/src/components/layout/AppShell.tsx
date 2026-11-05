@@ -130,7 +130,7 @@ function MarketPulse() {
           aria-hidden
           className={cn("size-2 rounded-full", open ? "bg-brand shadow-[0_0_10px_var(--color-brand)]" : "bg-warning")}
         />
-        {open ? "Open · 10:00–14:30 WAT" : "Closed"}
+        {open ? "Open · 09:30–15:55 WAT" : "Closed"}
       </p>
     </div>
   );

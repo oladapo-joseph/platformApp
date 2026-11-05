@@ -14,7 +14,7 @@ The project rebuilds the internal Streamlit dashboard as a **FastAPI backend + R
 | --- | --- | --- |
 | G1 | **Easy to start** | Invite link → first stock page in ≤ 60 s (median); ≥ 80% of sent invites accepted within 7 days; ≥ 70% of new users view a stock page in their first session |
 | G2 | **Fast** | API p95 < 300 ms for cached market endpoints and < 800 ms for a cold stock history; Largest Contentful Paint < 2.5 s on a mid-range Android phone over 4G |
-| G3 | **Reliable** | 99.5% monthly availability during NGX trading hours (10:00–14:30 WAT); a data-freshness indicator is always visible and accurate |
+| G3 | **Reliable** | 99.5% monthly availability during NGX trading hours (09:30–15:55 WAT); a data-freshness indicator is always visible and accurate |
 | G4 | **Trustworthy** | Every AI output is labelled, dated, and carries a disclaimer; zero 🔴 findings from the security review open at launch |
 | G5 | **Accessible** | WCAG 2.2 AA on all core journeys (automated axe checks pass, plus a manual keyboard and screen-reader pass) |
 | G6 | **Parity** | Every current Streamlit feature is available (or deliberately retired) before the Streamlit app is switched off |

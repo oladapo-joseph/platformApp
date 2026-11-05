@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed — NGX trading hours (2026-11-05)
+- The market is now open 09:30–15:55 WAT on weekdays (was 10:00–14:30): the open/closed status, "Closing data" after 15:55, the data-health stale check, and the sidebar, admin, glossary and help wording.
+
 ### Added — live data for local testing (2026-11-05)
 - `python app.py --live`: the local test run with real prices and news. It copies the crawler's collections read-only from the Atlas database in `backend/.env` into the throwaway in-memory database (only `find` and `list_indexes`, on a secondary when there is one), caches the daily bars so later starts fetch only new days, and never touches the platform's own collections, so logins, watchlists and invites stay local.
 

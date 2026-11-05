@@ -161,7 +161,7 @@ Icons: **Lucide** (ISC licence), 20 px default, 1.75 stroke, `aria-hidden` unles
 | --- | --- |
 | **URL is state** | Symbol, range, strategy, overlays, panels, and market mode live in the query string. Back/forward and sharing work. |
 | **Loading** | Skeletons for first load. Keep stale data visible with a subtle progress bar while refetching. Never blank a chart that has data. |
-| **Freshness** | Every data screen shows a `FreshnessStamp`. After 14:30 WAT, label it "Closing data". On weekends and holidays, "Last trading day: Fri 24 Oct". |
+| **Freshness** | Every data screen shows a `FreshnessStamp`. After 15:55 WAT (the close), label it "Closing data". On weekends and holidays, "Last trading day: Fri 24 Oct". |
 | **Empty first-run** | The stock page with no symbol shows a search + "Popular: MTNN · DANGCEM · ZENITHBANK · GTCO". Nothing is shown disabled. |
 | **Progressive disclosure** | Defaults: candle chart, 6M, volume pane on; RSI/MACD and overlays a tap away under "Indicators". |
 | **Signals on the chart** | Selected-strategy markers on the price chart; the list underneath links each marker ↔ row (focus syncs). |
