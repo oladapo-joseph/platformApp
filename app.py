@@ -4,6 +4,8 @@ Run EquityLensNG on your machine for testing: python app.py
 Installs what's missing, builds the React app when its sources changed, and starts the API
 with the built app on http://localhost:8000 over the local test server (frontend/e2e/serve.py):
 a throwaway in-memory database with synthetic NGX data, never Atlas. Ctrl+C stops it.
+With --live the market data is real instead: a read-only copy of the crawler's collections from the
+Atlas database in backend/.env (frontend/e2e/live.py). Logins, watchlists, emails and AI stay local.
 backend/ and frontend/ stay the deployable build; this file is for local testing only.
 
 Under Streamlit (streamlit run app.py, or a host still pointed at app.py) it runs the legacy
@@ -13,6 +15,7 @@ Streamlit app in streamlit_app.py instead, so the live app keeps working until c
     python app.py --port 8001  # when something already listens on :8000
     python app.py --no-open    # don't open the browser
     python app.py --rebuild    # build the React app even if it looks current
+    python app.py --live       # real prices and news, copied read-only from Atlas
 """
 
 import argparse
@@ -123,10 +126,12 @@ def _stop(proc: subprocess.Popen, grace: float) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run EquityLensNG locally on synthetic data.")
+    parser = argparse.ArgumentParser(description="Run EquityLensNG locally on synthetic or copied live data.")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--no-open", action="store_true", help="don't open the browser")
     parser.add_argument("--rebuild", action="store_true", help="build the React app even if it looks current")
+    parser.add_argument("--live", action="store_true",
+                        help="copy real market data read-only from the Atlas database in backend/.env")
     args = parser.parse_args()
     sys.stdout.reconfigure(line_buffering=True)  # progress shows at once, also when piped to a file
 
@@ -135,6 +140,8 @@ def main() -> None:
     if not SERVER.exists():
         _fail(f"{SERVER.relative_to(ROOT)} is missing. It's the local test server, which is never committed (D-11); "
               "restore frontend/e2e/ and backend/tests/ from your private backup.")
+    if args.live and not (BACKEND / ".env").exists():
+        _fail("--live reads MONGODB_URI and MONGODB_DB from backend/.env, which is missing (see backend/.env.example).")
     if _port_busy(args.port):
         _fail(f"Something already listens on port {args.port}. Stop it, or run: python app.py --port {args.port + 1}")
 
@@ -155,9 +162,13 @@ def main() -> None:
     else:
         print("[2/3] React build is up to date")
 
-    print("[3/3] Starting the API on synthetic data (installs the backend's packages on first run)")
+    if args.live:
+        print("[3/3] Copying live market data from Atlas (read-only), then starting the API")
+    else:
+        print("[3/3] Starting the API on synthetic data (installs the backend's packages on first run)")
     url = f"http://localhost:{args.port}"
-    proc = subprocess.Popen([uv, "run", "python", str(SERVER)], cwd=BACKEND, env={**env, "E2E_PORT": str(args.port)})
+    server_env = {**env, "E2E_PORT": str(args.port), "E2E_LIVE": "1" if args.live else "0"}
+    proc = subprocess.Popen([uv, "run", "python", str(SERVER)], cwd=BACKEND, env=server_env)
     try:
         if not _wait_ready(f"http://127.0.0.1:{args.port}/api/v1/readyz", proc):
             _stop(proc, grace=0)
@@ -165,7 +176,11 @@ def main() -> None:
         print(f"\nReady: {url}\n")
         for role, email, password in LOGINS:
             print(f"    {role:<6} {email}  /  {password}")
-        print("\n    Data is synthetic and resets when you stop. AI readings are canned test text.")
+        if args.live:
+            print("\n    Prices and news are a copy of Atlas: nothing you do here reaches it. AI readings are canned.")
+            print("    Logins, watchlists and invites are local and reset when you stop.")
+        else:
+            print("\n    Data is synthetic and resets when you stop. AI readings are canned test text.")
         print(f"    Invite and reset emails aren't sent: their links are in {OUTBOX.relative_to(ROOT)}")
         print("    Ctrl+C to stop.\n")
         if not args.no_open:

@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — live data for local testing (2026-11-05)
+- `python app.py --live`: the local test run with real prices and news. It copies the crawler's collections read-only from the Atlas database in `backend/.env` into the throwaway in-memory database (only `find` and `list_indexes`, on a secondary when there is one), caches the daily bars so later starts fetch only new days, and never touches the platform's own collections, so logins, watchlists and invites stay local.
+
 ### Added — local launcher (2026-11-01)
 - `app.py` is now a one-command local test run of the new app: `python app.py` installs the frontend's packages if missing, rebuilds the React app when its sources changed, and serves it with the API on synthetic data at http://localhost:8000, printing the test logins. The legacy Streamlit entry point moved to `streamlit_app.py`; under Streamlit, `app.py` hands over to it, so the live app keeps working from either name.
 

@@ -42,7 +42,8 @@ FastAPI · PyMongo · pandas · Claude via the Anthropic SDK (Gemini optional, b
 ## Try it locally
 
 ```bash
-python app.py   # from platformApp/: builds the React app if needed, starts it on synthetic data at http://localhost:8000
+python app.py          # from platformApp/: builds the React app if needed, starts it on synthetic data at http://localhost:8000
+python app.py --live   # the same, with real prices and news copied read-only from Atlas (backend/.env)
 ```
 
 The legacy Streamlit app: `pip install -r requirements.txt && streamlit run streamlit_app.py` (`streamlit run app.py` still works).

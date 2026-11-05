@@ -30,9 +30,12 @@ platformApp/
 ```bash
 cd platformApp
 python app.py                # or --port 8001 if :8000 is taken; --no-open; --rebuild
+python app.py --live         # real market data, copied read-only from Atlas
 ```
 
-It needs uv and Node.js 22+, plus the local test server (`frontend/e2e/serve.py` and `backend/tests/`, never committed, D-11). It installs the frontend's packages if they're missing, rebuilds the React app when anything in `frontend/src`, `frontend/public`, `design/` or `brand/` is newer than `frontend/dist`, then starts the API with the built app on http://localhost:8000 over an in-memory database with synthetic NGX data (never Atlas). It prints the test logins; invite and reset links land in `frontend/e2e/.outbox.jsonl`; AI readings are canned. Ctrl+C stops it and the data resets. Sections 3 and 4 below cover running the backend and frontend separately.
+It needs uv and Node.js 22+, plus the local test server (`frontend/e2e/serve.py` and `backend/tests/`, never committed, D-11). It installs the frontend's packages if they're missing, rebuilds the React app when anything in `frontend/src`, `frontend/public`, `design/` or `brand/` is newer than `frontend/dist`, then starts the API with the built app on http://localhost:8000 over an in-memory database with synthetic NGX data (never Atlas). It prints the test logins; invite and reset links land in `frontend/e2e/.outbox.jsonl`; AI readings are canned. Ctrl+C stops it and the data resets. **`--live`** swaps the synthetic market for a read-only copy of the crawler's collections (`daily_bars`, `industry_data`, `news_articles`, and the last 7 days of `tradesData`) from the database in `backend/.env`, made by `frontend/e2e/live.py`. The Atlas client only runs `find` and `list_indexes`, prefers a secondary and is closed before the API starts; the platform's own collections are never read or written, so the test logins, watchlists, invites and AI allowance stay in the throwaway copy. `daily_bars` is cached in `frontend/e2e/.live-cache.pkl` (git-ignored), so later starts fetch only the days since the last one; delete it to copy everything again. AI readings stay canned. On Windows, Python also asks the DNS servers of disconnected adapters (hotspot, Bluetooth), which can time out the `mongodb+srv` lookup; the copier adds short timeouts and public resolvers, but a backend you run directly against Atlas can still hit it.
+
+Sections 3 and 4 below cover running the backend and frontend separately.
 
 ## 1. Run the legacy Streamlit app (today)
 
