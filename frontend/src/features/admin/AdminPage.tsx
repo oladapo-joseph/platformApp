@@ -22,7 +22,7 @@ export default function AdminPage() {
   return (
     <>
       <PageHeader title="Admin" description="Access, people, activity and data." />
-      <nav aria-label="Admin" className="-mx-4 mb-6 overflow-x-auto px-4">
+      <nav aria-label="Admin" className="relative -mx-4 mb-6 overflow-x-auto px-4">
         <ul className="flex gap-1 border-b border-line-subtle">
           {SECTIONS.map((s) => {
             const count = "badge" in s ? (summary?.[s.badge] ?? 0) : 0;

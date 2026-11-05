@@ -31,13 +31,7 @@ function Arc({ from, length, className }: { from: number; length: number; classN
   );
 }
 
-export function BreadthRing({
-  t,
-  hrefWith,
-}: {
-  t: Totals;
-  hrefWith: (patch: Record<string, string | null>) => string;
-}) {
+export function BreadthRing({ t, stocksHref }: { t: Totals; stocksHref: (patch: Record<string, string>) => string }) {
   const total = t.up + t.down + t.flat || 1;
   const up = (t.up / total) * C;
   const flat = (t.flat / total) * C;
@@ -67,13 +61,13 @@ export function BreadthRing({
       <ul className="flex flex-col gap-1.5 text-sm text-fg-2 sm:flex-row sm:gap-4">
         <li className="flex items-center gap-2">
           <span aria-hidden className="size-2.5 rounded-sm bg-gain" />
-          <Link to={{ search: hrefWith({ sort: "-pct" }), hash: "all-stocks" }} className={link}>
+          <Link to={stocksHref({ sort: "-pct" })} className={link}>
             {t.up} up
           </Link>
         </li>
         <li className="flex items-center gap-2">
           <span aria-hidden className="size-2.5 rounded-sm bg-loss" />
-          <Link to={{ search: hrefWith({ sort: "pct" }), hash: "all-stocks" }} className={link}>
+          <Link to={stocksHref({ sort: "pct" })} className={link}>
             {t.down} down
           </Link>
         </li>

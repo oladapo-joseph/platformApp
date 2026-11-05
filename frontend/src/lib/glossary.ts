@@ -115,6 +115,19 @@ export const GLOSSARY: Term[] = [
     group: "Market",
     body: "NGX's index of all listed stocks, weighted by their size; the most quoted measure of the Nigerian market. EquityLensNG will add it when the data source does.",
   },
+  {
+    id: "sector-average",
+    term: "Sector average",
+    aka: ["all-stock average", "benchmark"],
+    group: "Market",
+    body: "On Compare, the average daily move of every stock in a sector (or of all stocks), each counted equally, added up from the same start. Bigger companies don't count for more, unlike the All-Share Index.",
+  },
+  {
+    id: "correlation",
+    term: "Correlation",
+    group: "Market",
+    body: "How closely two stocks' daily moves line up, from −1 (they move in opposite directions) through 0 (unrelated) to 1 (in step). Compare works it out on the days both stocks traded, and needs at least 10.",
+  },
   // ── indicators ────────────────────────────────────────────────────────────
   {
     id: "sma",
@@ -173,7 +186,21 @@ export const GLOSSARY: Term[] = [
     id: "volatility",
     term: "Volatility",
     group: "Indicators",
-    body: "How much a price swings from day to day. EquityLensNG measures it as the spread (standard deviation) of daily percentage changes over the last 20 sessions.",
+    body: "How much a price swings from day to day: the spread (standard deviation) of daily percentage changes. AI readings use the last 20 sessions; Compare uses the whole period and scales it to a year, so stocks over different periods can be set side by side.",
+  },
+  {
+    id: "drawdown",
+    term: "Deepest fall",
+    aka: ["drawdown", "maximum drawdown"],
+    group: "Indicators",
+    body: "The largest drop from a high to a later low within a period, as a percentage. A stock can end a period up and still have had a deep fall along the way.",
+  },
+  {
+    id: "52-week-range",
+    term: "52-week range",
+    aka: ["52-week high", "52-week low"],
+    group: "Indicators",
+    body: "The lowest and highest prices of the last year. Stocks shows where today's price sits between them, from the low (0%) to the high (100%).",
   },
   {
     id: "trend",

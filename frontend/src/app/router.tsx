@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from "react-router";
 
 import { meQuery } from "@/api/auth";
 import { historyQuery, previousSnapshotQuery, snapshotQuery, statusQuery, topStoriesQuery } from "@/api/market";
+import { screenerQuery } from "@/api/screener";
 import { watchlistOverviewQuery, watchlistQuery } from "@/api/watchlist";
 import { AppShell } from "@/components/layout/AppShell";
 import { Logo } from "@/components/ui/Logo";
@@ -41,6 +42,14 @@ function marketToday(q: URLSearchParams, session: Promise<unknown>) {
       .then((s) => queryClient.prefetchQuery(previousSnapshotQuery(s.trade_date)))
       .catch(() => undefined);
   });
+}
+
+function stocks(q: URLSearchParams, session: Promise<unknown>) {
+  const start = q.get("start");
+  const end = q.get("end");
+  void session.then(
+    (me) => me && queryClient.prefetchQuery(screenerQuery(start && end ? start : null, start && end ? end : null)),
+  );
 }
 
 function watchlist(q: URLSearchParams, session: Promise<unknown>) {
@@ -96,7 +105,8 @@ export const router = createBrowserRouter([
             children: [
               { index: true, element: <Navigate to="/app/market" replace /> },
               { path: "market", lazy: page(() => import("@/features/market/MarketPage")), ...prefetch(marketToday) },
-              { path: "stocks", lazy: page(() => import("@/features/stock/StockPage")) },
+              { path: "stocks", lazy: page(() => import("@/features/stocks/StocksPage")), ...prefetch(stocks) },
+              { path: "stocks/compare", lazy: page(() => import("@/features/stocks/ComparePage")) },
               { path: "stocks/:symbol", lazy: page(() => import("@/features/stock/StockPage")) },
               { path: "news", lazy: page(() => import("@/features/news/NewsPage")) },
               {

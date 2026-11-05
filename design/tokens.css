@@ -83,6 +83,11 @@
   --chart-signal-buy:     #2FD38F;
   --chart-signal-sell:    #FF6B81;
   --chart-heat-neutral:   #1A2234;  /* treemap mid-point between loss and gain */
+  /* compare lines, in this order; validated for colour-blind separation (docs/06 §2.3) */
+  --chart-series-1:       #00A87E;
+  --chart-series-2:       #4A8EDE;
+  --chart-series-3:       #BC8820;
+  --chart-series-4:       #8E78E2;
 
   /* ── Elevation: layered navy surfaces, a hairline highlight on top, soft depth below ── */
   --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 1px 2px rgb(0 0 0 / 0.30);
@@ -158,6 +163,10 @@
   --chart-signal-buy:     #047A4E;
   --chart-signal-sell:    #C42343;
   --chart-heat-neutral:   #EDF0F4;
+  --chart-series-1:       #009E78;
+  --chart-series-2:       #1D63C9;
+  --chart-series-3:       #B07A00;
+  --chart-series-4:       #6D4ED8;
 
   --shadow-card: 0 1px 2px rgb(14 21 38 / 0.06), 0 4px 14px rgb(14 21 38 / 0.05);
   --shadow-hero: 0 1px 2px rgb(14 21 38 / 0.06), 0 10px 28px rgb(14 21 38 / 0.07);
@@ -191,6 +200,8 @@
     --chart-volume-down: rgb(217 51 79 / 0.30); --chart-sma-50: #B07A00; --chart-sma-200: #C2410C;
     --chart-ema-12: #6D4ED8; --chart-ema-26: #1D63C9; --chart-bollinger: #848C9C;
     --chart-signal-buy: #047A4E; --chart-signal-sell: #C42343; --chart-heat-neutral: #EDF0F4;
+    --chart-series-1: #009E78; --chart-series-2: #1D63C9; --chart-series-3: #B07A00;
+    --chart-series-4: #6D4ED8;
     --shadow-card: 0 1px 2px rgb(14 21 38 / 0.06), 0 4px 14px rgb(14 21 38 / 0.05);
     --shadow-hero: 0 1px 2px rgb(14 21 38 / 0.06), 0 10px 28px rgb(14 21 38 / 0.07);
     --shadow-sm: 0 1px 2px rgb(14 19 28 / 0.06); --shadow-md: 0 4px 12px rgb(14 19 28 / 0.08);

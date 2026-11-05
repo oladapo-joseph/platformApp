@@ -415,6 +415,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Compare up to 4 stocks over a period */
+        get: operations["compare_api_v1_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/compare/insights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** AI overview of 2–4 stocks (shared cache; a new overview uses one of today's allowance) */
+        post: operations["compare_insights_api_v1_compare_insights_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events": {
         parameters: {
             query?: never;
@@ -697,6 +731,23 @@ export interface paths {
         };
         /** Readiness (MongoDB reachable) */
         get: operations["readyz_api_v1_readyz_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/screener": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every stock for the latest session or a period, with screener columns and sparklines */
+        get: operations["screener_api_v1_screener_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1322,6 +1373,257 @@ export interface components {
             /** Unchanged */
             unchanged: number;
         };
+        /** CompareBenchmark */
+        CompareBenchmark: {
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "sector" | "market";
+            /** Max Drawdown Pct */
+            max_drawdown_pct: number | null;
+            /** Members */
+            members: number;
+            /** Return Pct */
+            return_pct: number | null;
+            /** Sector */
+            sector: string | null;
+            /** Volatility Pct */
+            volatility_pct: number | null;
+        };
+        /** CompareInsight */
+        CompareInsight: {
+            /**
+             * Cached
+             * @description Served from the shared cache (didn't use a reading from the allowance)
+             */
+            cached: boolean;
+            /**
+             * Data As Of
+             * Format: date
+             */
+            data_as_of: string;
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /**
+             * Headlines
+             * @description Headlines the model was given (≤ 6)
+             */
+            headlines: components["schemas"]["Headline"][];
+            /** Model */
+            model: string;
+            /** Provider */
+            provider: string;
+            quota: components["schemas"]["AiQuota"];
+            reading: components["schemas"]["CompareInsightBody"];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Symbols */
+            symbols: string[];
+        };
+        /**
+         * CompareInsightBody
+         * @description What the model writes, validated (insight_service checks the limits and the cited sources).
+         */
+        CompareInsightBody: {
+            /**
+             * Caveats
+             * @description 1–3 short points
+             */
+            caveats: string[];
+            /**
+             * Differences
+             * @description 2–4 short points on what sets them apart
+             */
+            differences: string[];
+            /**
+             * News Context
+             * @description One sentence on the headlines; empty when there were none
+             */
+            news_context: string;
+            /**
+             * Sources
+             * @description IDs of the headlines the overview leans on, from `headlines`
+             */
+            sources: string[];
+            /**
+             * Stocks
+             * @description One note per stock compared, in the order asked
+             */
+            stocks: components["schemas"]["StockNote"][];
+            /**
+             * Summary
+             * @description Plain English, at most 80 words
+             */
+            summary: string;
+        };
+        /** CompareInsightRequest */
+        CompareInsightRequest: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Symbols */
+            symbols: string[];
+        };
+        /** CompareResponse */
+        CompareResponse: {
+            /** Benchmarks */
+            benchmarks: components["schemas"]["CompareBenchmark"][];
+            /** Correlations */
+            correlations: components["schemas"]["Correlation"][];
+            /** Dates */
+            dates: string[];
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /**
+             * From Date
+             * Format: date
+             * @description First day every stock had a price: the common 0%
+             */
+            from_date: string;
+            /** Series */
+            series: components["schemas"]["CompareSeries"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+            /** Stocks */
+            stocks: components["schemas"]["CompareStock"][];
+            /**
+             * To Date
+             * Format: date
+             */
+            to_date: string;
+        };
+        /** CompareSeries */
+        CompareSeries: {
+            /**
+             * Key
+             * @description The symbol, `sector:<SECTOR>` or `market`
+             */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "stock" | "sector" | "market";
+            /**
+             * Members
+             * @description Stocks in an average (1 for a stock)
+             */
+            members: number;
+            /** Sector */
+            sector: string | null;
+            /** Symbol */
+            symbol: string | null;
+            /**
+             * Values
+             * @description % change from `from_date`, aligned with `dates`
+             */
+            values: (number | null)[];
+        };
+        /** CompareStock */
+        CompareStock: {
+            /** Avg Daily Value */
+            avg_daily_value: number | null;
+            best_day: components["schemas"]["DayMove"] | null;
+            /** Company */
+            company: string;
+            /** Days Traded */
+            days_traded: number;
+            /** Down Days */
+            down_days: number;
+            /** First Close */
+            first_close: number | null;
+            /** Flat Days */
+            flat_days: number;
+            /** High */
+            high: number | null;
+            /** High 52W */
+            high_52w: number | null;
+            /** Last Close */
+            last_close: number | null;
+            /** Low */
+            low: number | null;
+            /** Low 52W */
+            low_52w: number | null;
+            /** Market Cap */
+            market_cap: number | null;
+            /**
+             * Max Drawdown Pct
+             * @description Deepest fall from a high within the period
+             */
+            max_drawdown_pct: number | null;
+            /** Pct Vs Sma200 */
+            pct_vs_sma200: number | null;
+            /** Pct Vs Sma50 */
+            pct_vs_sma50: number | null;
+            /** Return Pct */
+            return_pct: number | null;
+            /** Rsi14 */
+            rsi14: number | null;
+            /** Sector */
+            sector: string | null;
+            /**
+             * Signals
+             * @description Each strategy's most recent signal, up to `to_date`
+             */
+            signals: components["schemas"]["LatestSignal"][];
+            /** Subsector */
+            subsector: string | null;
+            /** Symbol */
+            symbol: string;
+            /** Total Value */
+            total_value: number | null;
+            /** Total Volume */
+            total_volume: number | null;
+            /** Up Days */
+            up_days: number;
+            /**
+             * Volatility Pct
+             * @description Annualised standard deviation of daily returns
+             */
+            volatility_pct: number | null;
+            worst_day: components["schemas"]["DayMove"] | null;
+        };
+        /** Correlation */
+        Correlation: {
+            /** A */
+            a: string;
+            /** B */
+            b: string;
+            /** Sessions */
+            sessions: number;
+            /**
+             * Value
+             * @description Daily-return correlation, −1 to 1; null under 10 shared sessions
+             */
+            value: number | null;
+        };
         /** Count */
         Count: {
             /** Count */
@@ -1380,6 +1682,16 @@ export interface components {
             stale: boolean;
             /** Trading Hours */
             trading_hours: boolean;
+        };
+        /** DayMove */
+        DayMove: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Pct */
+            pct: number | null;
         };
         /** Decline */
         Decline: {
@@ -1764,6 +2076,26 @@ export interface components {
             /** Support */
             support: number | null;
         };
+        /** LatestSignal */
+        LatestSignal: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Price */
+            price: number;
+            /**
+             * Side
+             * @enum {string}
+             */
+            side: "buy" | "sell";
+            /**
+             * Strategy
+             * @description Strategy slug (GET /strategies)
+             */
+            strategy: string;
+        };
         /** LoginRequest */
         LoginRequest: {
             /**
@@ -2113,6 +2445,79 @@ export interface components {
             /** Token */
             token: string;
         };
+        /** ScreenResponse */
+        ScreenResponse: {
+            /** Data As Of */
+            data_as_of: string | null;
+            /** End */
+            end: string | null;
+            /**
+             * Start
+             * @description Null for the latest session
+             */
+            start: string | null;
+            /** Stocks */
+            stocks: components["schemas"]["ScreenRow"][];
+            /**
+             * Trade Date
+             * Format: date
+             * @description The latest trading day
+             */
+            trade_date: string;
+        };
+        /** ScreenRow */
+        ScreenRow: {
+            /** Change */
+            change: number | null;
+            /** Close */
+            close: number | null;
+            /** Company */
+            company: string | null;
+            /**
+             * Days
+             * @description Trading days in the period; null for a session
+             */
+            days: number | null;
+            /** High 52W */
+            high_52w: number | null;
+            /** Low 52W */
+            low_52w: number | null;
+            /**
+             * Market Cap
+             * @description Shares outstanding × close
+             */
+            market_cap: number | null;
+            /**
+             * Pct Change
+             * @description The session's % change, or the period's
+             */
+            pct_change: number | null;
+            /** Sector */
+            sector: string | null;
+            /**
+             * Signals
+             * @description Each strategy's most recent signal, up to the latest session
+             */
+            signals: components["schemas"]["LatestSignal"][];
+            /**
+             * Spark
+             * @description Up to 40 closes across the period (a session: the last 30 days)
+             */
+            spark: number[];
+            /** Subsector */
+            subsector: string | null;
+            /** Symbol */
+            symbol: string;
+            /**
+             * Trades
+             * @description Deals in the session; null for a period
+             */
+            trades: number | null;
+            /** Value */
+            value: number | null;
+            /** Volume */
+            volume: number | null;
+        };
         /** SectorAggregate */
         SectorAggregate: {
             /** Avg Pct Change */
@@ -2255,6 +2660,16 @@ export interface components {
              * @description Recent sector stories that don't mention it
              */
             sector: components["schemas"]["Article"][];
+            /** Symbol */
+            symbol: string;
+        };
+        /** StockNote */
+        StockNote: {
+            /**
+             * Note
+             * @description One or two sentences, at most 35 words
+             */
+            note: string;
             /** Symbol */
             symbol: string;
         };
@@ -3324,6 +3739,89 @@ export interface operations {
             };
         };
     };
+    compare_api_v1_compare_get: {
+        parameters: {
+            query: {
+                /** @description Comma list, 1–4, e.g. GTCO,ZENITHBANK */
+                symbols: string;
+                start: string;
+                end: string;
+                /** @description Comma list: sector (each stock's sector average), market */
+                benchmarks?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    compare_insights_api_v1_compare_insights_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompareInsightRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompareInsight"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Today's allowance is used up (`ai-quota`) */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description AI is off (`ai-off`) or the provider failed (`ai-unavailable`) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     events_api_v1_events_post: {
         parameters: {
             query?: never;
@@ -3863,6 +4361,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+        };
+    };
+    screener_api_v1_screener_get: {
+        parameters: {
+            query?: {
+                /** @description With `end`, a period; omit both for the latest session */
+                start?: string | null;
+                end?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScreenResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

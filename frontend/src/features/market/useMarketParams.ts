@@ -1,13 +1,12 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router";
 
-import { parseSort } from "@/lib/market";
-
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 /**
- * Market view state lives in the URL (docs/06 §7, US-2.5, US-2.6): `start`+`end` switch to a
- * period, `sector` filters, `q` searches, `sort` orders the price list (`-pct` = largest first).
+ * Market view state lives in the URL (docs/06 §7, US-2.5): `start`+`end` switch to a period and
+ * `sector` picks the sector for top stories. The full price list is on Stocks (US-2.9), which
+ * `stocksHref` opens on the same session or period.
  */
 export function useMarketParams() {
   const [params, setParams] = useSearchParams();
@@ -36,18 +35,15 @@ export function useMarketParams() {
     start: period ? start : null,
     end: period ? end : null,
     sector: params.get("sector"),
-    q: params.get("q") ?? "",
-    sortParam: params.get("sort"),
-    sort: parseSort(params.get("sort")),
     update,
-    /** Query string for a link that keeps this view but changes some params */
-    hrefWith: (patch: Record<string, string | null>) => {
-      const next = new URLSearchParams(params);
-      for (const [k, v] of Object.entries(patch)) {
-        if (v === null) next.delete(k);
-        else next.set(k, v);
+    /** The Stocks table on this session or period, e.g. sorted by `{ sort: "-pct" }` */
+    stocksHref: (patch: Record<string, string>) => {
+      const next = new URLSearchParams({ view: "table", ...patch });
+      if (period && start && end) {
+        next.set("start", start);
+        next.set("end", end);
       }
-      return `?${next.toString()}`;
+      return `/app/stocks?${next.toString()}`;
     },
   };
 }

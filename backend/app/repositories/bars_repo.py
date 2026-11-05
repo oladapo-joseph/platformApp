@@ -216,14 +216,18 @@ class BarsRepo:
         ]
         return [_flatten_trades_day(d) for d in self.trades.aggregate(pipeline)]
 
-    def range_bars(self, start: str, end: str) -> list[dict[str, Any]]:
-        """Every symbol's bar for every trade date in [start, end] (market history; keep ranges short)."""
+    def range_bars(self, start: str, end: str, fields: tuple[str, ...] | None = None) -> list[dict[str, Any]]:
+        """Every symbol's bar for every trade date in [start, end] (market history; keep ranges short).
+        `fields` limits what daily_bars sends (symbol and trade_date always come); the rest read as null."""
         out: list[dict[str, Any]] = []
         for source, s, e in self.segments(start, end):
             rng = _date_range(s, e)
             if source == "daily_bars":
                 q = {**({"trade_date": rng} if rng else {}), **_BAR_HAS_PRICE}
-                out += [_clean_bar(d) for d in self.bars.find(q, {"_id": 0})]
+                projection: dict[str, int] = {"_id": 0}
+                if fields:
+                    projection |= {f: 1 for f in ("symbol", "trade_date", *fields)}
+                out += [_clean_bar(d) for d in self.bars.find(q, projection)]
                 continue
             pipeline: list[dict[str, Any]] = [
                 {"$match": {"fetched_at": _fetched_window(s, e), **_HAS_PRICE}},

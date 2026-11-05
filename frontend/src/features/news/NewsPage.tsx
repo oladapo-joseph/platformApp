@@ -161,7 +161,7 @@ function TopicChips({
       on ? "border-brand bg-brand-subtle text-fg" : "border-line text-fg-2 hover:border-line-input",
     );
   return (
-    <div role="group" aria-label="Quick filters" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+    <div role="group" aria-label="Quick filters" className="relative -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
       {(filters.watchlist || !!watchlist?.symbols.length) && (
         <button
           type="button"

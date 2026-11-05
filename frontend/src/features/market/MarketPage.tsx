@@ -1,9 +1,11 @@
 /**
- * Market Today (US-2.1–2.6, US-9.3): the session or a period, as a plain-language headline,
- * stat tiles, movers, sectors, top stories and every stock. View state lives in the URL.
+ * Market Today (US-2.1–2.5, US-9.3): the session or a period, as a plain-language headline,
+ * stat tiles, movers, sectors and top stories. Every stock is on Stocks (US-2.9), which the
+ * "See all" links and the card at the end open. View state lives in the URL.
  */
-import { useEffect, useMemo } from "react";
-import { useLocation } from "react-router";
+import { ArrowRight, LayoutGrid } from "lucide-react";
+import { useMemo } from "react";
+import { Link } from "react-router";
 
 import { useMarketHistory, useMarketStatus, usePreviousSnapshot, useRange, useSnapshot } from "@/api/market";
 import { useWatchlist } from "@/api/watchlist";
@@ -22,7 +24,6 @@ import { BreadthRing } from "./BreadthRing";
 import { Movers } from "./Movers";
 import { PeriodControls } from "./PeriodControls";
 import { Sectors } from "./Sectors";
-import { StockTable } from "./StockTable";
 import { TopStories } from "./TopStories";
 import { useMarketParams } from "./useMarketParams";
 import { YourStocks } from "./YourStocks";
@@ -48,9 +49,8 @@ export default function MarketPage() {
   const prevTotals = useMemo(() => (previous.data ? totals(fromQuotes(previous.data.stocks)) : null), [previous.data]);
   const lists = useMemo(() => movers(rows), [rows]);
 
-  // the treemap, stories and full price list render after the headline has painted
+  // the treemap and stories render after the headline has painted
   const below = useAfterPaint(!!source.data);
-  useScrollToHash(below);
 
   const today = isoDay(new Date());
   const heading = p.period
@@ -96,12 +96,12 @@ export default function MarketPage() {
               )}
             </Card>
             <Card className="flex items-center justify-center rounded-xl p-6 shadow-elev-2">
-              <BreadthRing t={t} hrefWith={p.hrefWith} />
+              <BreadthRing t={t} stocksHref={p.stocksHref} />
             </Card>
           </section>
           <YourStocks rows={rows} />
           <Tiles t={t} prev={p.period ? null : prevTotals} sectors={source.data.summary.sectors} trend={trend} />
-          <Movers lists={lists} hrefWith={p.hrefWith} period={p.period} />
+          <Movers lists={lists} stocksHref={p.stocksHref} period={p.period} />
           {below ? (
             <>
               <div className="grid gap-6 lg:grid-cols-3">
@@ -117,14 +117,30 @@ export default function MarketPage() {
                 </div>
                 <TopStories sector={p.sector} />
               </div>
-              <StockTable rows={rows} p={p} />
+              <Link
+                to={p.stocksHref(p.sector ? { sort: "-value", sector: p.sector } : { sort: "-value" })}
+                className="group flex items-center gap-4 rounded-lg bg-surface p-5 shadow-elev-1 transition-shadow duration-(--duration-instant) hover:shadow-elev-2"
+              >
+                <LayoutGrid aria-hidden className="size-6 shrink-0 text-brand" />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-headline text-lg font-semibold text-fg">
+                    {p.sector
+                      ? `All ${rows.filter((r) => r.sector === p.sector).length} ${sectorName(p.sector)} stocks`
+                      : `All ${rows.length} stocks`}
+                  </span>
+                  <span className="block text-sm text-fg-2">
+                    Filter by sector, size and signal, switch between cards and a table, and compare stocks.
+                  </span>
+                </span>
+                <ArrowRight
+                  aria-hidden
+                  className="size-5 text-fg-muted transition-transform group-hover:translate-x-0.5"
+                />
+              </Link>
             </>
           ) : (
-            <div aria-busy className="flex flex-col gap-6">
-              <div className="grid gap-6 lg:grid-cols-3">
-                <Skeleton className="h-96 lg:col-span-2" />
-                <Skeleton className="h-96" />
-              </div>
+            <div aria-busy className="grid gap-6 lg:grid-cols-3">
+              <Skeleton className="h-96 lg:col-span-2" />
               <Skeleton className="h-96" />
             </div>
           )}
@@ -185,15 +201,6 @@ function Tiles({
       </StatTile>
     </div>
   );
-}
-
-/** "See all" links land on #all-stocks: scroll there once the list exists. */
-function useScrollToHash(ready: boolean) {
-  const { hash, search } = useLocation();
-  useEffect(() => {
-    if (!ready || !hash) return;
-    document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, [ready, hash, search]);
 }
 
 function MarketSkeleton({ heading }: { heading: string }) {

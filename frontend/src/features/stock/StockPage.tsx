@@ -1,10 +1,10 @@
 /**
- * The stock page (US-3.2–3.9, US-3.11, US-9.1). `/app/stocks` without a symbol is the
- * "find a stock" start; an unknown ticker says so and opens the search.
+ * The stock page (US-3.2–3.9, US-3.11, US-9.1). An unknown ticker says so and opens the search.
+ * (`/app/stocks` itself is the Stocks page, features/stocks.)
  */
 import { Search, SearchX } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
 
 import { ApiError } from "@/api/client";
 import {
@@ -17,13 +17,12 @@ import {
   useStrategies,
   useYearBars,
 } from "@/api/stock";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { Tabs } from "@/components/ui/controls";
 import { Card, EmptyState, ErrorState, Skeleton } from "@/components/ui/feedback";
 import { useToast } from "@/components/ui/Toast";
 import { useMediaQuery } from "@/lib/hooks";
-import { openSearch, POPULAR_FALLBACK, rememberStock } from "@/lib/search";
+import { openSearch, rememberStock } from "@/lib/search";
 import { chartSummary, indicatorSet, rangeStart, shortHistory } from "@/lib/stock";
 
 import { AiInsightCard } from "./AiInsightCard";
@@ -38,36 +37,7 @@ import { useStockView } from "./useStockView";
 
 export default function StockPage() {
   const { symbol: raw } = useParams();
-  return raw ? <Stock key={raw.toUpperCase()} symbol={raw.toUpperCase()} /> : <FindAStock />;
-}
-
-function FindAStock() {
-  return (
-    <>
-      <PageHeader title="Stocks" />
-      <Card>
-        <EmptyState
-          icon={Search}
-          title="Find a stock"
-          action={
-            <Button onClick={openSearch} icon={<Search aria-hidden className="size-4" />}>
-              Search stocks
-            </Button>
-          }
-        >
-          <p>Search by ticker or company name, or press “/” anywhere.</p>
-          <p className="mt-3 flex flex-wrap justify-center gap-2">
-            <span className="text-fg-muted">Popular:</span>
-            {POPULAR_FALLBACK.slice(0, 4).map((s) => (
-              <Link key={s} to={`/app/stocks/${s}`} className="num font-medium text-brand hover:underline">
-                {s}
-              </Link>
-            ))}
-          </p>
-        </EmptyState>
-      </Card>
-    </>
-  );
+  return raw ? <Stock key={raw.toUpperCase()} symbol={raw.toUpperCase()} /> : null;
 }
 
 function Stock({ symbol }: { symbol: string }) {

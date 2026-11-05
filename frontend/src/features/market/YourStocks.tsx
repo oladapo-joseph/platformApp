@@ -25,7 +25,7 @@ export function YourStocks({ rows }: { rows: MarketRow[] }) {
           Watchlist
         </Link>
       </div>
-      <ul className="-mx-4 flex gap-3 overflow-x-auto px-4 pt-1 pb-3 md:-mx-1 md:px-1">
+      <ul className="relative -mx-4 flex gap-3 overflow-x-auto px-4 pt-1 pb-3 md:-mx-1 md:px-1">
         {mine.map((r) => (
           <li key={r.symbol} className="shrink-0">
             <Link

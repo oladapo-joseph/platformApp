@@ -5,6 +5,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Added — Stocks and Compare (2026-11-05, P4f, in review)
+- **Stocks** in the navigation (US-2.9, US-2.10): every stock for the session or a period as digest cards (your watchlist first, then most traded; price, change, sparkline, value, market cap, 52-week position, latest signal) or a table, with filters for sector and subsector, size, value traded, the latest signal, watchlist and traded only, a CSV export, and all of it in the URL. The full price list moved here from Market, whose "See all" links, breadth counts and a new "All N stocks" card open it.
+- **Compare** (US-3.10): up to 4 stocks from a common start with sector and all-stock averages, a legend that reads the hovered day, a table view, a side-by-side table of returns, risk, trading, size, indicators and signals, and how closely they move together. Opened from the Stocks tray, a stock page and its peers.
+- **AI overview** of a comparison (US-4.7): asked for, validated like a reading, shared through the cache, and counted in the same daily allowance.
+- API: `GET /screener`, `GET /compare`, `POST /compare/insights`. Four glossary terms (sector average, correlation, deepest fall, 52-week range). Compare series colour tokens.
+- Fixed: tables that scroll sideways no longer widen the whole page on phones (screen-reader text inside them escaped the scroll box).
+
 ### Changed — NGX trading hours (2026-11-05)
 - The market is now open 09:30–15:55 WAT on weekdays (was 10:00–14:30): the open/closed status, "Closing data" after 15:55, the data-health stale check, and the sidebar, admin, glossary and help wording.
 

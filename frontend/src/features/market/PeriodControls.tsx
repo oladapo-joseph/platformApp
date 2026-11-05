@@ -6,11 +6,26 @@ import { Button } from "@/components/ui/Button";
 import { SegmentedControl } from "@/components/ui/controls";
 import { earliestStart, matchPreset, presetRange, PRESETS, type Preset } from "@/lib/market";
 
-import type { MarketParams } from "./useMarketParams";
-
 type Choice = Preset | "custom";
 
-export function PeriodControls({ p, latest }: { p: MarketParams; latest: string }) {
+/** What the control reads and writes: Market and Stocks keep the period in their URLs. */
+export interface PeriodState {
+  period: boolean;
+  start: string | null;
+  end: string | null;
+  update: (patch: Record<string, string | null>) => void;
+}
+
+export function PeriodControls({
+  p,
+  latest,
+  scope = "market",
+}: {
+  p: PeriodState;
+  latest: string;
+  /** Prefix of the usage events, e.g. "stocks" sends stocks.view and stocks.period */
+  scope?: string;
+}) {
   const preset: Choice | null = p.period && p.start && p.end ? (matchPreset(p.start, p.end, latest) ?? "custom") : null;
   const [customOpen, setCustomOpen] = useState(false);
 
@@ -22,8 +37,8 @@ export function PeriodControls({ p, latest }: { p: MarketParams; latest: string 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <SegmentedControl
-        label="Market view"
-        track="market.view"
+        label={scope === "market" ? "Market view" : "Session or period"}
+        track={`${scope}.view`}
         value={p.period ? "period" : "session"}
         onChange={(v) => (v === "session" ? p.update({ start: null, end: null }) : pick("1M"))}
         options={[
@@ -35,7 +50,7 @@ export function PeriodControls({ p, latest }: { p: MarketParams; latest: string 
         <>
           <SegmentedControl<Choice>
             label="Period"
-            track="market.period"
+            track={`${scope}.period`}
             value={preset}
             onChange={pick}
             options={[...PRESETS.map((v) => ({ value: v, label: v })), { value: "custom" as const, label: "Custom" }]}

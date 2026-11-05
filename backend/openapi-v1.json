@@ -1374,6 +1374,708 @@
         "title": "Breadth",
         "type": "object"
       },
+      "CompareBenchmark": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "sector",
+              "market"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "max_drawdown_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Drawdown Pct"
+          },
+          "members": {
+            "title": "Members",
+            "type": "integer"
+          },
+          "return_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Pct"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "volatility_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volatility Pct"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "sector",
+          "members",
+          "return_pct",
+          "volatility_pct",
+          "max_drawdown_pct"
+        ],
+        "title": "CompareBenchmark",
+        "type": "object"
+      },
+      "CompareInsight": {
+        "properties": {
+          "cached": {
+            "description": "Served from the shared cache (didn't use a reading from the allowance)",
+            "title": "Cached",
+            "type": "boolean"
+          },
+          "data_as_of": {
+            "format": "date",
+            "title": "Data As Of",
+            "type": "string"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "headlines": {
+            "description": "Headlines the model was given (\u2264 6)",
+            "items": {
+              "$ref": "#/components/schemas/Headline"
+            },
+            "title": "Headlines",
+            "type": "array"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "title": "Provider",
+            "type": "string"
+          },
+          "quota": {
+            "$ref": "#/components/schemas/AiQuota"
+          },
+          "reading": {
+            "$ref": "#/components/schemas/CompareInsightBody"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbols",
+          "start",
+          "end",
+          "data_as_of",
+          "provider",
+          "model",
+          "generated_at",
+          "cached",
+          "reading",
+          "headlines",
+          "quota"
+        ],
+        "title": "CompareInsight",
+        "type": "object"
+      },
+      "CompareInsightBody": {
+        "description": "What the model writes, validated (insight_service checks the limits and the cited sources).",
+        "properties": {
+          "caveats": {
+            "description": "1\u20133 short points",
+            "items": {
+              "type": "string"
+            },
+            "title": "Caveats",
+            "type": "array"
+          },
+          "differences": {
+            "description": "2\u20134 short points on what sets them apart",
+            "items": {
+              "type": "string"
+            },
+            "title": "Differences",
+            "type": "array"
+          },
+          "news_context": {
+            "description": "One sentence on the headlines; empty when there were none",
+            "title": "News Context",
+            "type": "string"
+          },
+          "sources": {
+            "description": "IDs of the headlines the overview leans on, from `headlines`",
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "stocks": {
+            "description": "One note per stock compared, in the order asked",
+            "items": {
+              "$ref": "#/components/schemas/StockNote"
+            },
+            "title": "Stocks",
+            "type": "array"
+          },
+          "summary": {
+            "description": "Plain English, at most 80 words",
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "summary",
+          "stocks",
+          "differences",
+          "caveats",
+          "news_context",
+          "sources"
+        ],
+        "title": "CompareInsightBody",
+        "type": "object"
+      },
+      "CompareInsightRequest": {
+        "properties": {
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "symbols",
+          "start",
+          "end"
+        ],
+        "title": "CompareInsightRequest",
+        "type": "object"
+      },
+      "CompareResponse": {
+        "properties": {
+          "benchmarks": {
+            "items": {
+              "$ref": "#/components/schemas/CompareBenchmark"
+            },
+            "title": "Benchmarks",
+            "type": "array"
+          },
+          "correlations": {
+            "items": {
+              "$ref": "#/components/schemas/Correlation"
+            },
+            "title": "Correlations",
+            "type": "array"
+          },
+          "dates": {
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Dates",
+            "type": "array"
+          },
+          "end": {
+            "format": "date",
+            "title": "End",
+            "type": "string"
+          },
+          "from_date": {
+            "description": "First day every stock had a price: the common 0%",
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/CompareSeries"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "start": {
+            "format": "date",
+            "title": "Start",
+            "type": "string"
+          },
+          "stocks": {
+            "items": {
+              "$ref": "#/components/schemas/CompareStock"
+            },
+            "title": "Stocks",
+            "type": "array"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "from_date",
+          "to_date",
+          "dates",
+          "series",
+          "stocks",
+          "benchmarks",
+          "correlations"
+        ],
+        "title": "CompareResponse",
+        "type": "object"
+      },
+      "CompareSeries": {
+        "properties": {
+          "key": {
+            "description": "The symbol, `sector:<SECTOR>` or `market`",
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "stock",
+              "sector",
+              "market"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "members": {
+            "description": "Stocks in an average (1 for a stock)",
+            "title": "Members",
+            "type": "integer"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          },
+          "values": {
+            "description": "% change from `from_date`, aligned with `dates`",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Values",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "kind",
+          "symbol",
+          "sector",
+          "members",
+          "values"
+        ],
+        "title": "CompareSeries",
+        "type": "object"
+      },
+      "CompareStock": {
+        "properties": {
+          "avg_daily_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Daily Value"
+          },
+          "best_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DayMove"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company": {
+            "title": "Company",
+            "type": "string"
+          },
+          "days_traded": {
+            "title": "Days Traded",
+            "type": "integer"
+          },
+          "down_days": {
+            "title": "Down Days",
+            "type": "integer"
+          },
+          "first_close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Close"
+          },
+          "flat_days": {
+            "title": "Flat Days",
+            "type": "integer"
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
+          },
+          "high_52w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High 52W"
+          },
+          "last_close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Close"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "low_52w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low 52W"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "max_drawdown_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deepest fall from a high within the period",
+            "title": "Max Drawdown Pct"
+          },
+          "pct_vs_sma200": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Vs Sma200"
+          },
+          "pct_vs_sma50": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct Vs Sma50"
+          },
+          "return_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Pct"
+          },
+          "rsi14": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rsi14"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "signals": {
+            "description": "Each strategy's most recent signal, up to `to_date`",
+            "items": {
+              "$ref": "#/components/schemas/LatestSignal"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "subsector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subsector"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "total_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Value"
+          },
+          "total_volume": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Volume"
+          },
+          "up_days": {
+            "title": "Up Days",
+            "type": "integer"
+          },
+          "volatility_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Annualised standard deviation of daily returns",
+            "title": "Volatility Pct"
+          },
+          "worst_day": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DayMove"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "symbol",
+          "company",
+          "sector",
+          "subsector",
+          "first_close",
+          "last_close",
+          "return_pct",
+          "volatility_pct",
+          "max_drawdown_pct",
+          "high",
+          "low",
+          "up_days",
+          "down_days",
+          "flat_days",
+          "best_day",
+          "worst_day",
+          "days_traded",
+          "total_value",
+          "avg_daily_value",
+          "total_volume",
+          "market_cap",
+          "high_52w",
+          "low_52w",
+          "rsi14",
+          "pct_vs_sma50",
+          "pct_vs_sma200",
+          "signals"
+        ],
+        "title": "CompareStock",
+        "type": "object"
+      },
+      "Correlation": {
+        "properties": {
+          "a": {
+            "title": "A",
+            "type": "string"
+          },
+          "b": {
+            "title": "B",
+            "type": "string"
+          },
+          "sessions": {
+            "title": "Sessions",
+            "type": "integer"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Daily-return correlation, \u22121 to 1; null under 10 shared sessions",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "value",
+          "sessions"
+        ],
+        "title": "Correlation",
+        "type": "object"
+      },
       "Count": {
         "properties": {
           "count": {
@@ -1512,6 +2214,32 @@
           "missing_sessions"
         ],
         "title": "DataHealth",
+        "type": "object"
+      },
+      "DayMove": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pct"
+          }
+        },
+        "required": [
+          "date",
+          "pct"
+        ],
+        "title": "DayMove",
         "type": "object"
       },
       "Decline": {
@@ -2472,6 +3200,40 @@
           "resistance"
         ],
         "title": "KeyLevels",
+        "type": "object"
+      },
+      "LatestSignal": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "price": {
+            "title": "Price",
+            "type": "number"
+          },
+          "side": {
+            "enum": [
+              "buy",
+              "sell"
+            ],
+            "title": "Side",
+            "type": "string"
+          },
+          "strategy": {
+            "description": "Strategy slug (GET /strategies)",
+            "title": "Strategy",
+            "type": "string"
+          }
+        },
+        "required": [
+          "strategy",
+          "side",
+          "date",
+          "price"
+        ],
+        "title": "LatestSignal",
         "type": "object"
       },
       "LoginRequest": {
@@ -3546,6 +4308,260 @@
         "title": "ResetRequest",
         "type": "object"
       },
+      "ScreenResponse": {
+        "properties": {
+          "data_as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data As Of"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Null for the latest session",
+            "title": "Start"
+          },
+          "stocks": {
+            "items": {
+              "$ref": "#/components/schemas/ScreenRow"
+            },
+            "title": "Stocks",
+            "type": "array"
+          },
+          "trade_date": {
+            "description": "The latest trading day",
+            "format": "date",
+            "title": "Trade Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "trade_date",
+          "data_as_of",
+          "stocks"
+        ],
+        "title": "ScreenResponse",
+        "type": "object"
+      },
+      "ScreenRow": {
+        "properties": {
+          "change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Change"
+          },
+          "close": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Close"
+          },
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Trading days in the period; null for a session",
+            "title": "Days"
+          },
+          "high_52w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High 52W"
+          },
+          "low_52w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low 52W"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Shares outstanding \u00d7 close",
+            "title": "Market Cap"
+          },
+          "pct_change": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The session's % change, or the period's",
+            "title": "Pct Change"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "signals": {
+            "description": "Each strategy's most recent signal, up to the latest session",
+            "items": {
+              "$ref": "#/components/schemas/LatestSignal"
+            },
+            "title": "Signals",
+            "type": "array"
+          },
+          "spark": {
+            "description": "Up to 40 closes across the period (a session: the last 30 days)",
+            "items": {
+              "type": "number"
+            },
+            "title": "Spark",
+            "type": "array"
+          },
+          "subsector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subsector"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "trades": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Deals in the session; null for a period",
+            "title": "Trades"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Volume"
+          }
+        },
+        "required": [
+          "symbol",
+          "company",
+          "sector",
+          "subsector",
+          "close",
+          "change",
+          "pct_change",
+          "volume",
+          "value",
+          "trades",
+          "days",
+          "market_cap",
+          "high_52w",
+          "low_52w",
+          "signals",
+          "spark"
+        ],
+        "title": "ScreenRow",
+        "type": "object"
+      },
       "SectorAggregate": {
         "properties": {
           "avg_pct_change": {
@@ -3900,6 +4916,25 @@
           "sector"
         ],
         "title": "StockNews",
+        "type": "object"
+      },
+      "StockNote": {
+        "properties": {
+          "note": {
+            "description": "One or two sentences, at most 35 words",
+            "title": "Note",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "note"
+        ],
+        "title": "StockNote",
         "type": "object"
       },
       "StockProfile": {
@@ -5954,6 +6989,129 @@
         ]
       }
     },
+    "/api/v1/compare": {
+      "get": {
+        "operationId": "compare_api_v1_compare_get",
+        "parameters": [
+          {
+            "description": "Comma list, 1\u20134, e.g. GTCO,ZENITHBANK",
+            "in": "query",
+            "name": "symbols",
+            "required": true,
+            "schema": {
+              "description": "Comma list, 1\u20134, e.g. GTCO,ZENITHBANK",
+              "title": "Symbols",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Start",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "End",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma list: sector (each stock's sector average), market",
+            "in": "query",
+            "name": "benchmarks",
+            "required": false,
+            "schema": {
+              "default": "",
+              "description": "Comma list: sector (each stock's sector average), market",
+              "title": "Benchmarks",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Compare up to 4 stocks over a period",
+        "tags": [
+          "stocks"
+        ]
+      }
+    },
+    "/api/v1/compare/insights": {
+      "post": {
+        "operationId": "compare_insights_api_v1_compare_insights_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareInsightRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompareInsight"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Today's allowance is used up (`ai-quota`)"
+          },
+          "503": {
+            "description": "AI is off (`ai-off`) or the provider failed (`ai-unavailable`)"
+          }
+        },
+        "summary": "AI overview of 2\u20134 stocks (shared cache; a new overview uses one of today's allowance)",
+        "tags": [
+          "stocks"
+        ]
+      }
+    },
     "/api/v1/events": {
       "post": {
         "operationId": "events_api_v1_events_post",
@@ -7007,6 +8165,75 @@
         "summary": "Readiness (MongoDB reachable)",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/v1/screener": {
+      "get": {
+        "operationId": "screener_api_v1_screener_get",
+        "parameters": [
+          {
+            "description": "With `end`, a period; omit both for the latest session",
+            "in": "query",
+            "name": "start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "With `end`, a period; omit both for the latest session",
+              "title": "Start"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Every stock for the latest session or a period, with screener columns and sparklines",
+        "tags": [
+          "stocks"
         ]
       }
     },

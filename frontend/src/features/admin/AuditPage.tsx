@@ -272,7 +272,7 @@ export default function AuditPage() {
       ) : !items.length ? (
         <EmptyState icon={ScrollText} title={active ? "No events match these filters" : "No events yet"} />
       ) : wide ? (
-        <div className="-mx-4 overflow-x-auto md:-mx-5">
+        <div className="relative -mx-4 overflow-x-auto md:-mx-5">
           <table className={cn("w-full text-sm", log.isPlaceholderData && "opacity-60")}>
             <caption className="sr-only">Audit events. Select an action to see every detail.</caption>
             <thead>

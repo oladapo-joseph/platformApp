@@ -1,9 +1,11 @@
-/** Ticker, company, last price and change, Share, and the key-stats row (US-3.2, US-3.9). Freshness is in the top bar. */
-import { Share2 } from "lucide-react";
+/** Ticker, company, last price and change, Compare, Share, and the key-stats row (US-3.2, US-3.9, US-3.10). Freshness is in the top bar. */
+import { GitCompareArrows, Share2 } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 
 import type { Bar, StockProfile } from "@/api/types";
 import { Button } from "@/components/ui/Button";
+import { buttonClass } from "@/components/ui/buttonClass";
 import { Card } from "@/components/ui/feedback";
 import { PriceChange } from "@/components/ui/market";
 import { WatchStar } from "@/components/ui/WatchStar";
@@ -66,6 +68,14 @@ export function StockHeader({
         </div>
         <div className="flex items-center gap-2">
           <WatchStar symbol={profile.symbol} label="Watchlist" />
+          <Link
+            to={`/app/stocks/compare?symbols=${encodeURIComponent(profile.symbol)}`}
+            onClick={() => track("compare.open", { from: "stock", symbol: profile.symbol })}
+            className={buttonClass("secondary", "sm")}
+          >
+            <GitCompareArrows aria-hidden className="size-4" />
+            Compare
+          </Link>
           <Button
             variant="secondary"
             size="sm"

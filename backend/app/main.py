@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api.deps import CSRF_HEADER
-from app.api.v1 import admin, ai, auth, events, health, invites, market, news, stocks, watchlist
+from app.api.v1 import admin, ai, auth, events, health, invites, market, news, screener, stocks, watchlist
 from app.core import errors, security
 from app.core import logging as app_logging
 from app.core.config import Settings, get_settings
@@ -94,6 +94,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         admin.router,
         market.router,
         stocks.router,
+        screener.router,
         news.router,
         watchlist.router,
         events.router,

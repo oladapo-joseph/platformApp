@@ -66,8 +66,11 @@ Each also has a `-subtle` variant (10–18% alpha) for tinted backgrounds such a
 | Bollinger bands | `--chart-bollinger` | `#8A91A2` dashed | `#848C9C` dashed |
 | Buy / sell markers | `--chart-signal-buy` / `-sell` | ▲ below bar / ▼ above bar | same, light values |
 | Sector heat (treemap) | loss → `--chart-heat-neutral` → gain | diverging, clamped at ±5% | same, light values |
+| Compare lines, in order | `--chart-series-1` … `-4` | `#00A87E` `#4A8EDE` `#BC8820` `#8E78E2` | `#009E78` `#1D63C9` `#B07A00` `#6D4ED8` |
 
 Overlay lines also differ by **dash pattern** (SMA solid, EMA dashed, BB dotted), so they stay distinguishable without colour.
+
+Compare (US-3.10) uses the series tokens in fixed order, never cycled: a stock keeps its colour while others are added or removed after it. They are the existing chart hues, stepped into each theme's lightness band and checked for colour-blind separation (adjacent ΔE ≥ 15 for deuteranopia, contrast ≥ 3:1 on the chart background). Stocks are solid; a sector average is dashed in its stock's colour; the all-stock average is dotted `--chart-axis`. A legend names every line, so colour is never the only cue.
 
 ## 3. Typography
 

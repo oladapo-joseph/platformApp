@@ -51,7 +51,8 @@ The backbone runs left to right through what people do; the slices run top to bo
 | **Slice 1: walking skeleton** (P1–P3) | US-1.5 sign in · US-1.9 sign out | US-2.1 at a glance · US-2.3 freshness | US-3.1 search · US-3.2 header · US-3.3 chart | | | | CLI admin bootstrap |
 | **Slice 2: invite-only launch core** (P2–P3) | US-1.1 landing · US-1.2 request invite · US-1.3 accept invite · US-1.4 invalid invite · US-1.6 reset · US-1.7 migration | US-2.2 movers · US-2.4 sectors · US-2.5 range · US-2.6 price list · US-8.5 closed | US-3.4 indicators · US-3.5 signals · US-3.7 peers · US-3.9 share · US-3.11 accessible chart · **US-9.1 stock news** · **US-9.8 news page** | | | US-6.1 profile · US-6.2 theme | US-7.1 invite · US-7.2 manage invites · US-7.3 requests · US-7.4 users |
 | **Slice 3: complete v1.0** (P4) | US-1.8 onboarding picks | US-5.3 pinned watchlist · US-9.3 top stories | US-3.6 strategy explainers · US-3.8 export · US-9.2 news on chart | US-4.1 – US-4.5 · US-9.5 headlines in AI | US-5.1 · US-5.2 · US-5.4 · US-9.4 watchlist news | US-6.4 delete · US-6.5 help | US-7.5 AI usage · US-7.6 data health · **US-7.7 audit log** |
-| **Later** (v1.1+) | open sign-up (ADR-013) · Google sign-in | US-2.7 scatter · US-2.8 index (when the crawler adds ASI) · US-9.6 sector news | US-3.10 vs sector · drawing tools · US-9.7 report mis-tagged news | US-4.6 feedback | US-5.5 Telegram link | US-6.3 all devices | — |
+| **Slice 4: Stocks and Compare** (P4f, owner 2026-11-05) | | US-2.9 Stocks page · US-2.10 digest cards | US-3.10 compare | US-4.7 AI overview of a comparison | | | |
+| **Later** (v1.1+) | open sign-up (ADR-013) · Google sign-in | US-2.7 scatter · US-2.8 index (when the crawler adds ASI) · US-9.6 sector news | drawing tools · US-9.7 report mis-tagged news | US-4.6 feedback · US-4.8 AI plans (D-20) | US-5.5 Telegram link | US-6.3 all devices | — |
 
 Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 
@@ -290,6 +291,8 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 
 **UX notes:** About 150 rows, virtualised. Numbers are right-aligned in Plex Mono. The row hover/focus state opens the stock on Enter.
 
+**Moved 2026-11-05:** the full list is now the Stocks page's table (US-2.9); Market's "See all" links open it.
+
 ---
 
 ### US-2.7 · See price change versus trading activity
@@ -309,6 +312,37 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 **Acceptance criteria:** It shows the ASI level, point change, and % change, with freshness.
 
 **Deferred (owner, 2026-10-26):** the ASI will be added later. `tradesData` holds per-stock data only, so this needs an index feed added to the crawler first. Leave room for a headline tile in the Market Today layout (US-2.1) so adding it later needs no redesign.
+
+---
+
+### US-2.9 · Screen every stock on one page
+
+**Story:** As Ngozi, I want a Stocks page where I can filter the whole market by sector, size, liquidity and signals, so that I can find the stocks worth a closer look.
+`Should · P4f · J11, J2, J6 · Ngozi, Tunde` (added by the owner, 2026-11-05)
+
+**Acceptance criteria:**
+
+- "Stocks" is in the main navigation, after Market. It lists every stock for the latest session, or for a period with the same presets and custom dates as Market (US-2.5).
+- Filters: sector and subsector (several at once; a sector's subsectors appear once it's picked), size by market cap (large ₦1T and over, mid ₦100B to ₦1T, small under ₦100B), minimum value traded, the latest bullish or bearish crossover of a chosen strategy in the last 30 days, my watchlist only, and traded only. Each active filter is a removable chip, with "Clear all".
+- Two layouts: digest cards (US-2.10) and a table. The table has price, change, value, volume, deals (session) or trading days (period), market cap, the 52-week position and the latest signal; every column sorts.
+- Search matches ticker, company and subsector. The rows on screen export as a formula-safe CSV.
+- Up to 4 stocks can be ticked for Compare (US-3.10); a tray shows them and opens Compare on the same period.
+- Market's "See all" links, the breadth counts and an "All N stocks" card open this page on the same session or period (and the selected sector), as the table sorted to match.
+- Everything is in the URL, so a filtered view can be shared.
+
+---
+
+### US-2.10 · A digest of stocks as cards, mine first
+
+**Story:** As Ada, I want the stocks I follow first, then the most traded, as cards I can scan, so that I see what matters to me without reading a table.
+`Should · P4f · J11, J5 · Ada` (added by the owner, 2026-11-05)
+
+**Acceptance criteria:**
+
+- Cards are the default layout. My watchlist's stocks come first under "Your watchlist", then everything else in the chosen order, most traded by default (the usual finance-app layout: watchlist above most active). Filtering to my watchlist shows one group.
+- Each card: ticker, company and sector; price and % change (session or period); a sparkline of the period (a session: the last month); value traded and market cap; where the price sits in its 52-week range; the chosen strategy's latest signal and how long ago. ☆ and "Compare" sit beside the link to the stock page.
+- Sort: most traded, biggest risers or fallers, largest, newest signal, nearest the 52-week high or low, A to Z. 24 cards, then "Show more".
+- Direction is never colour alone: ▲/▼ and the sign on every change, words on every signal.
 
 ---
 
@@ -442,12 +476,18 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 
 ---
 
-### US-3.10 · Compare a stock with its sector or a peer
+### US-3.10 · Compare stocks with each other and their sectors
 
-**Story:** As Ngozi, I want to overlay a stock's performance against its sector average or a peer, so that I can see relative strength.
-`Could · v1.1 · J3 · Ngozi`
+**Story:** As Ngozi, I want to overlay up to four stocks' performance with their sector averages, and see their numbers side by side, so that I can judge relative strength, risk and liquidity.
+`Should · P4f · J11, J3 · Ngozi` (moved up from v1.1 and widened by the owner, 2026-11-05: "as detailed as possible")
 
-**Acceptance criteria:** It plots % performance from a common start date for up to 3 series, with a legend and a table.
+**Acceptance criteria:**
+
+- `/app/stocks/compare?symbols=…` compares 1 to 4 stocks over 1M, 3M, 6M, YTD, 1Y (default) or 3Y, or the period the Stocks page was on. Stocks are added by search and removed from chips; one stock compares with its sector.
+- One chart of % change from the first day every stock has a price (the common 0%), with optional lines for each stock's **sector average** and the **all-stock average** (both equal-weight; the ASI isn't in the data yet, US-2.8). Stocks are solid lines in a validated series palette; a sector average is dashed in its stock's colour; the all-stock average is dotted grey. A legend names every line and reads the hovered day; ←/→, Home and End read days from the keyboard; "View as table" shows every day's values (US-3.11).
+- Side by side: return, against its sector average (percentage points), first and last close, period high and low, best and worst day, days up, down and unchanged; volatility (annualised) and deepest fall; typical day's value traded, value, volume and days with trades; market cap and the 52-week range; RSI 14 and the price against its 50- and 200-day averages; each strategy's latest signal and date.
+- "Do they move together?": the daily-return correlation of each pair, in words, on the days both traded (at least 10).
+- Reached from the Stocks tray, a stock page's "Compare" button and the peers panel ("Compare with the top 3"). Stocks, period and averages are in the URL.
 
 ---
 
@@ -537,6 +577,28 @@ Cross-cutting from Slice 1 onward: **US-8.1 – US-8.6**.
 `Could · v1.1 · J4 · All`
 
 **Acceptance criteria:** One tap to rate; an optional reason from a short list ("Too vague", "Wrong", "Helpful", …). Ratings are visible in admin usage (US-7.5).
+
+---
+
+### US-4.7 · An AI overview of a comparison
+
+**Story:** As Ngozi, I want a plain-English overview of how the stocks I'm comparing differ, so that I get the gist before reading the table.
+`Should · P4f · J11 · Ngozi, Ada` (added by the owner, 2026-11-05)
+
+**Acceptance criteria:**
+
+- On Compare with 2 to 4 stocks, "Get an AI overview" (asked for, never automatic) returns a summary, one note per stock, 2 to 4 differences, 1 to 3 caveats, and the headlines considered (up to 2 per stock), with the model, time, data date and disclaimer (US-4.2).
+- The model gets only the comparison's figures and the sector and market averages, never daily series or article text. The output is validated like a reading: no advice wording, one note per stock in order, word limits, cited headlines only from those sent; one retry, then a friendly error that keeps the allowance.
+- Overviews are shared like readings (US-4.3): the same stocks in any order, period and data date are served from the cache to everyone. A new overview uses one of the day's readings (US-4.4, D-05).
+
+---
+
+### US-4.8 · AI features on plans
+
+**Story:** As the owner, I want AI features on plans (for example a few free comparisons a month, more on a paid plan), so that AI cost follows value.
+`Could · later · — · Owner` (added to scope by the owner, 2026-11-05: "will be limited to maybe 3 free monthly later, or most AI features will be tiered later")
+
+**Acceptance criteria:** To be written with D-20. Today every AI feature shares one daily allowance per role (D-05); the allowance is checked in one place (`insight_service._generate`), which is where a per-feature, per-plan monthly limit would go.
 
 ---
 
@@ -937,6 +999,7 @@ Selecting a sector on Market Today shows its last 7 days of news, ranked by impo
 | J8 Admin | US-7.1 – US-7.7 |
 | J9 Legacy migration | US-1.7 |
 | J10 News behind the move | US-9.1 – US-9.8 |
+| J11 Screen and compare | US-2.9, US-2.10, US-3.10, US-4.7 |
 
 ## 5. Open questions raised by the stories
 

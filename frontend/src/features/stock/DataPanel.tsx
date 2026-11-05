@@ -33,7 +33,7 @@ export function DataPanel({ symbol, bars, maxHeight }: { symbol: string; bars: B
         tabIndex={0}
         role="region"
         aria-label={`${symbol} daily prices`}
-        className="-mx-4 overflow-auto"
+        className="relative -mx-4 overflow-auto"
         style={maxHeight ? { maxHeight } : undefined}
       >
         <table className="w-full min-w-[44rem] text-sm">

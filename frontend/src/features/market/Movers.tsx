@@ -58,19 +58,18 @@ function MoverRows({ rows, byValue, empty }: { rows: MarketRow[]; byValue: boole
 
 export function Movers({
   lists,
-  hrefWith,
+  stocksHref,
   period,
 }: {
   lists: Record<ListKey, MarketRow[]>;
-  hrefWith: (patch: Record<string, string | null>) => string;
+  stocksHref: (patch: Record<string, string>) => string;
   period: boolean;
 }) {
   const wide = useMediaQuery("(min-width: 1024px)");
   const [tab, setTab] = useState<ListKey>("gainers");
   const seeAll = (sort: string) => (
     <Link
-      to={{ search: hrefWith({ sort }), hash: "all-stocks" }}
-      preventScrollReset
+      to={stocksHref({ sort })}
       className="text-sm font-medium whitespace-nowrap text-brand underline-offset-2 hover:underline"
     >
       See all

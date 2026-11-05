@@ -3,6 +3,8 @@ import { Users } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 
+import { track } from "@/lib/analytics";
+
 import { useRange } from "@/api/market";
 import { useSimilar, type PeerSort } from "@/api/stock";
 import type { PeerEntry } from "@/api/types";
@@ -68,6 +70,15 @@ export function PeersPanel({ symbol, start, end }: { symbol: string; start: stri
           options={SORTS}
         />
         <p className="text-xs text-fg-muted">Based on industry, size, and trading activity over the selected period.</p>
+        {!!data?.peers.length && (
+          <Link
+            to={`/app/stocks/compare?symbols=${[symbol, ...data.peers.slice(0, 3).map((x) => x.symbol)].join(",")}`}
+            onClick={() => track("compare.open", { from: "peers", symbol })}
+            className="text-sm font-medium text-brand underline-offset-2 hover:underline"
+          >
+            Compare with the top {Math.min(3, data.peers.length)}
+          </Link>
+        )}
       </div>
       {isPending ? (
         <Skeleton className="h-48 w-full" />
@@ -76,7 +87,7 @@ export function PeersPanel({ symbol, start, end }: { symbol: string; start: stri
       ) : !data.peers.length ? (
         <EmptyState icon={Users} title="No similar stocks found" />
       ) : wide ? (
-        <div className="-mx-4 overflow-x-auto">
+        <div className="relative -mx-4 overflow-x-auto">
           <table className="w-full min-w-[44rem] text-sm">
             <caption className="sr-only">Similar stocks</caption>
             <thead>

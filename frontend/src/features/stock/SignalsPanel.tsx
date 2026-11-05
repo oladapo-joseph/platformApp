@@ -85,7 +85,7 @@ export function SignalsPanel({
       ) : (
         <>
           <p className="text-sm text-fg-2">{signalSummary(signals, range, latest)}</p>
-          <div className="-mx-4 overflow-x-auto">
+          <div className="relative -mx-4 overflow-x-auto">
             <table className="w-full min-w-[34rem] text-sm">
               <caption className="sr-only">Signals, newest first. Selecting one marks it on the chart.</caption>
               <thead>

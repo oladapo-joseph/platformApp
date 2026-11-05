@@ -70,6 +70,12 @@ export default function HelpPage() {
             shows the latest session or any period: what rose, what fell, what traded most and how each sector did.
           </p>
           <p>
+            <strong className="text-fg">Stocks</strong> lists every stock as cards (your watchlist first, then the most
+            traded) or a table. Filter by sector and subsector, size, value traded or the latest signal, and tick up to
+            four for <strong className="text-fg">Compare</strong>: one chart of how they moved from the same starting
+            point, against their sector averages, with their returns, risk, trading and signals side by side.
+          </p>
+          <p>
             A <strong className="text-fg">stock page</strong> has the price chart with indicators you can add, and{" "}
             <strong className="text-fg">signals</strong>: dates when one of three strategies' rules was met. Signals are
             worked out on a stock's whole history, so the range you pick doesn't change them. They describe what an
@@ -78,8 +84,8 @@ export default function HelpPage() {
           <p>
             <strong className="text-fg">AI readings</strong> explain, in plain English and only when you ask, what the
             signals and indicators show for the stock and range you're looking at, and which headlines were considered.
-            You have 5 new readings a day; a reading someone already asked for on the same data is shared and free. AI
-            can be wrong.
+            Compare can also give an AI overview of the stocks you picked. You have 5 new readings a day, readings and
+            overviews together; one someone already asked for on the same data is shared and free. AI can be wrong.
           </p>
           <p>
             Your <strong className="text-fg">watchlist</strong> keeps the stocks you follow at the top of Market, with

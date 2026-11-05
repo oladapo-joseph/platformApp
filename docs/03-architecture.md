@@ -140,6 +140,9 @@ All under `/api/v1`. JSON. Dates are ISO-8601 in WAT (`+01:00`). Money is raw nu
 | `GET /stocks/{symbol}/indicators?start=&end=&set=sma50,ema12,rsi14,macd,bb20` | Series computed on **full history**, then sliced | user | 5 min |
 | `GET /stocks/{symbol}/signals?strategy=&start=&end=` | Buy/sell events (computed on full history, sliced) | user | 5 min |
 | `GET /stocks/{symbol}/similar?start=&end=&sort=` | Peer list with component scores | user | 10 min |
+| `GET /screener?start=&end=` | Every stock for the latest session (no dates) or a period, plus subsector, market cap, 52-week range, each strategy's latest signal and a ≤ 40-point sparkline (US-2.9, US-2.10). Built on one cached table of every stock's daily closes (`panel_service`: past sessions read once per trading day, five fields; the latest session from the snapshot) | user | 5 min |
+| `GET /compare?symbols=&start=&end=&benchmarks=sector,market` | 1–4 stocks rebased to a common start, optional equal-weight sector and all-stock averages, per-stock return, risk, trading, size, indicators and latest signals, and pairwise correlations (US-3.10) | user | 5 min |
+| `POST /compare/insights` `{symbols, start, end}` | AI overview of 2–4 stocks (US-4.7): same cache, allowance and validation path as readings | user | shared cache 7 days |
 | `POST /stocks/{symbol}/insights` `{strategy,start,end}` | AI signal interpretation (US-4.1 – 4.5, US-9.5): the reading, the headlines it was given, model, `generated_at`, `data_as_of`, `cached`, and my allowance. A new reading uses one of today's; a cached one is free. 429 `ai-quota` (with `Retry-After` to midnight WAT), 503 `ai-unavailable` (after one retry; nothing used) or `ai-off` | user | shared, per (symbol, strategy, range, data-date, newest-headline-id); 7 days |
 | `GET /me/ai` | Whether AI is on, the provider and model, and my readings left today (US-4.4) | user | — (`no-store`) |
 | `GET /stocks/{symbol}/news?days=30&limit=5&sort=recent\|importance` | `{mentions: [...], sector: [...]}`: headline, source, published_at, `published_at_estimated`, snippet (≤ 200 chars, plain text), url | user | 10 min |
@@ -252,6 +255,8 @@ The response shapes are defined as pydantic models in `schemas/` and are reviewe
 | `/invite#token=` · `/reset#token=` · `/verify#token=` | Email links: the token is read from the fragment and removed from the address bar | public |
 | `/terms` | Terms and disclaimer (full terms after legal review, D-06) | public |
 | `/app` → `/app/market` | Market today (snapshot) · `?start&end` for range mode | user |
+| `/app/stocks` | Stocks: digest cards or table, filters, Compare tray (US-2.9, US-2.10) | user |
+| `/app/stocks/compare?symbols=` | Compare up to 4 stocks (US-3.10) with an AI overview (US-4.7) | user |
 | `/app/stocks/:symbol` | Stock page: chart, indicators, signals, AI, peers, data | user |
 | `/app/news` | News: filterable by stock, sector, topic, scope, regulator, source, date (US-9.8) | user |
 | `/app/watchlist` | Watchlist | user |

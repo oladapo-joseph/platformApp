@@ -4,7 +4,7 @@
  * (US-1.9) and the legacy "add your email" banner (US-1.7).
  */
 import { useQueryClient } from "@tanstack/react-query";
-import { CandlestickChart, Newspaper, Shield, Star, UserRound, type LucideIcon } from "lucide-react";
+import { CandlestickChart, LayoutGrid, Newspaper, Shield, Star, UserRound, type LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useMatches, useNavigate } from "react-router";
 
@@ -36,6 +36,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/app/market", label: "Market", icon: CandlestickChart },
+  { to: "/app/stocks", label: "Stocks", icon: LayoutGrid },
   { to: "/app/news", label: "News", icon: Newspaper },
   { to: "/app/watchlist", label: "Watchlist", icon: Star },
   { to: "/app/account", label: "Account", icon: UserRound },

@@ -207,32 +207,3 @@ export function periodLabel(start: string, end: string): string {
 export function earliestStart(latest: string): string {
   return iso(subYears(parseISO(latest), 3));
 }
-
-export type SortKey = "symbol" | "close" | "change" | "pct" | "volume" | "value" | "trades" | "days";
-export const SORT_KEYS: SortKey[] = ["symbol", "close", "change", "pct", "volume", "value", "trades", "days"];
-
-/** `-pct` → { key: "pct", desc: true }. Unknown values fall back to value traded, largest first. */
-export function parseSort(raw: string | null): { key: SortKey; desc: boolean } {
-  const desc = raw?.startsWith("-") ?? true;
-  const key = (raw?.replace(/^-/, "") ?? "value") as SortKey;
-  return SORT_KEYS.includes(key) ? { key, desc } : { key: "value", desc: true };
-}
-
-export function matchesQuery(r: MarketRow, q: string): boolean {
-  const needle = q.trim().toLowerCase();
-  return !needle || r.symbol.toLowerCase().includes(needle) || r.company.toLowerCase().includes(needle);
-}
-
-/** Sort rows by a column; missing values always last, ties by ticker. */
-export function sortRows(rows: MarketRow[], key: SortKey, desc: boolean): MarketRow[] {
-  const dir = desc ? -1 : 1;
-  return [...rows].sort((a, b) => {
-    if (key === "symbol") return dir * a.symbol.localeCompare(b.symbol);
-    const x = a[key];
-    const y = b[key];
-    if (x === null && y === null) return a.symbol.localeCompare(b.symbol);
-    if (x === null) return 1;
-    if (y === null) return -1;
-    return dir * (x - y) || a.symbol.localeCompare(b.symbol);
-  });
-}
