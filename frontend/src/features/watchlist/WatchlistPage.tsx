@@ -87,7 +87,7 @@ function SignalNote({ signal }: { signal: SignalEvent | null | undefined }) {
     <span className="text-xs whitespace-nowrap">
       <span className={cn("font-medium", up ? "text-gain" : "text-loss")}>
         <span aria-hidden>{up ? "▲ " : "▼ "}</span>
-        {up ? "Buy" : "Sell"} signal
+        {up ? "Bullish" : "Bearish"} signal
       </span>
       <span className="text-fg-muted"> · {day(signal.date)}</span>
     </span>

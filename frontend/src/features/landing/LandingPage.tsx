@@ -44,7 +44,7 @@ const FEATURES: { icon: LucideIcon; title: string; body: string; points: string[
     body: "Daily prices and volume with the classic indicators, and the signals they produced, in plain words.",
     points: [
       "Moving averages, Bollinger bands, RSI, MACD",
-      "Buy and sell signals described, never advised",
+      "Bullish and bearish signals described, never advised",
       "Similar stocks and a CSV download",
     ],
     shot: "stock",

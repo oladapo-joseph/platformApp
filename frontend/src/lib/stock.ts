@@ -148,7 +148,7 @@ const WORDING: Record<string, { buy: string; sell: string }> = {
 
 /** What happened, never what to do (US-3.5). */
 export function signalWording(strategy: string, side: "buy" | "sell"): string {
-  return WORDING[strategy]?.[side] ?? (side === "buy" ? "Buy signal" : "Sell signal");
+  return WORDING[strategy]?.[side] ?? (side === "buy" ? "Bullish signal" : "Bearish signal");
 }
 
 /** % move from the signal's price to the latest close in the range. */
@@ -157,18 +157,18 @@ export function sinceSignal(s: SignalEvent, lastClose: number | null | undefined
 }
 
 export function signalSummary(signals: SignalEvent[], range: ChartRange, latest: string | null | undefined): string {
-  const buys = signals.filter((s) => s.side === "buy").length;
-  const sells = signals.length - buys;
+  const bulls = signals.filter((s) => s.side === "buy").length;
+  const bears = signals.length - bulls;
   const span = range === "ALL" ? "in all history" : range === "YTD" ? "this year" : `in ${RANGE_WORDS[range]}`;
-  const counts = `${buys} buy and ${sells} sell signal${sells === 1 ? "" : "s"} ${span}`;
+  const counts = `${bulls} bullish and ${bears} bearish signal${bears === 1 ? "" : "s"} ${span}`;
   const last = signals.at(-1);
   if (!last || !latest) return counts;
   const days = differenceInCalendarDays(parseISO(latest), parseISO(last.date));
   const ago = days === 0 ? "on the latest session" : days === 1 ? "1 day ago" : `${days} days ago`;
-  return `${counts}. Latest: ${last.side}, ${ago}.`;
+  return `${counts}. Latest: ${last.side === "buy" ? "bullish" : "bearish"}, ${ago}.`;
 }
 
-/** "MTNN, 6 months, down 19.03 percent, last ₦201.05, 1 buy and 2 sell signals" (US-3.11). */
+/** "MTNN, 6 months, down 19.03 percent, last ₦201.05, 1 bullish and 2 bearish signals" (US-3.11). */
 export function chartSummary(
   symbol: string,
   range: ChartRange,
@@ -176,9 +176,9 @@ export function chartSummary(
   last: number | null | undefined,
   signals: SignalEvent[],
 ): string {
-  const buys = signals.filter((s) => s.side === "buy").length;
+  const bulls = signals.filter((s) => s.side === "buy").length;
   const parts = [symbol, RANGE_WORDS[range], spokenChange(null, pct ?? null), `last ${price(last)}`];
-  parts.push(`${buys} buy and ${signals.length - buys} sell signals`);
+  parts.push(`${bulls} bullish and ${signals.length - bulls} bearish signals`);
   return parts.join(", ");
 }
 

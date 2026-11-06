@@ -122,7 +122,7 @@ export function SignalsPanel({
                       <td className="px-4 py-2">
                         <span className={cn("font-medium", s.side === "buy" ? "text-gain" : "text-loss")}>
                           <span aria-hidden>{s.side === "buy" ? "▲ " : "▼ "}</span>
-                          {s.side === "buy" ? "Buy" : "Sell"}
+                          {s.side === "buy" ? "Bullish" : "Bearish"}
                         </span>
                         <span className="block text-xs text-fg-2">{signalWording(strategy, s.side)}</span>
                       </td>

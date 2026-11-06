@@ -257,7 +257,7 @@ export const GLOSSARY: Term[] = [
     term: "Bullish and bearish",
     aka: ["bullish", "bearish", "neutral"],
     group: "Signals and AI",
-    body: "Bullish describes signs pointing to rising prices; bearish, to falling prices; neutral, to neither. An AI reading's stance uses these words.",
+    body: "Bullish describes signs pointing to rising prices; bearish, to falling prices; neutral, to neither. Signals are labelled bullish or bearish, and an AI reading's stance uses the same words. Neither is advice.",
   },
   {
     id: "confidence",

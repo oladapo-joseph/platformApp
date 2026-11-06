@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [Unreleased]
 
+### Changed — signal labels (2026-11-06)
+- Signals are labelled "▲ Bullish" / "▼ Bearish" everywhere (the stock page's signals table and summary, the watchlist, the landing page), as on Stocks, Compare and in AI readings; they said "Buy" / "Sell". The API's `side` stays `buy`/`sell`.
+- `python app.py --live` copies only the newest crawl's snapshots, prints each step as it goes and waits up to 15 minutes, so a slow connection to Atlas no longer stops it.
+
 ### Added — Stocks and Compare (2026-11-05, P4f, in review)
 - **Stocks** in the navigation (US-2.9, US-2.10): every stock for the session or a period as digest cards (your watchlist first, then most traded; price, change, sparkline, value, market cap, 52-week position, latest signal) or a table, with filters for sector and subsector, size, value traded, the latest signal, watchlist and traded only, a CSV export, and all of it in the URL. The full price list moved here from Market, whose "See all" links, breadth counts and a new "All N stocks" card open it.
 - **Compare** (US-3.10): up to 4 stocks from a common start with sector and all-stock averages, a legend that reads the hovered day, a table view, a side-by-side table of returns, risk, trading, size, indicators and signals, and how closely they move together. Opened from the Stocks tray, a stock page and its peers.

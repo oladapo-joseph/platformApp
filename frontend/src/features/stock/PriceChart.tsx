@@ -275,7 +275,7 @@ export default function PriceChart(props: PriceChartProps) {
     };
   }, [bars, indicators, type, overlays, panes, colors, index]);
 
-  // signal markers: ▲ below the bar for buy, ▼ above for sell; the selected one is larger
+  // signal markers: ▲ below the bar when bullish, ▼ above when bearish; the selected one is larger
   useEffect(() => {
     const main = mainRef.current;
     if (!main) return;
