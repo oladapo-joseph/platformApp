@@ -39,3 +39,5 @@ registry.json
 frontend/src/styles/tokens.css
 frontend/public/brand/
 frontend/public/favicon.svg
+
+brag-output/
